@@ -45,4 +45,9 @@ export const SIDEBAR_ITEMS_CONFIG: SidebarItemConfig[] = [
     label: 'Settings',
     href: '/dashboard/settings',
   },
+  {
+    iconName: 'logout',
+    label: 'Log Out',
+    href: '/logout',
+  },
 ];

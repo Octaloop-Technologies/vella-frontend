@@ -8,8 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
   
   /* Custom Brand Colors */
   --color-brand-primary: #007bff;
@@ -17,6 +15,9 @@
   --color-brand-white: #ffffff;
   --color-brand-black: #000000;
   --color-brand-gray-light: #f7f7f7;
+
+  --gradient-primary-gradient: linear-gradient(180deg, #8266D4 0%, #41288A 100%);
+  --gradient-primary-gradient-light: linear-gradient(180deg, #997CEB 0%, #41288A 100%);
   
   /* Additional semantic colors based on your palette */
   --color-primary: #007bff;
@@ -24,7 +25,9 @@
   --color-surface: #ffffff;
   --color-surface-dark: #000000;
   --color-neutral-50: #f7f7f7;
-}
+
+  --shadow-card: 0px 4px 40px #00000014;
+}   
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -36,5 +39,22 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.primary-gradient {
+  background: var(--gradient-primary-gradient);
+}
+
+.primary-gradient-text {
+  color: var(--gradient-primary-gradient);
+}
+
+
+.primary-gradient-light {
+  background: var(--gradient-primary-gradient-light);
+}
+
+.primary-gradient-light-text {
+  color: var(--gradient-primary-gradient-light);
 }

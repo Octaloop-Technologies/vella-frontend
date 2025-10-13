@@ -7,6 +7,7 @@ import {
   ChatIcon,
   HistoryIcon,
   SettingsIcon,
+  LogoutIcon,
 } from '@/components/icons';
 
 export const getIconComponent = (iconName: string) => {
@@ -19,6 +20,7 @@ export const getIconComponent = (iconName: string) => {
     chat: ChatIcon,
     history: HistoryIcon,
     settings: SettingsIcon,
+    logout: LogoutIcon,
   };
   
   return iconMap[iconName as keyof typeof iconMap] || DashboardIcon;
