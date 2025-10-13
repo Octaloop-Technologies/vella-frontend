@@ -53,7 +53,7 @@ export interface TopAgent extends Record<string, unknown> {
   statusVariant: 'active' | 'draft';
 }
 
-export interface Agent {
+export interface AgentsTable extends Record<string, unknown> {
   name: string;
   type: string;
   typeVariant: 'outbound' | 'inbound';

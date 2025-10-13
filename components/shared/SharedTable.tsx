@@ -1,29 +1,29 @@
 import React from 'react';
-import {
-  BadgeProps,
-  ProgressBarProps,
-  IconProps,
-  StarIconProps,
-  TableType,
-  TableProps,
-  ColumnConfig
-} from '@/types/table';
+import { BadgeProps, ProgressBarProps, IconProps, StarIconProps, TableType, TableProps, ColumnConfig } from '@/types/table';
+import { AgentIcon } from '@/components/icons';
 import Card from '@/components/shared/Card';
+import CopyIcon from '@/components/icons/CopyIcon';
+import EyeIcon from '@/components/icons/EyeIcon';
+import FileEditIcon from '@/components/icons/FileEditIcon';
+import PauseIcon from '@/components/icons/PauseIcon';
+import PlayIcon from '@/components/icons/PlayIcon';
+import TrashIcon from '@/components/icons/TrashIcon';
+import DownloadIcon from '@/components/icons/DownloadIcon';
+import { createPortal } from 'react-dom';
 
 // Badge Component
 const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
   const variants: Record<string, string> = {
-    active: 'bg-[#D1FAE5] text-[#059669] border border-[#6EE7B7]',
-    draft: 'bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]',
-    outbound: 'bg-[#DBEAFE] text-[#2563EB]',
-    inbound: 'bg-[#FCE7F3] text-[#DB2777]',
+    active: 'bg-[#25A83D1A] text-[#25A83D] border border-[#25A83D]',
+    draft: 'bg-[#0000001A] text-black',
+    outbound: 'bg-[#007BFF1A] text-[#41288A]',
+    inbound: 'bg-[#F624E11A] text-[#F624E1]',
     completed: 'bg-[#D1FAE5] text-[#059669]',
     abandoned: 'bg-[#FEE2E2] text-[#DC2626]',
     published: 'bg-[#D1FAE5] text-[#059669]',
   };
-
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${variants[variant] || variants.default} ${className}`}>
+    <span className={`inline-flex w-21 justify-center items-center px-4.5 py-2.5 rounded-full text-xs font-medium ${variants[variant] || variants.default} ${className}`}>
       {children}
     </span>
   );
@@ -32,35 +32,19 @@ const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className 
 // Progress Bar Component
 const ProgressBar: React.FC<ProgressBarProps> = ({ percentage, className = '' }) => {
   return (
-    <div className="w-full bg-[#F3F4F6] rounded-full h-2 overflow-hidden">
-      <div
-        className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] h-full rounded-full transition-all duration-300"
-        style={{ width: `${percentage}%` }}
-      />
+    <div className="w-full bg-[#F3F4F6] rounded-[10px] h-3 overflow-hidden">
+      <div className="bg-gradient-to-b from-[#8266D4] to-[#41288A] h-full rounded-full transition-all duration-300" style={{ width: `${percentage}%` }} />
     </div>
   );
 };
 
-// Icon Components
-const AgentIcon: React.FC<IconProps> = ({ className = '' }) => (
-  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br from-[#8266D4] to-[#41288A] flex items-center justify-center ${className}`}>
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 8C10.21 8 12 6.21 12 4C12 1.79 10.21 0 8 0C5.79 0 4 1.79 4 4C4 6.21 5.79 8 8 8ZM8 10C5.33 10 0 11.34 0 14V16H16V14C16 11.34 10.67 10 8 10Z" fill="white" />
-    </svg>
-  </div>
-);
-
-const EyeIcon: React.FC<IconProps> = ({ className = '' }) => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
-    <path d="M10 4C5 4 1.73 7.11 1 10c.73 2.89 4 6 9 6s8.27-3.11 9-6c-.73-2.89-4-6-9-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z" fill="#6B7280" />
-  </svg>
-);
-
 const DotsIcon: React.FC<IconProps> = ({ className = '' }) => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={className}>
-    <path d="M10 6C10.5523 6 11 5.55228 11 5C11 4.44772 10.5523 4 10 4C9.44772 4 9 4.44772 9 5C9 5.55228 9.44772 6 10 6Z" fill="#9CA3AF" />
-    <path d="M10 11C10.5523 11 11 10.5523 11 10C11 9.44772 10.5523 9 10 9C9.44772 9 9 9.44772 9 10C9 10.5523 9.44772 11 10 11Z" fill="#9CA3AF" />
-    <path d="M10 16C10.5523 16 11 15.5523 11 15C11 14.4477 10.5523 14 10 14C9.44772 14 9 14.4477 9 15C9 15.5523 9.44772 16 10 16Z" fill="#9CA3AF" />
+  <svg width="18" height="4" viewBox="0 0 18 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g opacity="0.5">
+      <circle cx="2" cy="2" r="2" fill="black" />
+      <circle cx="9" cy="2" r="2" fill="black" />
+      <circle cx="16" cy="2" r="2" fill="black" />
+    </g>
   </svg>
 );
 
@@ -68,6 +52,91 @@ const StarIcon: React.FC<StarIconProps> = ({ filled, className = '' }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#FCD34D" : "#E5E7EB"} className={className}>
     <path d="M8 0L10.163 5.26604L16 6.11567L12 10.2124L12.944 16L8 13.266L3.056 16L4 10.2124L0 6.11567L5.837 5.26604L8 0Z" />
   </svg>
+);
+
+// Separate Reusable Dropdown Component
+interface DropdownProps {
+  children: React.ReactNode;
+  trigger: React.ReactNode;
+}
+
+// --- Updated Dropdown Component ---
+const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState({ top: 0, left: 0 });
+
+  const handleToggle = () => {
+    if (!isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const dropdownWidth = 192; // w-48 = 12rem = 192px
+      let left = rect.right - dropdownWidth;
+
+      if (left < 0) {
+        left = rect.left;
+      }
+
+      const top = rect.bottom + 4; // mt-1 ≈ 4px
+
+      setPosition({ top, left });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  // Close dropdown when clicked outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        triggerRef.current && !triggerRef.current.contains(event.target as Node) &&
+        menuRef.current && !menuRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div>
+      <button ref={triggerRef} onClick={handleToggle} className="p-1 rounded cursor-pointer">
+        {trigger}
+      </button>
+
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="w-48 bg-white rounded-lg shadow-lg border border-[#41288A80] z-[9999] origin-top-right transition-all duration-200 ease-out"
+            style={{
+              position: 'fixed',
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+              transform: 'scale(1)',
+              opacity: 1,
+            }}
+          >
+            {children}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+};
+
+const DropdownItem: React.FC<{ icon: React.ReactNode; label: string; onClick?: () => void; className?: string }> = ({ icon, label, onClick, className = '' }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 text-sm text-[#1F2937] w-full text-left first:rounded-t-lg last:rounded-b-lg cursor-pointer hover:bg-[#F3F4F6] ${className}`}
+  >
+    {icon}
+    {label}
+  </button>
 );
 
 // Column Configuration based on table type
@@ -78,13 +147,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'agent',
           header: '',
-          width: '40%',
+          width: '60%',
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-3">
-              <AgentIcon />
+              <AgentIcon gradient={{ from: "#8266D4", to: "#41288A" }} />
               <div>
-                <div className="text-base font-semibold text-[#1F2937]">{String(row.name)}</div>
-                <div className="text-sm text-[#6B7280]">{String(row.conversations)}</div>
+                <div className="text-sm font-semibold text-black mb-1.5">{String(row.name)}</div>
+                <div className="text-xs text-black">{String(row.conversations)}</div>
               </div>
             </div>
           )
@@ -92,15 +161,15 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'progress',
           header: '',
-          width: '30%',
+          width: '20%',
           render: (row: Record<string, unknown>) => <ProgressBar percentage={Number(row.progress)} />
         },
         {
           key: 'success',
           header: '',
-          width: '20%',
+          width: '10%',
           render: (row: Record<string, unknown>) => (
-            <div className="text-sm font-medium text-[#1F2937]">{String(row.success)}</div>
+            <div className="text-xs font-medium text-black">{String(row.success)}</div>
           )
         },
         {
@@ -112,7 +181,6 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           )
         }
       ];
-
     case 'agents':
       return [
         {
@@ -120,7 +188,9 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           header: 'Agent Name',
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-3">
-              <AgentIcon />
+              <div className='h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center'>
+                <AgentIcon className='h-3 w-3 text-white' />
+              </div>
               <span className="text-sm font-medium text-[#1F2937]">{String(row.name)}</span>
             </div>
           )
@@ -138,25 +208,32 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'conversations',
           header: 'Conversations',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.conversations)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.conversations)}</span>
         },
         {
           key: 'successRate',
           header: 'Success Rate',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.successRate)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.successRate)}</span>
         },
         {
           key: 'lastActive',
           header: 'Last Active',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#6B7280]">{String(row.lastActive)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastActive)}</span>
         },
         {
           key: 'actions',
           header: 'Actions',
-          render: () => <button className="hover:bg-[#F3F4F6] p-1 rounded"><DotsIcon /></button>
+          render: () => (
+            <Dropdown trigger={<DotsIcon />}>
+              <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
+              <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" />
+              <DropdownItem icon={<EyeIcon />} label="View Details" />
+              <DropdownItem icon={<PauseIcon />} label="Deactivate Agent" />
+              <DropdownItem icon={<TrashIcon />} label="Delete Agent" className="text-[#DC2626]" />
+            </Dropdown>
+          )
         }
       ];
-
     case 'conversations':
       return [
         {
@@ -214,10 +291,11 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'actions',
           header: 'Actions',
-          render: () => <button className="hover:bg-[#F3F4F6] p-2 rounded-lg"><EyeIcon /></button>
+          render: () => (
+            <button className="hover:bg-[#F3F4F6] p-2 rounded-lg"><EyeIcon /></button>
+          )
         }
       ];
-
     case 'documents':
       return [
         {
@@ -248,10 +326,15 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'actions',
           header: 'Actions',
-          render: () => <button className="hover:bg-[#F3F4F6] p-1 rounded"><DotsIcon /></button>
+          render: () => (
+            <Dropdown trigger={<DotsIcon />}>
+              <DropdownItem icon={<EyeIcon />} label="View Details" />
+              <DropdownItem icon={<DownloadIcon />} label="Download" />
+              <DropdownItem icon={<TrashIcon />} label="Delete Document" className="text-[#DC2626]" />
+            </Dropdown>
+          )
         }
       ];
-
     default:
       return [];
   }
@@ -269,9 +352,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
 }: TableProps<T>): React.ReactElement {
   const [searchTerm, setSearchTerm] = React.useState<string>('');
   const [view, setView] = React.useState<'list' | 'grid'>('list');
-
   const columns = getColumnConfig(type);
-
   const filteredData = React.useMemo(() => {
     if (!searchTerm) return data;
     return data.filter(row =>
@@ -287,7 +368,6 @@ export default function SharedTable<T extends Record<string, unknown>>({
         <div className="p-6">
           <div className="flex items-center justify-between">
             {title && <h2 className="text-lg font-medium text-black">{title}</h2>}
-
             <div className="flex items-center gap-4">
               {showSearch && (
                 <div className="relative">
@@ -303,21 +383,14 @@ export default function SharedTable<T extends Record<string, unknown>>({
                   />
                 </div>
               )}
-
               {viewToggle && (
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setView('list')}
-                    className={`p-2 rounded-lg border ${view === 'list' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`}
-                  >
+                  <button onClick={() => setView('list')} className={`p-2 rounded-lg border ${view === 'list' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`} >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill={view === 'list' ? '#8B5CF6' : '#9CA3AF'}>
                       <path d="M3 4h14M3 10h14M3 16h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </button>
-                  <button
-                    onClick={() => setView('grid')}
-                    className={`p-2 rounded-lg border ${view === 'grid' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`}
-                  >
+                  <button onClick={() => setView('grid')} className={`p-2 rounded-lg border ${view === 'grid' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`} >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill={view === 'grid' ? '#8B5CF6' : '#9CA3AF'}>
                       <rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" />
                       <rect x="11" y="3" width="6" height="6" rx="1" fill="currentColor" />
@@ -331,31 +404,24 @@ export default function SharedTable<T extends Record<string, unknown>>({
           </div>
         </div>
       )}
-
       <div className="overflow-x-auto">
         <table className="w-full">
-          {type !== 'topAgents' && <thead>
-            <tr className="border-b border-[#F3F4F6]">
-              {columns.map((column, index) => (
-                <th
-                  key={index}
-                  className="px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap"
-                  style={{ width: column.width }}
-                >
-                  {column.header}
-                </th>
-              ))}
-            </tr>
-          </thead>}
-
+          {type !== 'topAgents' && (
+            <thead>
+              <tr>
+                {columns.map((column, index) => (
+                  <th key={index} className="px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap" style={{ width: column.width }} >
+                    {column.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
           <tbody>
             {filteredData.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className="border-b border-[#F3F4F6] last:border-b-0 hover:bg-[#F9FAFB] transition-colors"
-              >
+              <tr key={rowIndex} className="border-b border-[#0000001A] last:border-b-0 hover:bg-[#F9FAFB] transition-colors" >
                 {columns.map((column, colIndex) => (
-                  <td key={colIndex} className="px-6 py-4">
+                  <td key={colIndex} className="px-6 py-4" style={column.width ? { width: column.width } : undefined} >
                     {column.render ? column.render(row) : String(row[column.key])}
                   </td>
                 ))}
