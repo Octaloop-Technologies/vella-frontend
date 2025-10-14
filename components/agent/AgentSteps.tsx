@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StepNavigation from './StepNavigation';
 import { useAgentCreation } from '@/contexts/AgentCreationContext';
@@ -23,9 +23,11 @@ export function Step3Channels() {
     { id: 'gohighlevel', name: 'GoHighLevel' },
   ];
 
+  // Assume connect buttons update selected, but not implemented; reusing as is
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="mb-8">
+    <div>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Channels</h1>
         <p className="text-[#6E6E6E] text-sm">Connect your agent to communication channels</p>
       </div>
@@ -102,15 +104,15 @@ export function Step4PhoneNumber() {
   const { agentData, updateAgentData } = useAgentCreation();
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="mb-8">
+    <div>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Phone Number</h1>
         <p className="text-[#6E6E6E] text-sm">Assign a phone number for voice communication</p>
       </div>
 
       <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Availble Phone Numbers</label>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Available Phone Numbers</label>
           <div className="relative">
             <select
               value={agentData.phoneNumber}
@@ -153,6 +155,143 @@ export function Step4PhoneNumber() {
   );
 }
 
+export function Step3WidgetSettings() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const agentType = searchParams.get('type') || 'widget';
+  const { agentData, updateAgentData } = useAgentCreation();
+
+  const positionOptions = ['Bottom Right', 'Bottom Left'];
+
+  const positionMap: { [key: string]: string } = {
+    'Bottom Right': 'bottom-right',
+    'Bottom Left': 'bottom-left',
+  };
+
+  const embedCode = `
+<script>
+(function(){
+var w = window;
+var d = document;
+var s = d.createElement('script');
+s.src = 'https://cdn.agentbuilder.com/widget.js';
+s.async = true;
+s.dataset.agentId = 'gfd';
+s.dataset.widgetType = 'chat';
+s.dataset.color = '#41288A';
+s.body.position = '${positionMap[agentData.widgetPosition] || 'bottom-left'}';
+d.body.appendChild(s);
+})();
+</script>
+  `.trim();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(embedCode);
+    // Add toast or feedback if needed
+  };
+
+  const previewPositionStyle = agentData.widgetPosition === 'Bottom Right' ? 'right-4' : 'left-4';
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Widget Settings</h1>
+        <p className="text-[#6E6E6E] text-sm">Customize your widget appearance and behavior</p>
+      </div>
+
+      <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8 space-y-8">
+        {/* Chat Bubble */}
+        <div>
+          <h3 className="text-lg font-semibold text-[#1E1E1E] mb-2">Chat Bubble</h3>
+          <p className="text-sm text-[#6E6E6E] mb-4">Text based chat widget</p>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Button Text</label>
+          <input
+            type="text"
+            placeholder="Type..."
+            value={agentData.buttonText}
+            onChange={(e) => updateAgentData({ buttonText: e.target.value })}
+            className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors"
+          />
+        </div>
+
+        {/* Voice Call Button */}
+        <div>
+          <h3 className="text-lg font-semibold text-[#1E1E1E] mb-2">Voice Call Button</h3>
+          <p className="text-sm text-[#6E6E6E] mb-4">Voice calling widget</p>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Button Text</label>
+          <input
+            type="text"
+            placeholder="Type..."
+            value={agentData.voiceButtonText}
+            onChange={(e) => updateAgentData({ voiceButtonText: e.target.value })}
+            className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors"
+          />
+        </div>
+
+        {/* Widget Position */}
+        <div>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Widget Position</label>
+          <div className="relative">
+            <select
+              value={agentData.widgetPosition}
+              onChange={(e) => updateAgentData({ widgetPosition: e.target.value })}
+              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+            >
+              {positionOptions.map((pos) => (
+                <option key={pos} value={pos}>{pos}</option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#1E1E1E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Preview */}
+        <div>
+          <h3 className="text-lg font-semibold text-[#1E1E1E] mb-4">Live Preview</h3>
+          <div className="relative h-64 bg-white border border-[#E5E7EB] rounded-[16px] overflow-hidden">
+            {agentData.buttonText && (
+              <button className={`absolute bottom-4 ${previewPositionStyle} px-6 py-3 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white font-medium`}>
+                {agentData.buttonText || 'Chat with Us'}
+              </button>
+            )}
+            {agentData.voiceButtonText && (
+              <button className={`absolute bottom-4 ${agentData.widgetPosition === 'Bottom Right' ? 'right-32' : 'left-32'} px-6 py-3 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white font-medium flex items-center space-x-2`}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M18.3332 14.1V16.6C18.3341 16.8321 18.2866 17.0618 18.1936 17.2745C18.1006 17.4871 17.9643 17.678 17.7933 17.8349C17.6222 17.9918 17.4203 18.1112 17.2005 18.1856C16.9806 18.26 16.7477 18.288 16.5165 18.2683C13.9522 17.9892 11.489 17.1117 9.32486 15.7083C7.31139 14.4288 5.60431 12.7217 4.32486 10.7083C2.91651 8.53432 2.03898 6.05908 1.76653 3.48332C1.7469 3.25281 1.77477 3.02055 1.84895 2.80127C1.92313 2.58199 2.04214 2.38049 2.19862 2.2096C2.3551 2.03871 2.54548 1.90218 2.75768 1.80869C2.96988 1.7152 3.19913 1.66696 3.43153 1.66666H5.93153C6.32967 1.66286 6.71497 1.80582 7.0168 2.06953C7.31863 2.33324 7.51541 2.69946 7.56819 3.09499C7.66725 3.88464 7.85656 4.66126 8.13236 5.40832C8.24117 5.68967 8.27129 5.99579 8.21952 6.29257C8.16775 6.58935 8.03613 6.86621 7.83986 7.09166L6.79153 8.13999C7.97795 10.2286 9.77127 12.0219 11.8599 13.2083L12.9082 12.16C13.1337 11.9637 13.4105 11.8321 13.7073 11.7804C14.0041 11.7286 14.3102 11.7587 14.5915 11.8675C15.3386 12.1433 16.1152 12.3326 16.9049 12.4317C17.3048 12.4849 17.6745 12.6855 17.9388 12.9927C18.2032 13.3 18.3433 13.6913 18.3332 14.1Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>{agentData.voiceButtonText || 'Call Us'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Embed Code */}
+        <div>
+          <h3 className="text-lg font-semibold text-[#1E1E1E] mb-4">Embed Code</h3>
+          <div className="relative bg-[#F3F0FF] rounded-[10px] p-4 font-mono text-sm text-[#1E1E1E]">
+            <pre className="whitespace-pre-wrap">{embedCode}</pre>
+            <button
+              onClick={handleCopy}
+              className="absolute top-4 right-4 px-4 py-2 rounded-[8px] bg-[#8266D4] text-white font-medium hover:opacity-90 transition-opacity"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <StepNavigation
+        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=2`)}
+        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4`)}
+      />
+    </div>
+  );
+}
+
 export function Step5ReviewPublish() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -164,9 +303,11 @@ export function Step5ReviewPublish() {
     router.push('/dashboard/agent');
   };
 
+  const previousStep = agentType === 'widget' ? 3 : 4;
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="mb-8">
+    <div>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Review & Publish</h1>
         <p className="text-[#6E6E6E] text-sm">Review your agent configuration before publishing</p>
       </div>
@@ -195,12 +336,45 @@ export function Step5ReviewPublish() {
             </p>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-[#6E6E6E]">Integrations</label>
-            <p className="text-base text-[#1E1E1E] mt-1">
-              {(agentData.selectedIntegrations || []).length} CRM integration selected
-            </p>
-          </div>
+          {agentType !== 'widget' && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Integrations</label>
+                <p className="text-base text-[#1E1E1E] mt-1">
+                  {(agentData.selectedIntegrations || []).length} CRM integration selected
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Phone Number</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.phoneNumber || '-'}</p>
+              </div>
+            </>
+          )}
+
+          {agentType === 'widget' && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Language</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.language || '-'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Voice</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.voice || '-'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Button Text</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.buttonText || '-'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Voice Button Text</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.voiceButtonText || '-'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#6E6E6E]">Widget Position</label>
+                <p className="text-base text-[#1E1E1E] mt-1">{agentData.widgetPosition || '-'}</p>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="pt-6 border-t border-[#E5E7EB]">
@@ -218,7 +392,7 @@ export function Step5ReviewPublish() {
 
       <div className="flex items-center justify-between mt-8">
         <button
-          onClick={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4`)}
+          onClick={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${previousStep}`)}
           className="px-8 py-3 rounded-[10px] border border-[#E5E7EB] bg-white text-[#1E1E1E] font-medium hover:bg-[#F9FAFB] transition-colors flex items-center space-x-2"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

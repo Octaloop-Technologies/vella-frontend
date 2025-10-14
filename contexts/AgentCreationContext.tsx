@@ -9,16 +9,22 @@ interface AgentCreationData {
   description: string;
   language: string;
   personaTune: string;
+  voice: string; // For widget type
   
   // Step 2
   selectedDocuments: string[];
   
-  // Step 3
+  // Step 3 (inbound/outbound)
   selectedChannels: string[];
   selectedIntegrations: string[];
   
-  // Step 4
+  // Step 4 (inbound/outbound)
   phoneNumber: string;
+
+  // Widget-specific
+  buttonText: string;
+  voiceButtonText: string;
+  widgetPosition: string;
 }
 
 interface AgentCreationContextType {
@@ -33,10 +39,14 @@ const defaultAgentData: AgentCreationData = {
   description: '',
   language: 'Select',
   personaTune: '',
+  voice: 'Select',
   selectedDocuments: [],
   selectedChannels: [],
   selectedIntegrations: [],
   phoneNumber: '',
+  buttonText: '',
+  voiceButtonText: '',
+  widgetPosition: 'Bottom Right',
 };
 
 const AgentCreationContext = createContext<AgentCreationContextType | undefined>(undefined);

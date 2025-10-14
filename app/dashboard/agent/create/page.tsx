@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AgentCreationLayout from '@/components/agent/AgentCreationLayout';
 import StepNavigation from '@/components/agent/StepNavigation';
 import { AgentCreationProvider, useAgentCreation } from '@/contexts/AgentCreationContext';
-import { Step3Channels, Step4PhoneNumber, Step5ReviewPublish } from '@/components/agent/AgentSteps';
+import { Step3Channels, Step3WidgetSettings, Step4PhoneNumber, Step5ReviewPublish } from '@/components/agent/AgentSteps';
 
 // Step Components
 function Step1() {
@@ -23,95 +23,48 @@ function Step1() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Basic Details</h1>
-          <p className="text-[#6E6E6E] text-sm">
-            Provide the basic information for your agent
-          </p>
-        </div>
+    <div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Basic Details</h1>
+        <p className="text-[#6E6E6E] text-sm">
+          Provide the basic information for your agent
+        </p>
+      </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8 space-y-6">
-          {/* Agent Name and Agent Type in one row */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Agent Name */}
-            <div>
-              <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-                Agent Name
-              </label>
-              <input
-                type="text"
-                placeholder="Type..."
-                value={agentData.agentName}
-                onChange={(e) => updateAgentData({ agentName: e.target.value })}
-                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors"
-              />
-            </div>
-
-            {/* Agent Type Dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-                Agent Type
-              </label>
-              <div className="relative">
-                <select
-                  value={agentData.agentTypeDropdown}
-                  onChange={(e) => updateAgentData({ agentTypeDropdown: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-                >
-                  <option>Agent Type</option>
-                  <option>Inbound</option>
-                  <option>Outbound</option>
-                  <option>Widget</option>
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                    <path
-                      d="M1 1.5L6 6.5L11 1.5"
-                      stroke="#1E1E1E"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
+      {/* Form */}
+      <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8 space-y-6">
+        {/* Agent Name and Agent Type in one row */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Agent Name */}
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Description
+              Agent Name
             </label>
-            <textarea
+            <input
+              type="text"
               placeholder="Type..."
-              value={agentData.description}
-              onChange={(e) => updateAgentData({ description: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
+              value={agentData.agentName}
+              onChange={(e) => updateAgentData({ agentName: e.target.value })}
+              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors"
             />
           </div>
 
-          {/* Language */}
+          {/* Agent Type Dropdown */}
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Language
+              Agent Type
             </label>
             <div className="relative">
               <select
-                value={agentData.language}
-                onChange={(e) => updateAgentData({ language: e.target.value })}
+                value={agentData.agentTypeDropdown}
+                onChange={(e) => updateAgentData({ agentTypeDropdown: e.target.value })}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
               >
-                <option>Select</option>
-                <option>English</option>
-                <option>Spanish</option>
-                <option>French</option>
-                <option>German</option>
-                <option>Chinese</option>
+                <option>Agent Type</option>
+                <option>Inbound</option>
+                <option>Outbound</option>
+                <option>Widget</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -126,8 +79,86 @@ function Step1() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Persona & Tune */}
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+            Description
+          </label>
+          <textarea
+            placeholder="Type..."
+            value={agentData.description}
+            onChange={(e) => updateAgentData({ description: e.target.value })}
+            rows={4}
+            className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
+          />
+        </div>
+
+        {/* Language */}
+        <div>
+          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+            Language
+          </label>
+          <div className="relative">
+            <select
+              value={agentData.language}
+              onChange={(e) => updateAgentData({ language: e.target.value })}
+              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+            >
+              <option>Select</option>
+              <option>English</option>
+              <option>Spanish</option>
+              <option>French</option>
+              <option>German</option>
+              <option>Chinese</option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                <path
+                  d="M1 1.5L6 6.5L11 1.5"
+                  stroke="#1E1E1E"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {agentType === 'widget' ? (
+          /* Voice for widget */
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Voice
+            </label>
+            <div className="relative">
+              <select
+                value={agentData.voice}
+                onChange={(e) => updateAgentData({ voice: e.target.value })}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+              >
+                <option>Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Neutral</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Persona & Tune for inbound/outbound */
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
               Persona & Tune
@@ -140,15 +171,16 @@ function Step1() {
               className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
             />
           </div>
-        </div>
-
-        {/* Navigation Buttons */}
-        <StepNavigation onPrevious={handlePrevious} onNext={handleNext} />
+        )}
       </div>
+
+      {/* Navigation Buttons */}
+      <StepNavigation onPrevious={handlePrevious} onNext={handleNext} />
+    </div>
   );
 }
 
-// Step 2: Knowledge Base (simplified - add full implementation)
+// Step 2: Knowledge Base (same for all, updated onNext conditional)
 function Step2() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -170,9 +202,11 @@ function Step2() {
     }
   };
 
+  const nextStep = agentType === 'widget' ? 3 : 3; // For widget, next is 3 (widget settings), else 3 (channels)
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="mb-8">
+    <div>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Knowledge Base</h1>
         <p className="text-[#6E6E6E] text-sm">Select documents to power your agent's knowledge</p>
       </div>
@@ -217,7 +251,7 @@ function Step2() {
 
       <StepNavigation
         onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=1`)}
-        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=3`)}
+        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${nextStep}`)}
       />
     </div>
   );
@@ -229,19 +263,35 @@ function CreateAgentContent() {
   const step = parseInt(searchParams.get('step') || '1');
 
   const renderStep = () => {
-    switch (step) {
-      case 1:
-        return <Step1 />;
-      case 2:
-        return <Step2 />;
-      case 3:
-        return <Step3Channels />;
-      case 4:
-        return <Step4PhoneNumber />;
-      case 5:
-        return <Step5ReviewPublish />;
-      default:
-        return <Step1 />;
+    if (agentType === 'widget') {
+      switch (step) {
+        case 1:
+          return <Step1 />;
+        case 2:
+          return <Step2 />;
+        case 3:
+          return <Step3WidgetSettings />;
+        case 4:
+          return <Step5ReviewPublish />;
+        default:
+          return <Step1 />;
+      }
+    } else {
+      // inbound or outbound
+      switch (step) {
+        case 1:
+          return <Step1 />;
+        case 2:
+          return <Step2 />;
+        case 3:
+          return <Step3Channels />;
+        case 4:
+          return <Step4PhoneNumber />;
+        case 5:
+          return <Step5ReviewPublish />;
+        default:
+          return <Step1 />;
+      }
     }
   };
 
