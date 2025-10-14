@@ -8,6 +8,8 @@ import Card from '@/components/shared/Card';
 import Input from '@/components/shared/Input';
 import ListViewIcon from '@/components/icons/ListViewIcon';
 import CardViewIcon from '@/components/icons/CardViewIcon';
+import SearchIcon from '@/components/icons/SearchIcon';
+import AgentTypeModal from '@/components/agent/AgentTypeModal';
 
 // Agent Card Component for Grid View
 const AgentCard = ({ agent }: { agent: AgentsTable }) => {
@@ -74,6 +76,7 @@ export default function Agent() {
   const [filterStatus, setFilterStatus] = useState('All Agents');
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const agentsData: AgentsTable[] = [
     {
@@ -134,7 +137,10 @@ export default function Agent() {
               <h1 className="text-2xl font-semibold text-black">Agent Management</h1>
               <p className="text-[#6B7280] mt-1 text-sm">Create and manage your AI agents</p>
             </div>
-            <button className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm"
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
@@ -152,10 +158,12 @@ export default function Agent() {
                 </svg>
               </div>
               <Input
+                type="text"
                 placeholder="Search agents..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className='w-full'
+                icon={<SearchIcon />}
               />
             </div>
 
@@ -237,6 +245,9 @@ export default function Agent() {
           )}
         </Card>
       </div>
+
+      {/* Agent Type Modal */}
+      <AgentTypeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </DashboardLayout>
   );
 }
