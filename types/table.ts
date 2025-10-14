@@ -31,7 +31,7 @@ export interface ColumnConfig<T> {
 }
 
 // Table Types
-export type TableType = 'topAgents' | 'agents' | 'conversations' | 'documents';
+export type TableType = 'topAgents' | 'agents' | 'conversations' | 'documents' | 'workflows';
 
 export interface TableProps<T> {
   type: TableType;
@@ -62,6 +62,18 @@ export interface AgentsTable extends Record<string, unknown> {
   conversations: string;
   successRate: string;
   lastActive: string;
+}
+
+export interface WorkflowsTable extends Record<string, unknown> {
+  name: string;
+  linkedAgent: string;
+  status: string;
+  statusVariant: 'published' | 'draft' | 'active';
+  nodes: number;
+  lastEdited: string;
+  onViewDetails?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export interface Conversation {

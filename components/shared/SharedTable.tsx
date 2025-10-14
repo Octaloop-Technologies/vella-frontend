@@ -60,7 +60,6 @@ interface DropdownProps {
   trigger: React.ReactNode;
 }
 
-// --- Updated Dropdown Component ---
 const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -84,7 +83,6 @@ const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
     setIsOpen(!isOpen);
   };
 
-  // Close dropdown when clicked outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -121,7 +119,14 @@ const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
               opacity: 1,
             }}
           >
-            {children}
+            {React.Children.map(children, (child) => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child as React.ReactElement<{ closeDropdown?: () => void }>, {
+                  closeDropdown: () => setIsOpen(false),
+                });
+              }
+              return child;
+            })}
           </div>,
           document.body
         )}
@@ -129,19 +134,78 @@ const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
   );
 };
 
-const DropdownItem: React.FC<{ icon: React.ReactNode; label: string; onClick?: () => void; className?: string }> = ({ icon, label, onClick, className = '' }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 text-sm text-[#1F2937] w-full text-left first:rounded-t-lg last:rounded-b-lg cursor-pointer hover:bg-[#F3F4F6] ${className}`}
-  >
-    {icon}
-    {label}
-  </button>
-);
+const DropdownItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  className?: string;
+  closeDropdown?: () => void;
+}> = ({ icon, label, onClick, className = '', closeDropdown }) => {
+  const handleClick = () => {
+    if (onClick) onClick();
+    if (closeDropdown) closeDropdown();
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`flex items-center gap-2 px-4 py-2 text-sm text-[#1F2937] w-full text-left first:rounded-t-lg last:rounded-b-lg cursor-pointer hover:bg-[#F3F4F6] ${className}`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+};
 
 // Column Configuration based on table type
 const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): ColumnConfig<T>[] => {
   switch (type) {
+    case 'workflows':
+      return [
+        {
+          key: 'name',
+          header: 'Workflow Name',
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium text-[#1F2937]">{String(row.name)}</span>
+          )
+        },
+        {
+          key: 'linkedAgent',
+          header: 'Linked Agent',
+          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.linkedAgent)}</span>
+        },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (row: Record<string, unknown>) => <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
+        },
+        {
+          key: 'nodes',
+          header: 'Nodes',
+          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.nodes)}</span>
+        },
+        {
+          key: 'lastEdited',
+          header: 'Last Edited',
+          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.lastEdited)}</span>
+        },
+        {
+          key: 'actions',
+          header: 'Actions',
+          render: (row: Record<string, unknown>) => (
+            <Dropdown trigger={<DotsIcon />}>
+              <DropdownItem icon={<FileEditIcon />} label="Edit Workflow" onClick={row.onEdit as () => void} />
+              <DropdownItem icon={<EyeIcon />} label="View Details" onClick={row.onViewDetails as () => void} />
+              <DropdownItem
+                icon={<TrashIcon />}
+                label="Delete Workflow"
+                className="text-[#DC2626]"
+                onClick={row.onDelete as () => void}
+              />
+            </Dropdown>
+          )
+        }
+      ];
     case 'topAgents':
       return [
         {
@@ -223,13 +287,22 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'actions',
           header: 'Actions',
-          render: () => (
+          render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
               <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
               <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" />
-              <DropdownItem icon={<EyeIcon />} label="View Details" />
+              <DropdownItem
+                icon={<EyeIcon />}
+                label="View Details"
+                onClick={row.onViewDetails as () => void}
+              />
               <DropdownItem icon={<PauseIcon />} label="Deactivate Agent" />
-              <DropdownItem icon={<TrashIcon />} label="Delete Agent" className="text-[#DC2626]" />
+              <DropdownItem
+                icon={<TrashIcon />}
+                label="Delete Agent"
+                className="text-[#DC2626]"
+                onClick={row.onDelete as () => void}
+              />
             </Dropdown>
           )
         }

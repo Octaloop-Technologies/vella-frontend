@@ -10,9 +10,19 @@ import ListViewIcon from '@/components/icons/ListViewIcon';
 import CardViewIcon from '@/components/icons/CardViewIcon';
 import SearchIcon from '@/components/icons/SearchIcon';
 import AgentTypeModal from '@/components/agent/AgentTypeModal';
+import AgentDetailModal from '@/components/agent/AgentDetailModal';
+import DeleteAgentModal from '@/components/agent/DeleteAgentModal';
 
 // Agent Card Component for Grid View
-const AgentCard = ({ agent }: { agent: AgentsTable }) => {
+const AgentCard = ({ 
+  agent, 
+  onViewDetails, 
+  onDelete 
+}: { 
+  agent: AgentsTable;
+  onViewDetails: () => void;
+  onDelete: () => void;
+}) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
       <div className="p-6">
@@ -41,13 +51,29 @@ const AgentCard = ({ agent }: { agent: AgentsTable }) => {
               </div>
             </div>
           </div>
-          <button className="text-[#9CA3AF] hover:text-[#6B7280]">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <circle cx="10" cy="5" r="2" />
-              <circle cx="10" cy="10" r="2" />
-              <circle cx="10" cy="15" r="2" />
-            </svg>
-          </button>
+          <div className="relative group">
+            <button className="text-[#9CA3AF] hover:text-[#6B7280]">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <circle cx="10" cy="5" r="2" />
+                <circle cx="10" cy="10" r="2" />
+                <circle cx="10" cy="15" r="2" />
+              </svg>
+            </button>
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 hidden group-hover:block">
+              <button
+                onClick={onViewDetails}
+                className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center"
+              >
+                View Details
+              </button>
+              <button
+                onClick={onDelete}
+                className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center text-[#DC2626]"
+              >
+                Delete Agent
+              </button>
+            </div>
+          </div>
         </div>
 
         <p className="text-sm text-[#6B7280] mb-4">Helps qualify leads and schedule demos</p>
@@ -77,6 +103,10 @@ export default function Agent() {
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AgentsTable | null>(null);
+  const [agentToDelete, setAgentToDelete] = useState<AgentsTable | null>(null);
 
   const agentsData: AgentsTable[] = [
     {
@@ -90,7 +120,7 @@ export default function Agent() {
       lastActive: '2 minutes ago'
     },
     {
-      name: 'Sales Assistant',
+      name: 'Support Bot',
       type: 'Inbound',
       typeVariant: 'inbound',
       status: 'Active',
@@ -100,7 +130,7 @@ export default function Agent() {
       lastActive: '2 minutes ago'
     },
     {
-      name: 'Sales Assistant',
+      name: 'Lead Generator',
       type: 'Outbound',
       typeVariant: 'outbound',
       status: 'Active',
@@ -110,7 +140,7 @@ export default function Agent() {
       lastActive: '2 minutes ago'
     },
     {
-      name: 'Sales Assistant',
+      name: 'Customer Success',
       type: 'Outbound',
       typeVariant: 'outbound',
       status: 'Active',
@@ -126,6 +156,29 @@ export default function Agent() {
     const matchesFilter = filterStatus === 'All Agents' || agent.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  const handleViewDetails = (agent: AgentsTable) => {
+    setSelectedAgent(agent);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDeleteAgent = (agent: AgentsTable) => {
+    setAgentToDelete(agent);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    // Add your delete logic here
+    console.log('Deleting agent:', agentToDelete?.name);
+    setAgentToDelete(null);
+  };
+
+  // Updated SharedTable data with action handlers
+  const tableData = filteredData.map(agent => ({
+    ...agent,
+    onViewDetails: () => handleViewDetails(agent),
+    onDelete: () => handleDeleteAgent(agent)
+  }));
 
   return (
     <DashboardLayout>
@@ -234,20 +287,36 @@ export default function Agent() {
           {view === 'list' ? (
             <SharedTable<AgentsTable>
               type="agents"
-              data={filteredData}
+              data={tableData}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredData.map((agent, index) => (
-                <AgentCard key={index} agent={agent} />
+                <AgentCard 
+                  key={index} 
+                  agent={agent} 
+                  onViewDetails={() => handleViewDetails(agent)}
+                  onDelete={() => handleDeleteAgent(agent)}
+                />
               ))}
             </div>
           )}
         </Card>
       </div>
 
-      {/* Agent Type Modal */}
+      {/* Modals */}
       <AgentTypeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AgentDetailModal 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)}
+        agent={selectedAgent || undefined}
+      />
+      <DeleteAgentModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        agentName={agentToDelete?.name}
+        onConfirmDelete={handleConfirmDelete}
+      />
     </DashboardLayout>
   );
 }

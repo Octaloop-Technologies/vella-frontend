@@ -36,10 +36,28 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-montserrat), sans-serif;
+}
+
+/* Bird Float Animation */
+@keyframes floatBird {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.bird-float {
+  animation: floatBird 3s ease-in-out infinite;
 }
 
 .primary-gradient {
