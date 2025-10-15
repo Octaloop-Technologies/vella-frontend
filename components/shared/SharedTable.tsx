@@ -364,8 +364,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'actions',
           header: 'Actions',
-          render: () => (
-            <button className="hover:bg-[#F3F4F6] p-2 rounded-lg"><EyeIcon /></button>
+          render: (row: Record<string, unknown>) => (
+            <button 
+              onClick={row.onViewDetails as () => void}
+              className="hover:bg-[#F3F4F6] p-2 rounded-lg"
+            >
+              <EyeIcon />
+            </button>
           )
         }
       ];

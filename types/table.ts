@@ -76,7 +76,7 @@ export interface WorkflowsTable extends Record<string, unknown> {
   onDelete?: () => void;
 }
 
-export interface Conversation {
+export interface Conversation extends Record<string, unknown> {
   customerName: string;
   customerEmail: string;
   agent: string;
@@ -90,7 +90,7 @@ export interface Conversation {
   time: string;
 }
 
-export interface Document {
+export interface Document extends Record<string, unknown> {
   name: string;
   type: string;
   status: string;

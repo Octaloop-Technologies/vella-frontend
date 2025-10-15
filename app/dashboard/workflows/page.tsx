@@ -69,8 +69,8 @@ export default function Workflows() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-black">Knowledge Base</h1>
-              <p className="text-[#6B7280] mt-1 text-sm">Manage documents and content for your AI agents</p>
+              <h1 className="text-2xl font-semibold text-black">Workflows</h1>
+              <p className="text-[#6B7280] mt-1 text-sm">Create and manage your workflows</p>
             </div>
             <Link href="/dashboard/workflows/create">
               <button className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm">
