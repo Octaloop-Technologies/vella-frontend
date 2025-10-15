@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Waveform from '../icons/Waveform';
 
 const HeroSection: React.FC = () => {
     return (
@@ -71,7 +72,8 @@ const HeroSection: React.FC = () => {
                 <div className="relative flex items-center justify-center w-full h-full">
                     {/* Waveform Background */}
 
-                    <Image src="/svgs/waveform.svg" alt="Waveform Background" width={400} height={400} className="absolute inset-0 w-full h-full object-contain" />
+                    {/* <Image src="/svgs/waveform.svg" alt="Waveform Background" width={400} height={400} className="absolute inset-0 w-full h-full object-contain" /> */}
+                    <Waveform />
 
                     {/* Bird Illustration with Float Animation */}
                     <Image
