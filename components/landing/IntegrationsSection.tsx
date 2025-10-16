@@ -21,13 +21,15 @@ const IntegrationsSection: React.FC = () => {
 
   return (
     <section id="integrations" className="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      <div className="absolute -left-96 w-[900px] h-[1000px] bg-[#00CACF] rounded-full blur-[150px] opacity-10"></div>
+      <div className="absolute -right-36 -bottom-36 w-[900px] h-[1000px] bg-[#A167EC] rounded-full blur-[100px] opacity-20"></div>
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-5xl py-1 font-bold bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent mb-4">
+          <h2 className="text-6xl py-1 font-bold bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent mb-3">
             Connect Everything
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-2xl text-[#4A5565]">
             Seamless integrations with your favorite tools
           </p>
         </div>

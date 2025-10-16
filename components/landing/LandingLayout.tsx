@@ -13,7 +13,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
         <div className="min-h-screen">
             {/* Header/Navigation */}
             <header className="fixed top-0 left-0 right-0 z-50">
-                <nav className="px-12 py-8 flex items-center justify-between">
+                <nav className="px-12 py-6 flex items-center justify-between">
                     {/* Logo */}
                     <Image
                         src="/dashboard/png/logo.png"
@@ -24,7 +24,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                     />
 
                     {/* Navigation Links */}
-                    <div className="hidden md:flex items-center gap-14 px-12 py-5 rounded-[50px] bg-[#FFFFFF1A] border border-white/20 backdrop-blur-md">
+                    <div className="hidden md:flex items-center gap-14 px-12 py-5 rounded-[50px] bg-[#FFFFFF1A] border border-white/70 backdrop-blur-md">
                         <Link href="#home" className="text-[#41288A] font-medium text-lg hover:text-[#8266D4] transition-colors relative after:absolute after:bottom-[-4px] after:left-1/2 after:-translate-x-1/2 after:w-2 after:h-2 after:bg-[#41288A] after:rounded-full">
                             Home
                         </Link>
@@ -59,7 +59,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                                 <Image src="/dashboard/png/logo-white.png" alt="Logo" width={60} height={40} className="object-contain" />
                                 <span className="text-3xl font-bold text-white">VELA</span>
                             </div>
-                            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+                            <p className="text-sm text-white mb-6 leading-relaxed">
                                 Your AI-Powered Voice Automation Engine — Light, Fast, And Designed To Scale.
                             </p>
                             <div className="flex items-center gap-8">
@@ -93,8 +93,8 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 
                         {/* Product Section */}
                         <div>
-                            <h3 className="font-semibold text-base mb-4 text-white">Product</h3>
-                            <ul className="space-y-3">
+                            <h3 className="font-semibold text-sm mb-4 text-white pl-16">Product</h3>
+                            <ul className="space-y-3 pl-16">
                                 <li><Link href="#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</Link></li>
                                 <li><Link href="#integrations" className="text-sm text-gray-300 hover:text-white transition-colors">Integrations</Link></li>
                                 <li><Link href="#api-docs" className="text-sm text-gray-300 hover:text-white transition-colors">API Docs</Link></li>
@@ -104,7 +104,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 
                         {/* Company Section */}
                         <div>
-                            <h3 className="font-semibold text-base mb-4 text-white">Company</h3>
+                            <h3 className="font-semibold text-sm mb-4 text-white">Company</h3>
                             <ul className="space-y-3">
                                 <li><Link href="#about" className="text-sm text-gray-300 hover:text-white transition-colors">About</Link></li>
                                 <li><Link href="#blog" className="text-sm text-gray-300 hover:text-white transition-colors">Blog</Link></li>
@@ -115,13 +115,13 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 
                         {/* Newsletter Section */}
                         <div>
-                            <h3 className="font-semibold text-base mb-4 text-white">Stay Updated</h3>
+                            <h3 className="font-semibold text-sm mb-4 text-white">Stay Updated</h3>
                             <p className="text-sm text-gray-300 mb-4">Get The Latest Updates And Insights</p>
                             <form className="flex gap-2">
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="flex-1 px-4 py-2.5 bg-[#EBEBEB] border border-white/20 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/30"
+                                    className="flex-1 px-4 py-2.5 bg-[#EBEBEB] border border-white/20 rounded-lg text-xs placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/30"
                                 />
                                 <button
                                     type="submit"
@@ -135,11 +135,11 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
 
                     {/* Bottom Bar */}
                     <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <p className="text-sm text-white">© 2024 VELA. All Rights Reserved.</p>
+                        <p className="text-xs text-white">© 2024 VELA. All Rights Reserved.</p>
                         <div className="flex items-center gap-6">
-                            <Link href="#privacy" className="text-sm text-white transition-colors">Privacy Policy</Link>
-                            <Link href="#terms" className="text-sm text-white transition-colors">Terms Of Service</Link>
-                            <Link href="#cookie" className="text-sm text-white transition-colors">Cookie Policy</Link>
+                            <Link href="#privacy" className="text-xs font-medium text-white transition-colors">Privacy Policy</Link>
+                            <Link href="#terms" className="text-xs font-medium text-white transition-colors">Terms Of Service</Link>
+                            <Link href="#cookie" className="text-xs font-medium text-white transition-colors">Cookie Policy</Link>
                         </div>
                     </div>
                 </div>

@@ -22,14 +22,18 @@ const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
+    <section className="pt-28 pb-36 bg-white relative">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-[300px] left-0 w-[900px] h-[1000px] bg-[#00CACF] rounded-full blur-[200px] opacity-5"></div>
+        <div className="absolute -right-[100px] w-[700px] h-[1000px] bg-[#A167EC] rounded-full blur-[200px] opacity-15"></div>
+      </div>
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-b from-[#41288A] to-[#7659C8] bg-clip-text text-transparent">
+          <h2 className="text-6xl font-bold mb-4 bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent">
             How VELA Works
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-2xl text-[#4A5565]">
             Get started in minutes, not hours
           </p>
         </div>
@@ -37,7 +41,7 @@ const HowItWorksSection: React.FC = () => {
         {/* Steps */}
         <div className="relative">
           {/* Connection Line */}
-          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-[#8266D4] opacity-30" style={{ top: '2rem' }}></div>
+          <div className="hidden lg:block absolute top-8 h-0.5 bg-[#8266D4] opacity-30" style={{ left: 'calc(100% / 6 + 1rem)', right: 'calc(100% / 6 + 1rem)' }}></div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
             {steps.map((step, index) => (
@@ -53,10 +57,10 @@ const HowItWorksSection: React.FC = () => {
                   </div>
                 </div>
                 {/* Content */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="text-2xl font-medium text-black mb-4">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed max-w-sm">
+                <p className="text-black text-lg leading-relaxed max-w-sm">
                   {step.description}
                 </p>
               </div>
