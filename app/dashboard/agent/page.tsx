@@ -12,90 +12,13 @@ import SearchIcon from '@/components/icons/SearchIcon';
 import AgentTypeModal from '@/components/agent/AgentTypeModal';
 import AgentDetailModal from '@/components/agent/AgentDetailModal';
 import DeleteAgentModal from '@/components/agent/DeleteAgentModal';
-
-// Agent Card Component for Grid View
-const AgentCard = ({ 
-  agent, 
-  onViewDetails, 
-  onDelete 
-}: { 
-  agent: AgentsTable;
-  onViewDetails: () => void;
-  onDelete: () => void;
-}) => {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-xl flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#1F2937] text-sm">{agent.name}</h3>
-              <div className="flex items-center space-x-2 mt-1">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${agent.typeVariant === 'outbound'
-                  ? 'bg-[#DBEAFE] text-[#2563EB]'
-                  : 'bg-[#FCE7F3] text-[#DB2777]'
-                  }`}>
-                  {agent.type}
-                </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${agent.statusVariant === 'active'
-                  ? 'bg-[#25A83D1A] text-[#25A83D] border border-[#25A83D]'
-                  : 'bg-[#0000001A] text-black'
-                  }`}>
-                  {agent.status}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="relative group">
-            <button className="text-[#9CA3AF] hover:text-[#6B7280]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <circle cx="10" cy="5" r="2" />
-                <circle cx="10" cy="10" r="2" />
-                <circle cx="10" cy="15" r="2" />
-              </svg>
-            </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 hidden group-hover:block">
-              <button
-                onClick={onViewDetails}
-                className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center"
-              >
-                View Details
-              </button>
-              <button
-                onClick={onDelete}
-                className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center text-[#DC2626]"
-              >
-                Delete Agent
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-sm text-[#6B7280] mb-4">Helps qualify leads and schedule demos</p>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6B7280]">Conversations</span>
-            <span className="font-medium text-[#1F2937]">{agent.conversations}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6B7280]">Success Rate</span>
-            <span className="font-medium text-[#1F2937]">{agent.successRate}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6B7280]">Last Active</span>
-            <span className="font-medium text-[#1F2937]">{agent.lastActive}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { AgentIcon } from '@/components/icons';
+import ItemCard from '@/components/shared/ItemCard';
+import CopyIcon from '@/components/icons/CopyIcon';
+import EyeIcon from '@/components/icons/EyeIcon';
+import FileEditIcon from '@/components/icons/FileEditIcon';
+import PauseIcon from '@/components/icons/PauseIcon';
+import TrashIcon from '@/components/icons/TrashIcon';
 
 export default function Agent() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -187,12 +110,12 @@ export default function Agent() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-black">Agent Management</h1>
-              <p className="text-[#6B7280] mt-1 text-sm">Create and manage your AI agents</p>
+              <h1 className="text-lg font-semibold text-brand-black">Agent Management</h1>
+              <p className="text-black mt-2 font-medium text-sm opacity-70">Create and manage your AI agents</p>
             </div>
-            <button 
+            <button
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm"
+              className="px-6 py-3 w-60 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
@@ -223,7 +146,7 @@ export default function Agent() {
             <div className="relative w-[15%]">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-5 py-3 border border-[#D1D5DB] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
+                className="px-5 py-3 border border-[#41288A80] bg-white rounded-lg focus:outline-none text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
               >
                 <span className='text-base font-medium'>{filterStatus}</span>
                 <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>
@@ -290,13 +213,33 @@ export default function Agent() {
               data={tableData}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredData.map((agent, index) => (
-                <AgentCard 
-                  key={index} 
-                  agent={agent} 
-                  onViewDetails={() => handleViewDetails(agent)}
-                  onDelete={() => handleDeleteAgent(agent)}
+                <ItemCard
+                  key={index}
+                  icon={
+                    <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+                      <AgentIcon color='white' className="w-10 h-10" />
+                    </div>
+                  }
+                  title={agent.name}
+                  description="Helps qualify leads and schedule demos"
+                  badges={[
+                    { label: agent.type, variant: agent.typeVariant },
+                    { label: agent.status, variant: agent.statusVariant }
+                  ]}
+                  stats={[
+                    { label: 'Conversations', value: agent.conversations },
+                    { label: 'Success Rate', value: agent.successRate },
+                    { label: 'Last Active', value: agent.lastActive }
+                  ]}
+                  menuItems={[
+                    { icon: <FileEditIcon />, label: 'Edit Agent' },
+                    { icon: <CopyIcon />, label: 'Duplicate Agent' },
+                    { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
+                    { icon: <PauseIcon />, label: 'Deactivate Agent' },
+                    { icon: <TrashIcon />, label: 'Delete Agent', className: 'text-[#DC2626]', onClick: () => handleDeleteAgent(agent) }
+                  ]}
                 />
               ))}
             </div>
@@ -306,8 +249,8 @@ export default function Agent() {
 
       {/* Modals */}
       <AgentTypeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      <AgentDetailModal 
-        isOpen={isDetailModalOpen} 
+      <AgentDetailModal
+        isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         agent={selectedAgent || undefined}
       />

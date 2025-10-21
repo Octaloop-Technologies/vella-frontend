@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 
-const Waveform: React.FC = () => {
+const Waveform: React.FC<{ className?: string }> = ({ className }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const startColor = '#41288A';
@@ -49,6 +49,7 @@ const Waveform: React.FC = () => {
       viewBox="0 0 624 318"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+    className={className}
     >
         <g filter="url(#filter0_d_138_6091)">
             <path d="M19.2884 154.86V153.357L18.6442 152.284L18 153.357V155.075V156.793L18.6442 158.296L19.2884 156.793V154.86Z" fill="white" />

@@ -4,8 +4,8 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Card from '@/components/shared/Card';
 import ConversionIcon from '@/components/icons/ConversionIcon';
 import { KnowledgeIcon, ChatIcon, AgentIcon } from '@/components/icons';
-import StatsCard from '@/components/dashboard/StatsCard';
 import SharedTable from '@/components/shared/SharedTable';
+import StatsCard from '@/components/shared/StatsCard';
 import { TopAgent } from '@/types/table';
 
 const ActionCard: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -63,11 +63,11 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="p-8">
         <div className="mb-6">
-          <h1 className="text-lg font-semibold text-brand-black">Dashboard</h1>
-          <p className="text-black mt-2 font-medium text-sm">Welcome back! Here's what's happening with your agents.</p>
+          <h1 className="text-lg font-semibold text-black">Dashboard</h1>
+          <p className="text-black mt-2 font-medium text-sm opacity-70">Welcome back! Here's what's happening with your agents.</p>
         </div>
 
-        <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8'>
+        <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8 py-6'>
           {
             statsCards.map((card) => (
               <StatsCard key={card.title} {...card} />

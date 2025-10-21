@@ -26,12 +26,12 @@ const SignUpPage = () => {
       <div className="space-y-6">
         {/* Title and subtitle */}
         <div className="text-center">
-          <h1 className="text-[28px] font-bold text-[#1E1E1E] mb-2">Create Your Account</h1>
-          <p className="text-[#6E6E6E] text-sm">Join the AI Voice & Chat platform and get started in minutes.</p>
+          <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Create Your Account</h1>
+          <p className="text-sm">Join the AI Voice & Chat platform and get started in minutes.</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             label="Full Name"
             type="text"

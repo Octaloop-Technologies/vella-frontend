@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BaseModal from '@/components/shared/BaseModal';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
+import Image from 'next/image';
 
 interface EditPersonalInfoModalProps {
   isOpen: boolean;
@@ -30,10 +31,14 @@ const EditPersonalInfoModal: React.FC<EditPersonalInfoModalProps> = ({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md" showCloseButton={true}>
+    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md" title="Edit Personal Information" showCloseButton={false}>
+      <button
+        onClick={onClose}
+        className="absolute top-6 right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[#CF1742] transition-colors z-10 cursor-pointer"
+      >
+        <Image src="/svgs/cross2.svg" alt="Close" width={10} height={10} />
+      </button>
       <div className="p-8">
-        <h2 className="text-xl font-semibold text-[#1F2937] mb-6">Edit Personal Information</h2>
-        
         <div className="space-y-4">
           <Input
             label="Full Name"
@@ -42,7 +47,7 @@ const EditPersonalInfoModal: React.FC<EditPersonalInfoModalProps> = ({
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             className="bg-[#EBEBEB]"
           />
-          
+
           <Input
             label="Email"
             type="email"
@@ -51,7 +56,7 @@ const EditPersonalInfoModal: React.FC<EditPersonalInfoModalProps> = ({
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             className="bg-[#EBEBEB]"
           />
-          
+
           <Input
             label="Organization"
             placeholder="Type..."
@@ -67,7 +72,7 @@ const EditPersonalInfoModal: React.FC<EditPersonalInfoModalProps> = ({
           </Button>
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-[10px] border-2 border-[#F44336] text-[#F44336] font-medium hover:bg-[#F443361A] transition-colors"
+            className="w-full py-3 rounded-[10px] border border-[#CF1742] text-[#F44336] font-medium bg-[#CF17421A] transition-colors cursor-pointer"
           >
             Close
           </button>

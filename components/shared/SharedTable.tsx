@@ -1,5 +1,5 @@
 import React from 'react';
-import { BadgeProps, ProgressBarProps, IconProps, StarIconProps, TableType, TableProps, ColumnConfig } from '@/types/table';
+import { BadgeProps, ProgressBarProps, IconProps, TableType, TableProps, ColumnConfig } from '@/types/table';
 import { AgentIcon } from '@/components/icons';
 import Card from '@/components/shared/Card';
 import CopyIcon from '@/components/icons/CopyIcon';
@@ -9,25 +9,9 @@ import PauseIcon from '@/components/icons/PauseIcon';
 import PlayIcon from '@/components/icons/PlayIcon';
 import TrashIcon from '@/components/icons/TrashIcon';
 import DownloadIcon from '@/components/icons/DownloadIcon';
-import { createPortal } from 'react-dom';
-
-// Badge Component
-const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
-  const variants: Record<string, string> = {
-    active: 'bg-[#25A83D1A] text-[#25A83D] border border-[#25A83D]',
-    draft: 'bg-[#0000001A] text-black',
-    outbound: 'bg-[#007BFF1A] text-[#41288A]',
-    inbound: 'bg-[#F624E11A] text-[#F624E1]',
-    completed: 'bg-[#D1FAE5] text-[#059669]',
-    abandoned: 'bg-[#FEE2E2] text-[#DC2626]',
-    published: 'bg-[#D1FAE5] text-[#059669]',
-  };
-  return (
-    <span className={`inline-flex w-21 justify-center items-center px-4.5 py-2.5 rounded-full text-xs font-medium ${variants[variant] || variants.default} ${className}`}>
-      {children}
-    </span>
-  );
-};
+import Badge from '@/components/shared/Badge';
+import { Dropdown, DropdownItem, DotsIcon } from '@/components/shared/Dropdown';
+import Image from 'next/image';
 
 // Progress Bar Component
 const ProgressBar: React.FC<ProgressBarProps> = ({ percentage, className = '' }) => {
@@ -38,124 +22,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ percentage, className = '' })
   );
 };
 
-const DotsIcon: React.FC<IconProps> = ({ className = '' }) => (
-  <svg width="18" height="4" viewBox="0 0 18 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g opacity="0.5">
-      <circle cx="2" cy="2" r="2" fill="black" />
-      <circle cx="9" cy="2" r="2" fill="black" />
-      <circle cx="16" cy="2" r="2" fill="black" />
-    </g>
-  </svg>
-);
-
-const StarIcon: React.FC<StarIconProps> = ({ filled, className = '' }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#FCD34D" : "#E5E7EB"} className={className}>
+const StarIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="#25A83D">
     <path d="M8 0L10.163 5.26604L16 6.11567L12 10.2124L12.944 16L8 13.266L3.056 16L4 10.2124L0 6.11567L5.837 5.26604L8 0Z" />
   </svg>
 );
 
-// Separate Reusable Dropdown Component
-interface DropdownProps {
-  children: React.ReactNode;
-  trigger: React.ReactNode;
-}
-
-const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-  const [position, setPosition] = React.useState({ top: 0, left: 0 });
-
-  const handleToggle = () => {
-    if (!isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const dropdownWidth = 192; // w-48 = 12rem = 192px
-      let left = rect.right - dropdownWidth;
-
-      if (left < 0) {
-        left = rect.left;
-      }
-
-      const top = rect.bottom + 4; // mt-1 ≈ 4px
-
-      setPosition({ top, left });
-    }
-    setIsOpen(!isOpen);
-  };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        triggerRef.current && !triggerRef.current.contains(event.target as Node) &&
-        menuRef.current && !menuRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  return (
-    <div>
-      <button ref={triggerRef} onClick={handleToggle} className="p-1 rounded cursor-pointer">
-        {trigger}
-      </button>
-
-      {isOpen &&
-        createPortal(
-          <div
-            ref={menuRef}
-            className="w-48 bg-white rounded-lg shadow-lg border border-[#41288A80] z-[9999] origin-top-right transition-all duration-200 ease-out"
-            style={{
-              position: 'fixed',
-              top: `${position.top}px`,
-              left: `${position.left}px`,
-              transform: 'scale(1)',
-              opacity: 1,
-            }}
-          >
-            {React.Children.map(children, (child) => {
-              if (React.isValidElement(child)) {
-                return React.cloneElement(child as React.ReactElement<{ closeDropdown?: () => void }>, {
-                  closeDropdown: () => setIsOpen(false),
-                });
-              }
-              return child;
-            })}
-          </div>,
-          document.body
-        )}
-    </div>
-  );
-};
-
-const DropdownItem: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  className?: string;
-  closeDropdown?: () => void;
-}> = ({ icon, label, onClick, className = '', closeDropdown }) => {
-  const handleClick = () => {
-    if (onClick) onClick();
-    if (closeDropdown) closeDropdown();
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      className={`flex items-center gap-2 px-4 py-2 text-sm text-[#1F2937] w-full text-left first:rounded-t-lg last:rounded-b-lg cursor-pointer hover:bg-[#F3F4F6] ${className}`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-};
 
 // Column Configuration based on table type
 const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): ColumnConfig<T>[] => {
@@ -166,13 +38,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           key: 'name',
           header: 'Workflow Name',
           render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium text-[#1F2937]">{String(row.name)}</span>
+            <span className="text-sm font-medium">{String(row.name)}</span>
           )
         },
         {
           key: 'linkedAgent',
           header: 'Linked Agent',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.linkedAgent)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.linkedAgent)}</span>
         },
         {
           key: 'status',
@@ -182,12 +54,12 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'nodes',
           header: 'Nodes',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.nodes)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.nodes)}</span>
         },
         {
           key: 'lastEdited',
           header: 'Last Edited',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.lastEdited)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.lastEdited)}</span>
         },
         {
           key: 'actions',
@@ -314,25 +186,25 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           header: 'Customer',
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium text-[#1F2937]">{String(row.customerName)}</div>
-              <div className="text-sm text-[#6B7280]">{String(row.customerEmail)}</div>
+              <div className="text-sm font-medium mb-0.5">{String(row.customerName)}</div>
+              <div className="text-xs">{String(row.customerEmail)}</div>
             </div>
           )
         },
         {
           key: 'agent',
           header: 'Agent',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.agent)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.agent)}</span>
         },
         {
           key: 'channel',
           header: 'Channel',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.channel)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.channel)}</span>
         },
         {
           key: 'duration',
           header: 'Duration',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.duration)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.duration)}</span>
         },
         {
           key: 'status',
@@ -344,10 +216,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           header: 'Satisfaction',
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <StarIcon key={i} filled={i < Number(row.stars)} />
-              ))}
-              <span className="text-sm text-[#1F2937] ml-1">{String(row.rating)}</span>
+                <StarIcon />
+              <span className="text-sm font-medium">{String(row.rating)}</span>
             </div>
           )
         },
@@ -356,8 +226,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           header: 'Date',
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm text-[#1F2937]">{String(row.date)}</div>
-              <div className="text-sm text-[#6B7280]">{String(row.time)}</div>
+              <div className="text-sm font-medium mb-0.5">{String(row.date)}</div>
+              <div className="text-xs">{String(row.time)}</div>
             </div>
           )
         },
@@ -367,9 +237,9 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
           render: (row: Record<string, unknown>) => (
             <button 
               onClick={row.onViewDetails as () => void}
-              className="hover:bg-[#F3F4F6] p-2 rounded-lg"
+              className="bg-[#007BFF1A] p-3 rounded-[10px] cursor-pointer"
             >
-              <EyeIcon />
+              <Image src="/svgs/eye.svg" alt="View Details" width={24} height={24} />
             </button>
           )
         }
@@ -379,12 +249,12 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'name',
           header: 'Document Name',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-[#1F2937]">{String(row.name)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.name)}</span>
         },
         {
           key: 'type',
           header: 'Type',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#6B7280]">{String(row.type)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.type)}</span>
         },
         {
           key: 'status',
@@ -394,12 +264,12 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
         {
           key: 'size',
           header: 'Size',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.size)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.size)}</span>
         },
         {
           key: 'lastUpdated',
           header: 'Last Updated',
-          render: (row: Record<string, unknown>) => <span className="text-sm text-[#1F2937]">{String(row.lastUpdated)}</span>
+          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.lastUpdated)}</span>
         },
         {
           key: 'actions',
@@ -488,7 +358,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
             <thead>
               <tr>
                 {columns.map((column, index) => (
-                  <th key={index} className="px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap" style={{ width: column.width }} >
+                  <th key={index} className={`px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap ${type === 'conversations' ? 'border-b border-[#0000001A]' : ''}`} style={{ width: column.width }} >
                     {column.header}
                   </th>
                 ))}

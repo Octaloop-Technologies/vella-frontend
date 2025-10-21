@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Conversation } from '@/types/chat';
+import Input from '@/components/shared/Input';
 import SearchIcon from '@/components/icons/SearchIcon';
 
 interface ConversationListProps {
@@ -23,57 +24,50 @@ export default function ConversationList({
   );
 
   return (
-    <div className="w-[40%] border-r border-[#E5E7EB] bg-white flex flex-col">
+    <div className="w-[30%] bg-white flex flex-col rounded-[10px]">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-[#E5E7EB]">
-        <h2 className="text-xl font-semibold text-black mb-4">Conversations</h2>
-        
+      <div className="p-3">
+        <h2 className="text-lg font-semibold mb-4">Conversations</h2>
+
         {/* Search Input */}
-        <div className="relative">
+        <div className="relative ">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
           </div>
-          <input
-            type="text"
-            placeholder="Search conversations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm bg-[#F9FAFB]"
-          />
+          <Input placeholder='Search conversations...' value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} icon={<SearchIcon />} />
         </div>
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-3">
         {filteredConversations.map((conversation) => (
           <button
             key={conversation.id}
             onClick={() => onSelectConversation(conversation.id)}
-            className={`w-full px-6 py-4 flex items-start gap-3 hover:bg-[#F9FAFB] transition-colors border-b border-[#F3F4F6] ${
-              activeConversationId === conversation.id ? 'bg-[#EEF2FF]' : ''
-            }`}
+            className={`w-full px-6 py-4 flex items-start gap-3 hover:bg-[#F9FAFB] rounded-[10px] transition-colors ${activeConversationId === conversation.id ? 'bg-[#007BFF1A]' : ''
+              }`}
           >
             <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+              <div className="w-[42px] h-[42px] rounded-full overflow-hidden bg-gray-200">
                 <Image
                   src={conversation.avatar}
                   alt={conversation.name}
-                  width={48}
-                  height={48}
+                  width={42}
+                  height={42}
                   className="object-cover"
                 />
               </div>
             </div>
-            
+
             <div className="flex-1 text-left min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-black text-sm">{conversation.name}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">{conversation.name}</h3>
               </div>
-              <p className="text-xs text-[#6B7280] mb-1">{conversation.role}</p>
-              <p className="text-sm text-[#6B7280] truncate">{conversation.lastMessage}</p>
+              <p className="text-xs opacity-70 truncate">{conversation.lastMessage}</p>
             </div>
           </button>
         ))}

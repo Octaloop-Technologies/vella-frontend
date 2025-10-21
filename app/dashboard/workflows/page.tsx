@@ -8,11 +8,16 @@ import Card from '@/components/shared/Card';
 import Input from '@/components/shared/Input';
 import SearchIcon from '@/components/icons/SearchIcon';
 import Link from 'next/link';
+import StatsCard from '@/components/shared/StatsCard';
 
 export default function Workflows() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All Status');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleNavigateToCreate = () => {
+    window.location.href = '/dashboard/workflows/create';
+  }
 
   const workflowsData: WorkflowsTable[] = [
     {
@@ -49,6 +54,25 @@ export default function Workflows() {
     },
   ];
 
+  const statsCards = [
+    {
+      title: "Total Workflows",
+      value: "5",
+    },
+    {
+      title: "Active",
+      value: "2",
+    },
+    {
+      title: "Inactive",
+      value: "1",
+    },
+    {
+      title: "Avg. Nodes",
+      value: "1",
+    },
+  ];
+
   const filteredData = workflowsData.filter(workflow => {
     const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'All Status' || workflow.status === filterStatus;
@@ -64,42 +88,33 @@ export default function Workflows() {
 
   return (
     <DashboardLayout>
+
       <div className="p-8">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-black">Workflows</h1>
-              <p className="text-[#6B7280] mt-1 text-sm">Create and manage your workflows</p>
+              <h1 className="text-lg font-semibold text-black">Workflows</h1>
+              <p className="text-black mt-2 font-medium text-sm opacity-70">Create and manage your workflows</p>
             </div>
-            <Link href="/dashboard/workflows/create">
-              <button className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                </svg>
-                <span>Create Workflow</span>
-              </button>
-            </Link>
+            <button
+              onClick={() => handleNavigateToCreate()}
+              className="px-6 py-3 w-60 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
+              <span>Create Workflow</span>
+            </button>
           </div>
 
           {/* Stats Cards */}
-          <Card className="grid grid-cols-1 md:grid-cols-4 mb-6">
-            <div className="px-8 py-6 border-r border-[#0000001A]">
-              <div className="text-[#6B7280] text-sm mb-2">Total Workflows</div>
-              <div className="text-3xl font-semibold text-black">5</div>
-            </div>
-            <div className="px-8 py-6 border-r border-[#0000001A]">
-              <div className="text-[#6B7280] text-sm mb-2">Active</div>
-              <div className="text-3xl font-semibold text-black">2</div>
-            </div>
-            <div className="px-8 py-6 border-r border-[#0000001A]">
-              <div className="text-[#6B7280] text-sm mb-2">Inactive</div>
-              <div className="text-3xl font-semibold text-black">1</div>
-            </div>
-            <div className="px-8 py-6">
-              <div className="text-[#6B7280] text-sm mb-2">Avg. Nodes</div>
-              <div className="text-3xl font-semibold text-black">1</div>
-            </div>
+          <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8 py-6'>
+            {
+              statsCards.map((card) => (
+                <StatsCard key={card.title} {...card} />
+              ))
+            }
           </Card>
 
           {/* Search and Filter Bar */}
@@ -124,7 +139,7 @@ export default function Workflows() {
             <div className="relative w-[15%]">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-5 py-3 border border-[#D1D5DB] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
+                className="px-5 py-3 border border-[#41288A80] bg-white rounded-lg focus:outline-none text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
               >
                 <span className='text-base font-medium'>{filterStatus}</span>
                 <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>

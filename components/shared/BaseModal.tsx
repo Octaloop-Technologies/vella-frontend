@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -8,6 +9,9 @@ interface BaseModalProps {
   children: React.ReactNode;
   maxWidth?: string;
   showCloseButton?: boolean;
+  className?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 const BaseModal: React.FC<BaseModalProps> = ({
@@ -16,6 +20,9 @@ const BaseModal: React.FC<BaseModalProps> = ({
   children,
   maxWidth = 'max-w-5xl',
   showCloseButton = true,
+  className = '',
+  title,
+  subtitle,
 }) => {
   // Close on Escape key
   useEffect(() => {
@@ -51,22 +58,21 @@ const BaseModal: React.FC<BaseModalProps> = ({
         className={`relative bg-white rounded-[20px] shadow-xl ${maxWidth} w-full mx-4 max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
-        {showCloseButton && (
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-[#F44336] hover:bg-[#D32F2F] transition-colors z-10"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M13 1L1 13M1 1L13 13"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        )}
+        {
+          (title || subtitle || showCloseButton) &&
+          <div className='px-3 pt-6 pb-4 border-b border-[#0000001A]'>
+            {title && <h2 className="text-lg font-medium mb-1">{title}</h2>}
+            {subtitle && <p className="text-xs font-medium opacity-70">{subtitle}</p>}
+            {showCloseButton && (
+              <button
+                onClick={onClose}
+                className="absolute top-8 right-6 w-6 h-6 flex items-center justify-center rounded-full bg-[#CF1742] transition-colors z-10 cursor-pointer"
+              >
+                <Image src="/svgs/cross2.svg" alt="Close" width={10} height={10} />
+              </button>
+            )}
+          </div>
+        }
         {children}
       </div>
     </div>

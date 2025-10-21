@@ -48,6 +48,6 @@ export const SIDEBAR_ITEMS_CONFIG: SidebarItemConfig[] = [
   {
     iconName: 'logout',
     label: 'Log Out',
-    href: '/logout',
+    href: '/login',
   },
 ];

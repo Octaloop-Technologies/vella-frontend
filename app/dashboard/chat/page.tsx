@@ -67,7 +67,7 @@ export default function Chat() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-80px)] p-8 gap-3">
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversationId}

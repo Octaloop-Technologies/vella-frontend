@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogoutIcon } from '@/components/icons';
 import { SIDEBAR_ITEMS_CONFIG } from '@/constants/sidebar';
 import { getIconComponent } from '@/utils/iconHelper';
 import Image from 'next/image';

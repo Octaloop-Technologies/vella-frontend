@@ -6,6 +6,9 @@ import AgentCreationLayout from '@/components/agent/AgentCreationLayout';
 import StepNavigation from '@/components/agent/StepNavigation';
 import { AgentCreationProvider, useAgentCreation } from '@/contexts/AgentCreationContext';
 import { Step3Channels, Step3WidgetSettings, Step4PhoneNumber, Step5ReviewPublish } from '@/components/agent/AgentSteps';
+import Input from '@/components/shared/Input';
+import Card from '@/components/shared/Card';
+import Image from 'next/image';
 
 // Step Components
 function Step1() {
@@ -23,30 +26,26 @@ function Step1() {
   };
 
   return (
-    <div>
+    <div className='p-6'>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Basic Details</h1>
-        <p className="text-[#6E6E6E] text-sm">
+        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Basic Details</h1>
+        <p className="text-[#717182] text-base">
           Provide the basic information for your agent
         </p>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8 space-y-6">
+      <div className="space-y-6">
         {/* Agent Name and Agent Type in one row */}
         <div className="grid grid-cols-2 gap-6">
           {/* Agent Name */}
           <div>
-            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Agent Name
-            </label>
-            <input
-              type="text"
-              placeholder="Type..."
+            <Input
+              label="Agent Name"
               value={agentData.agentName}
               onChange={(e) => updateAgentData({ agentName: e.target.value })}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors"
+              placeholder="Type..."
             />
           </div>
 
@@ -96,39 +95,38 @@ function Step1() {
         </div>
 
         {/* Language */}
-        <div>
-          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-            Language
-          </label>
-          <div className="relative">
-            <select
-              value={agentData.language}
-              onChange={(e) => updateAgentData({ language: e.target.value })}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-            >
-              <option>Select</option>
-              <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-              <option>German</option>
-              <option>Chinese</option>
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                <path
-                  d="M1 1.5L6 6.5L11 1.5"
-                  stroke="#1E1E1E"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+        <div className='grid grid-cols-2 gap-6'>
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Language
+            </label>
+            <div className="relative">
+              <select
+                value={agentData.language}
+                onChange={(e) => updateAgentData({ language: e.target.value })}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+              >
+                <option>Select</option>
+                <option>English</option>
+                <option>Spanish</option>
+                <option>French</option>
+                <option>German</option>
+                <option>Chinese</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
 
-        {agentType === 'widget' ? (
-          /* Voice for widget */
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
               Voice
@@ -157,8 +155,9 @@ function Step1() {
               </div>
             </div>
           </div>
-        ) : (
-          /* Persona & Tune for inbound/outbound */
+        </div>
+        {agentType !== 'widget' && (
+          /* Voice for widget */
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
               Persona & Tune
@@ -175,7 +174,7 @@ function Step1() {
       </div>
 
       {/* Navigation Buttons */}
-      <StepNavigation onPrevious={handlePrevious} onNext={handleNext} />
+      <StepNavigation onPrevious={handlePrevious} onNext={handleNext} previousLabel='Back' />
     </div>
   );
 }
@@ -205,48 +204,49 @@ function Step2() {
   const nextStep = agentType === 'widget' ? 3 : 3; // For widget, next is 3 (widget settings), else 3 (channels)
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1E1E1E] mb-2">Knowledge Base</h1>
-        <p className="text-[#6E6E6E] text-sm">Select documents to power your agent's knowledge</p>
+    <div className='p-6'>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Knowledge Base</h1>
+        <p className="text-[#717182] text-base">
+          Select documents to power your agent's knowledge
+        </p>
       </div>
 
-      <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-8">
-        <p className="text-sm text-[#6E6E6E] mb-6">
-          Choose which documents from your knowledge base this agent should have access to.
-        </p>
+      <div className="py-5 px-3.5 text-sm text-[#2B231E] font-medium opacity-50 mb-6 bg-[#EBEBEB] border border-[#EBEBEB] rounded-lg">
+        Choose which documents from your knowledge base this agent should have access to.
+      </div>
 
-        <div className="space-y-4">
-          {documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex items-center justify-between p-4 rounded-[12px] border border-[#E5E7EB] hover:border-[#8266D4] transition-colors"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-[#F3F0FF] rounded-lg flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M11.6667 2.5H5.83333C5.39131 2.5 4.96738 2.67559 4.65482 2.98816C4.34226 3.30072 4.16667 3.72464 4.16667 4.16667V15.8333C4.16667 16.2754 4.34226 16.6993 4.65482 17.0118C4.96738 17.3244 5.39131 17.5 5.83333 17.5H14.1667C14.6087 17.5 15.0326 17.3244 15.3452 17.0118C15.6577 16.6993 15.8333 16.2754 15.8333 15.8333V6.66667L11.6667 2.5Z" stroke="#8266D4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M11.6667 2.5V6.66667H15.8333" stroke="#8266D4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium text-[#1E1E1E]">{doc.name}</h3>
-                  <p className="text-xs text-[#9CA3AF]">{doc.lastUpdated}</p>
-                </div>
+      <div className="space-y-4">
+        {documents.map((doc) => (
+          <Card
+            key={doc.id}
+            className="flex items-center justify-between p-4 rounded-[12px] border border-[#E5E7EB]"
+          >
+            <div className="flex items-center space-x-4">
+              <Image
+                src="/svgs/page.svg"
+                alt="Document Icon"
+                width={24}
+                height={24}
+              />
+              <div className='space-y-1'>
+                <h3 className="font-medium text-sm">{doc.name}</h3>
+                <p className="text-xs text-[#2B231E] opacity-50">{doc.lastUpdated}</p>
               </div>
-
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={(agentData.selectedDocuments || []).includes(doc.id)}
-                  onChange={() => toggleDocument(doc.id)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-[#E5E7EB] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8266D4]"></div>
-              </label>
             </div>
-          ))}
-        </div>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={(agentData.selectedDocuments || []).includes(doc.id)}
+                onChange={() => toggleDocument(doc.id)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#E5E7EB] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-b from-[#8266D4] to-[#41288A]"></div>
+            </label>
+          </Card>
+        ))}
       </div>
 
       <StepNavigation

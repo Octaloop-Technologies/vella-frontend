@@ -10,126 +10,61 @@ import ListViewIcon from '@/components/icons/ListViewIcon';
 import CardViewIcon from '@/components/icons/CardViewIcon';
 import SearchIcon from '@/components/icons/SearchIcon';
 import UploadDocumentModal from '@/components/knowledge/UploadDocumentModal';
+import Image from 'next/image';
+import StatsCard from '@/components/shared/StatsCard';
+import ItemCard from '@/components/shared/ItemCard';
+import Badge from '@/components/shared/Badge';
 
 // Document icons mapping
 const getDocumentIcon = (type: string) => {
   const lowerType = type.toLowerCase();
-  
+
   if (lowerType === 'pdf') {
     return (
-      <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-xl flex items-center justify-center">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-          <path d="M14 2v6h6M9 13h6M9 17h6"/>
-        </svg>
+      <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+        <Image src="/svgs/question.svg" alt="PDF Document" width={42} height={42} />
       </div>
     );
-  } else if (lowerType === 'faq' || lowerType === 'text') {
+  } else if (lowerType === 'faq') {
     return (
-      <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-xl flex items-center justify-center">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-          <path d="M14 2v6h6M12 18v-6M12 10h.01"/>
-        </svg>
+      <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+        <Image src="/svgs/page2.svg" alt="FAQ Document" width={42} height={42} />
       </div>
     );
   } else if (lowerType === 'csv') {
     return (
-      <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-xl flex items-center justify-center">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-          <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/>
-        </svg>
+      <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+        <Image src="/svgs/stats2.svg" alt="CSV Document" width={42} height={42} />
+      </div>
+    );
+  } else if (lowerType === 'guidelines') {
+    return (
+      <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+        <Image src="/svgs/journal.svg" alt="Guidelines Document" width={42} height={42} />
       </div>
     );
   } else {
     return (
-      <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-xl flex items-center justify-center">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-          <path d="M14 2v6h6"/>
-        </svg>
+      <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+        <Image src="/svgs/page2.svg" alt="Document" width={42} height={42} />
       </div>
     );
   }
 };
 
-// Document Card Component for Grid View
-const DocumentCard = ({ 
-  document 
-}: { 
-  document: Document;
-}) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'published':
-        return 'bg-[#D1FAE5] text-[#059669]';
-      case 'processing':
-        return 'bg-[#FEF3C7] text-[#D97706]';
-      case 'draft':
-        return 'bg-[#E5E7EB] text-[#6B7280]';
-      case 'error':
-        return 'bg-[#FEE2E2] text-[#DC2626]';
-      default:
-        return 'bg-[#E5E7EB] text-[#6B7280]';
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-[#E5E7EB] hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            {getDocumentIcon(document.type)}
-            <div>
-              <h3 className="font-semibold text-[#1F2937] text-sm">{document.name}</h3>
-              <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(document.status)}`}>
-                {document.status}
-              </span>
-            </div>
-          </div>
-          <div className="relative group">
-            <button className="text-[#9CA3AF] hover:text-[#6B7280]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <circle cx="10" cy="5" r="2" />
-                <circle cx="10" cy="10" r="2" />
-                <circle cx="10" cy="15" r="2" />
-              </svg>
-            </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10 hidden group-hover:block">
-              <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center">
-                View Details
-              </button>
-              <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center">
-                Download
-              </button>
-              <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center text-[#DC2626]">
-                Delete Document
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-sm text-[#6B7280] mb-4">{document.type === 'pdf' ? 'Frequently asked questions about our product features' : document.type === 'faq' ? 'Complete sales process and objection handling guide' : 'Customer contact information and preferences'}</p>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6B7280]">Size</span>
-            <span className="font-medium text-[#1F2937]">{document.size}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[#6B7280]">Modified</span>
-            <span className="font-medium text-[#1F2937]">{document.lastUpdated}</span>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-4">
-          <span className="text-xs px-2 py-1 bg-[#F3F4F6] text-[#6B7280] rounded">product</span>
-          <span className="text-xs px-2 py-1 bg-[#F3F4F6] text-[#6B7280] rounded">support</span>
-          <span className="text-xs px-2 py-1 bg-[#F3F4F6] text-[#6B7280] rounded">faq</span>
-        </div>
-      </div>
-    </div>
-  );
+const getDocumentDescription = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'pdf':
+      return 'Frequently asked questions about our product features';
+    case 'faq':
+      return 'Complete sales process and objection handling guide';
+    case 'csv':
+      return 'Customer contact information and preferences';
+    case 'guidelines':
+      return 'Internal support team guidelines and procedures';
+    default:
+      return 'Technical API documentation for developers';
+  }
 };
 
 export default function Knowledge() {
@@ -162,15 +97,15 @@ export default function Knowledge() {
       name: 'Customer Data Export',
       type: 'csv',
       status: 'Processing',
-      statusVariant: 'published',
+      statusVariant: 'processing',
       size: '125 KB',
       lastUpdated: '2024-01-20'
     },
     {
       name: 'Support Guidelines',
-      type: 'text',
+      type: 'guidelines',
       status: 'Draft',
-      statusVariant: 'published',
+      statusVariant: 'draft',
       size: '125 KB',
       lastUpdated: '2024-01-20'
     },
@@ -178,9 +113,32 @@ export default function Knowledge() {
       name: 'API Documentation',
       type: 'text',
       status: 'Error',
-      statusVariant: 'published',
+      statusVariant: 'error',
       size: '125 KB',
       lastUpdated: '2024-01-20'
+    },
+  ];
+
+  const statsCards = [
+    {
+      title: "Total Documents",
+      icon: <Image src="/svgs/page.svg" alt="Total Documents" width={20} height={20} />,
+      value: "5",
+    },
+    {
+      title: "Published Documents",
+      icon: <Image src="/svgs/badge-check.svg" alt="Published Documents" width={20} height={20} />,
+      value: "2",
+    },
+    {
+      title: "Processing",
+      icon: <Image src="/svgs/clock-five.svg" alt="Processing" width={20} height={20} />,
+      value: "1",
+    },
+    {
+      title: "Errors",
+      icon: <Image src="/svgs/exclamation.svg" alt="Errors" width={20} height={20} />,
+      value: "1",
     },
   ];
 
@@ -198,79 +156,25 @@ export default function Knowledge() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-black">Knowledge Base</h1>
-              <p className="text-[#6B7280] mt-1 text-sm">Manage documents and content for your AI agents</p>
+              <h1 className="text-lg font-semibold text-brand-black">Knowledge Base</h1>
+              <p className="text-black mt-2 font-medium text-sm opacity-70">Manage documents and content for your AI agents</p>
             </div>
-            <button 
+            <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center space-x-2 shadow-sm"
+              className="px-6 py-3 w-60 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-              </svg>
+              <Image src="/svgs/upload.svg" alt="Upload Document" width={24} height={24} />
               <span>Upload Document</span>
             </button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-6 mb-6">
-            <Card className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#EEF2FF] rounded-lg flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#8266D4">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-                    <path d="M14 2v6h6"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-[#6B7280]">Total Documents</p>
-                  <p className="text-2xl font-semibold text-black">5</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#D1FAE5] rounded-lg flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#059669">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" fill="none"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-[#6B7280]">Published Documents</p>
-                  <p className="text-2xl font-semibold text-black">2</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#FEF3C7] rounded-lg flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#D97706">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" fill="none"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-[#6B7280]">Processing</p>
-                  <p className="text-2xl font-semibold text-black">1</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#FEE2E2] rounded-lg flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#DC2626">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M15 9l-6 6M9 9l6 6" stroke="white" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-[#6B7280]">Errors</p>
-                  <p className="text-2xl font-semibold text-black">1</p>
-                </div>
-              </div>
-            </Card>
-          </div>
+          <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8 py-6'>
+            {
+              statsCards.map((card) => (
+                <StatsCard key={card.title} {...card} />
+              ))
+            }
+          </Card>
 
           {/* Search and Filter Bar */}
           <Card className="flex items-center gap-4 px-8 py-6">
@@ -288,7 +192,7 @@ export default function Knowledge() {
             <div className="relative w-[15%]">
               <button
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                className="px-5 py-3 border border-[#D1D5DB] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
+                className="px-5 py-3 border border-[#41288A80] bg-white rounded-lg text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
               >
                 <span className='text-base font-medium'>{filterType}</span>
                 <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform ${isTypeDropdownOpen ? 'rotate-180' : ''}`}>
@@ -326,7 +230,7 @@ export default function Knowledge() {
             <div className="relative w-[15%]">
               <button
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                className="px-5 py-3 border border-[#D1D5DB] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
+                className="px-5 py-3 border border-[#41288A80] bg-white rounded-lg focus:outline-none text-sm font-medium text-[#1F2937] flex items-center gap-2 min-w-[140px] w-full justify-between"
               >
                 <span className='text-base font-medium'>{filterStatus}</span>
                 <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`}>
@@ -392,11 +296,50 @@ export default function Knowledge() {
               data={filteredData}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredData.map((document, index) => (
-                <DocumentCard 
-                  key={index} 
-                  document={document}
+                <ItemCard
+                  key={index}
+                  icon={getDocumentIcon(document.type)}
+                  title={document.name}
+                  description={getDocumentDescription(document.type)}
+                  badges={[
+                    { label: document.status, variant: document.statusVariant }
+                  ]}
+                  stats={[
+                    { label: 'Size', value: document.size },
+                    { label: 'Modified', value: document.lastUpdated }
+                  ]}
+                  footerTags={['product', 'support', 'faq']}
+                  menuItems={[
+                    {
+                      icon: (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      ),
+                      label: 'View Details'
+                    },
+                    {
+                      icon: (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                      ),
+                      label: 'Download'
+                    },
+                    {
+                      icon: (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      ),
+                      label: 'Delete Document',
+                      className: 'text-[#DC2626]'
+                    }
+                  ]}
                 />
               ))}
             </div>
@@ -405,8 +348,8 @@ export default function Knowledge() {
       </div>
 
       {/* Modals */}
-      <UploadDocumentModal 
-        isOpen={isUploadModalOpen} 
+      <UploadDocumentModal
+        isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
       />
     </DashboardLayout>

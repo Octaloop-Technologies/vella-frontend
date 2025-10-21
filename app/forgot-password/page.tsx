@@ -19,8 +19,8 @@ const ForgotPasswordPage = () => {
             <div className="space-y-6">
                 {/* Title and subtitle */}
                 <div className="text-center">
-                    <h1 className="text-[28px] font-bold text-[#1E1E1E] mb-2">Forgot Your Password?</h1>
-                    <p className="text-[#6E6E6E] text-sm">Don't worry, we'll send you a reset link to your email.</p>
+                    <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Forgot Your Password?</h1>
+                    <p className="text-sm">Don't worry, we'll send you a reset link to your email.</p>
                 </div>
 
                 {/* Form */}
@@ -33,7 +33,7 @@ const ForgotPasswordPage = () => {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     {/* Submit button */}
-                    <Button type="submit" className="mt-6">
+                    <Button type="submit" className="mt-5">
                         Send Reset Link
                     </Button>
                 </form>

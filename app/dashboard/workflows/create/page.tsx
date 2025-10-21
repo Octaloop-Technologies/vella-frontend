@@ -13,37 +13,65 @@ import ReactFlow, {
   Background,
   BackgroundVariant,
   NodeTypes,
-  Panel,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import Card from '@/components/shared/Card';
+import Image from 'next/image';
 
 const components = [
-  { id: 'start', icon: '▶', title: 'Start', description: 'Workflow entry point' },
-  { id: 'end', icon: '⊙', title: 'End', description: 'Workflow endpoint' },
-  { id: 'message', icon: '💬', title: 'Message', description: 'Send text message' },
-  { id: 'voicecall', icon: '📞', title: 'Voice Call', description: 'Make phone call' },
-  { id: 'email', icon: '✉', title: 'Send Email', description: 'Send email message' },
-  { id: 'webhook', icon: '🌐', title: 'Webhook', description: 'HTTP request' },
-  { id: 'sheets', icon: '📊', title: 'Google Sheets', description: 'Insert row' },
-  { id: 'condition', icon: '🔀', title: 'Condition', description: 'Branch logic' },
-  { id: 'transfer', icon: '↔', title: 'Transfer', description: 'Transfer to agent' },
-  { id: 'kb', icon: '📚', title: 'Knowledge Base', description: 'Query KB' },
+  { id: 'start', icon: <Image src="/svgs/start.svg" alt="Start" width={24} height={24} />, title: 'Start', description: 'Workflow entry point' },
+  { id: 'end', icon: <Image src="/svgs/end.svg" alt="End" width={24} height={24} />, title: 'End', description: 'Workflow endpoint' },
+  { id: 'message', icon: <Image src="/svgs/message3.svg" alt="Message" width={24} height={24} />, title: 'Message', description: 'Send text message' },
+  { id: 'voicecall', icon: <Image src="/svgs/call.svg" alt="Voice Call" width={24} height={24} />, title: 'Voice Call', description: 'Make phone call' },
+  { id: 'email', icon: <Image src="/svgs/email.svg" alt="Send Email" width={24} height={24} />, title: 'Send Email', description: 'Send email message' },
+  { id: 'webhook', icon: <Image src="/svgs/webhook.svg" alt="Webhook" width={24} height={24} />, title: 'Webhook', description: 'HTTP request' },
+  { id: 'sheets', icon: <Image src="/svgs/sheets.svg" alt="Google Sheets" width={24} height={24} />, title: 'Google Sheets', description: 'Insert row' },
+  { id: 'condition', icon: <Image src="/svgs/condition.svg" alt="Condition" width={24} height={24} />, title: 'Condition', description: 'Branch logic' },
+  { id: 'transfer', icon: <Image src="/svgs/transfer.svg" alt="Transfer" width={24} height={24} />, title: 'Transfer', description: 'Transfer to agent' },
+  { id: 'kb', icon: <Image src="/svgs/knowledge.svg" alt="Knowledge Base" width={24} height={24} />, title: 'Knowledge Base', description: 'Query KB' },
 ];
 
 // Custom Node Component
-const CustomNode = ({ data }: any) => {
+const CustomNode = ({ data, selected }: any) => {
   return (
-    <div className="bg-white rounded-lg border-2 border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow p-4 min-w-[200px]">
+    <div
+      className={`bg-white rounded-xl border border-[#41288A80] transition-all duration-200 p-4 min-w-[300px] relative`}
+    >
+      {/* Invisible handles - needed for connections but hidden */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!opacity-0 !w-1 !h-1"
+        style={{ top: '50%', left: '50%' }}
+      />
+
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-full flex items-center justify-center text-white text-lg flex-shrink-0">
-          {data.icon}
+        <div
+          className="rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+        >
+          <div className="text-white scale-110">
+            {data.icon}
+          </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-[#1F2937]">{data.label}</div>
-          <div className="text-xs text-[#6B7280]">{data.description}</div>
+          <div className="text-sm">{data.label}</div>
+          <div className="text-xs opacity-70 leading-tight">{data.description}</div>
         </div>
       </div>
+      {/* Connection handles indicator */}
+      {selected && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#8266D4] rounded-full animate-pulse" />
+      )}
+
+      {/* Invisible output handle */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!opacity-0 !w-1 !h-1"
+        style={{ bottom: '50%', left: '50%' }}
+      />
     </div>
   );
 };
@@ -135,7 +163,16 @@ export default function WorkflowBuilder() {
 
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges((eds) => addEdge({ ...params, type: 'smoothstep', animated: true, style: { stroke: '#8266D4', strokeWidth: 2, strokeDasharray: '5,5' } }, eds));
+      setEdges((eds) => addEdge({
+        ...params,
+        type: 'straight',
+        animated: false,
+        style: {
+          stroke: '#8266D4',
+          strokeWidth: 2,
+          strokeDasharray: '5, 5'
+        },
+      }, eds));
     },
     [setEdges]
   );
@@ -163,8 +200,9 @@ export default function WorkflowBuilder() {
         y: event.clientY - bounds.top,
       });
 
+      const newNodeId = `node-${nodeIdCounter.current++}`;
       const newNode: Node = {
-        id: `node-${nodeIdCounter.current++}`,
+        id: newNodeId,
         type: 'custom',
         position,
         data: {
@@ -176,24 +214,29 @@ export default function WorkflowBuilder() {
         },
       };
 
-      setNodes((nds) => {
-        const newNodes = nds.concat(newNode);
-        // Auto-connect to previous node
-        if (nds.length > 0) {
-          const lastNode = nds[nds.length - 1];
-          setEdges((eds) =>
-            eds.concat({
-              id: `edge-${lastNode.id}-${newNode.id}`,
-              source: lastNode.id,
-              target: newNode.id,
-              type: 'smoothstep',
-              animated: true,
-              style: { stroke: '#8266D4', strokeWidth: 2, strokeDasharray: '5,5' },
-            })
-          );
-        }
-        return newNodes;
-      });
+      // Check current nodes to see if we need to create an edge
+      const currentNodes = reactFlowInstance.getNodes();
+
+      // Add the new node
+      setNodes((nds) => nds.concat(newNode));
+
+      // Auto-connect to previous node with dashed line
+      if (currentNodes.length > 0) {
+        const lastNode = currentNodes[currentNodes.length - 1];
+        const newEdge: Edge = {
+          id: `edge-${lastNode.id}-${newNodeId}`,
+          source: lastNode.id,
+          target: newNodeId,
+          type: 'straight',
+          animated: false,
+          style: {
+            stroke: '#8266D4',
+            strokeWidth: 2,
+            strokeDasharray: '5, 5'
+          },
+        };
+        setEdges((eds) => [...eds, newEdge]);
+      }
     },
     [reactFlowInstance, setNodes, setEdges]
   );
@@ -215,7 +258,7 @@ export default function WorkflowBuilder() {
       )
     );
     if (selectedNode?.id === nodeId) {
-      setSelectedNode((prev) => 
+      setSelectedNode((prev) =>
         prev ? { ...prev, data: { ...prev.data, properties: { ...prev.data.properties, [key]: value } } } : null
       );
     }
@@ -236,54 +279,40 @@ export default function WorkflowBuilder() {
     <div className="h-screen flex flex-col bg-[#F9FAFB]">
       {/* Top Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <button
             onClick={() => router.push('/dashboard/workflows')}
-            className="flex items-center gap-2 text-[#6B7280] hover:text-[#1F2937] transition-colors"
+            className="flex items-center gap-3 transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm font-medium">Back</span>
+            <Image src="/svgs/back.svg" alt="Back" width={16} height={16} className='mb-1' />
+            <span className="font-medium">Back</span>
           </button>
 
           <input
             type="text"
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="text-base font-medium text-[#1F2937] bg-transparent border-none focus:outline-none focus:ring-0 px-2 py-1"
+            className="text-sm text-[#101828] bg-[#EBEBEB] rounded-lg border-none focus:outline-none focus:ring-0 px-4 py-2"
           />
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
+          <div className="flex items-center gap-1 text-xs">
+            <Image src="/svgs/clock2.svg" alt="Saved" width={12} height={12} />
             <span>Saved {savedTime}</span>
           </div>
 
-          <button className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          </button>
-
-          <button className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
+          <button className="px-3 py-1.5 bg-white border border-[#D1D5DC] rounded-lg font-medium flex items-center gap-2">
+            <Image src="/svgs/play.svg" alt="Run Test" width={12} height={12} />
             <span>Run Test</span>
           </button>
 
-          <button className="px-4 py-2 border border-[#D1D5DB] bg-white text-[#1F2937] rounded-lg font-medium hover:bg-[#F3F4F6] transition-all">
-            Save Draft
+          <button className="px-3 py-1.5 bg-white border border-[#D1D5DC] rounded-lg font-medium flex items-center gap-2">
+            <Image src="/svgs/save.svg" alt="Save Draft" width={16} height={16} />
+            <span>Save Draft</span>
           </button>
 
-          <button className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all">
+          <button className="px-3 py-1.5 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium">
             Publish
           </button>
         </div>
@@ -294,21 +323,21 @@ export default function WorkflowBuilder() {
         {/* Left Sidebar - Components */}
         <div className="w-[280px] bg-white border-r border-[#E5E7EB] overflow-y-auto">
           <div className="p-4">
-            <h3 className="text-sm font-semibold text-[#1F2937] mb-4">Components</h3>
+            <h3 className="text-lg font-medium mb-4">Components</h3>
             <div className="space-y-2">
               {components.map((component, index) => (
                 <div
                   key={index}
                   draggable
                   onDragStart={(event) => onDragStart(event, component.id)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#F9FAFB] cursor-grab active:cursor-grabbing transition-colors border border-transparent hover:border-[#E5E7EB]"
+                  className="flex items-center gap-3 p-3 rounded-[10px] cursor-grab active:cursor-grabbing transition-colors border border-[#EBEBEB]"
                 >
                   <div className="w-8 h-8 flex items-center justify-center text-lg">
                     {component.icon}
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-[#1F2937]">{component.title}</div>
-                    <div className="text-xs text-[#6B7280]">{component.description}</div>
+                    <div className="text-sm">{component.title}</div>
+                    <div className="text-xs opacity-70">{component.description}</div>
                   </div>
                 </div>
               ))}
@@ -320,15 +349,13 @@ export default function WorkflowBuilder() {
         <div className="flex-1 relative" ref={reactFlowWrapper}>
           {nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-              <Card className="p-12 bg-white/80 backdrop-blur-sm">
+              <Card className="p-6 border border-[#EBEBEB]">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-full flex items-center justify-center mb-4">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+                  <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-full flex items-center justify-center mb-4">
+                    <Image src="/svgs/lightning.svg" alt="Workflow" width={24} height={24} />
                   </div>
-                  <h2 className="text-xl font-semibold text-[#1F2937] mb-2">Build Your Workflow</h2>
-                  <p className="text-sm text-[#6B7280] max-w-md">
+                  <h2 className="text-sm font-semibold mb-2">Build Your Workflow</h2>
+                  <p className="text-xs opacity-70 max-w-md leading-loose">
                     Drag components from the left panel onto the canvas. Click on nodes to configure their properties.
                   </p>
                 </div>
@@ -347,17 +374,30 @@ export default function WorkflowBuilder() {
             onDrop={onDrop}
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
-            fitView
-            className="bg-[#FAFBFC]"
+            defaultViewport={{ x: 100, y: 100, zoom: 0.95 }}
+            className="bg-gradient-to-br from-[#F9FAFB] via-[#F3F4F6] to-[#F9FAFB]"
             defaultEdgeOptions={{
-              type: 'smoothstep',
-              animated: true,
-              style: { stroke: '#8266D4', strokeWidth: 2, strokeDasharray: '5,5' },
+              type: 'straight',
+              animated: false,
+              style: {
+                stroke: '#8266D4',
+                strokeWidth: 2,
+                strokeDasharray: '5, 5'
+              },
             }}
           >
-            <Background color="#E5E7EB" variant={BackgroundVariant.Dots} gap={20} size={1} />
-            <Controls 
-              className="bg-white border border-[#E5E7EB] rounded-lg shadow-sm"
+            {/* Custom styled background with dots pattern */}
+            <Background
+              color="#D1D5DB"
+              variant={BackgroundVariant.Dots}
+              gap={50}
+              size={2}
+              style={{
+                backgroundColor: 'transparent'
+              }}
+            />
+            <Controls
+              className="bg-white border border-[#E5E7EB] rounded-xl shadow-lg overflow-hidden"
               showInteractive={false}
             />
           </ReactFlow>
@@ -365,18 +405,16 @@ export default function WorkflowBuilder() {
 
         {/* Right Sidebar - Properties */}
         <div className="w-[340px] bg-white border-l border-[#E5E7EB] overflow-y-auto">
-          <div className="p-6">
+          <div className="p-4 h-full flex flex-col">
+            <h3 className="text-lg font-medium mb-4">Properties</h3>
             {!selectedNode ? (
-              <div className="flex items-center justify-center h-[400px]">
+              <div className="flex items-center justify-center flex-1">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-[#F3F4F6] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
+                  <div className="w-12 h-12 border border-[#8266D4] rounded-[10px] flex items-center justify-center mx-auto mb-4">
+                    <Image src="/svgs/eye.svg" alt="Node" width={24} height={24} />
                   </div>
-                  <h3 className="text-base font-semibold text-[#1F2937] mb-2">No node selected</h3>
-                  <p className="text-sm text-[#6B7280]">
+                  <h3 className="text-sm font-medium mb-2">No node selected</h3>
+                  <p className="text-xs">
                     Click on a node to view and edit its properties
                   </p>
                 </div>
@@ -384,14 +422,14 @@ export default function WorkflowBuilder() {
             ) : (
               <div>
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-full flex items-center justify-center text-white text-lg">
+                <div className="flex items-center justify-between mb-6 border-t border-[#E5E7EB] pt-4">
+                  <div className="flex items-center gap-1">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg">
                       {selectedNode.data.icon}
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-[#1F2937]">{selectedNode.data.label}</h3>
-                      <p className="text-xs text-[#6B7280]">{selectedNode.data.description}</p>
+                      <h3 className="text-sm font-medium">{selectedNode.data.label}</h3>
+                      <p className="text-xs opacity-70">{selectedNode.data.description}</p>
                     </div>
                   </div>
                   <button
@@ -411,7 +449,7 @@ export default function WorkflowBuilder() {
                     <>
                       <div className="border-b border-[#E5E7EB] pb-4">
                         <h4 className="text-xs font-semibold text-[#1F2937] uppercase mb-3">EMAIL DETAILS</h4>
-                        
+
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-[#1F2937] mb-2">From</label>
@@ -419,7 +457,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.from || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'from', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none "
                               placeholder="noreply@company.com"
                             />
                           </div>
@@ -430,7 +468,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.to || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'to', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                              className="w-full px-3 py-2 border bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                               placeholder="recipient@example.com or {{variable}}"
                             />
                             <p className="text-xs text-[#6B7280] mt-1">Use variables like {'{{email}}'} from previous steps</p>
@@ -442,7 +480,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.subject || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                               placeholder="Email subject line"
                             />
                           </div>
@@ -453,7 +491,7 @@ export default function WorkflowBuilder() {
                               value={selectedNode.data.properties.body || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
                               rows={6}
-                              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent resize-none"
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
                               placeholder="Email content..."
                             />
                           </div>
@@ -469,14 +507,12 @@ export default function WorkflowBuilder() {
                           </div>
                           <button
                             onClick={() => updateNodeProperty(selectedNode.id, 'attachments', !selectedNode.data.properties.attachments)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              selectedNode.data.properties.attachments ? 'bg-[#8266D4]' : 'bg-[#D1D5DB]'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${selectedNode.data.properties.attachments ? 'bg-[#8266D4]' : 'bg-[#D1D5DB]'
+                              }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                selectedNode.data.properties.attachments ? 'translate-x-6' : 'translate-x-1'
-                              }`}
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${selectedNode.data.properties.attachments ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                             />
                           </button>
                         </div>
@@ -494,7 +530,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.recipient || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'recipient', e.target.value)}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                             placeholder="{{variable}}"
                           />
                         </div>
@@ -504,7 +540,7 @@ export default function WorkflowBuilder() {
                             value={selectedNode.data.properties.content || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'content', e.target.value)}
                             rows={6}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent resize-none"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
                             placeholder="Message content..."
                           />
                         </div>
@@ -522,7 +558,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.phoneNumber || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'phoneNumber', e.target.value)}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                             placeholder="{{variable}}"
                           />
                         </div>
@@ -532,7 +568,7 @@ export default function WorkflowBuilder() {
                             value={selectedNode.data.properties.message || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'message', e.target.value)}
                             rows={6}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent resize-none"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
                             placeholder="Voice message..."
                           />
                         </div>
@@ -550,7 +586,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.url || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'url', e.target.value)}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                             placeholder="https://api.example.com/endpoint"
                           />
                         </div>
@@ -559,7 +595,7 @@ export default function WorkflowBuilder() {
                           <select
                             value={selectedNode.data.properties.method || 'POST'}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'method', e.target.value)}
-                            className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8266D4] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
                           >
                             <option value="GET">GET</option>
                             <option value="POST">POST</option>
@@ -572,19 +608,21 @@ export default function WorkflowBuilder() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="pt-4 space-y-2">
-                    <button className="w-full px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium hover:opacity-90 transition-all">
-                      Apply
-                    </button>
-                    <button 
-                      onClick={() => setSelectedNode(null)}
-                      className="w-full px-4 py-2 border border-[#D1D5DB] bg-white text-[#1F2937] rounded-lg font-medium hover:bg-[#F3F4F6] transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button 
+                  <div className="pt-4 space-y-2 border-t border-[#E5E7EB]">
+                    <div className='flex gap-2'>
+                      <button className="w-full px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium">
+                        Apply
+                      </button>
+                      <button
+                        onClick={() => setSelectedNode(null)}
+                        className="w-full px-4 py-2 border border-[#8266D4] bg-white text-[#1F2937] rounded-lg font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <button
                       onClick={() => deleteNode(selectedNode.id)}
-                      className="w-full px-4 py-2 text-[#DC2626] font-medium hover:bg-[#FEE2E2] rounded-lg transition-all"
+                      className="w-full px-4 py-2 text-[#DC2626] border border-[#FFA2A2] font-medium rounded-lg"
                     >
                       Delete Node
                     </button>

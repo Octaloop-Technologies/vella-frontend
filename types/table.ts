@@ -3,7 +3,7 @@
 // Badge Types
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'active' | 'draft' | 'outbound' | 'inbound' | 'completed' | 'abandoned' | 'published' | 'default';
+  variant?: 'active' | 'draft' | 'outbound' | 'inbound' | 'completed' | 'abandoned' | 'published' | 'default' | 'processing' | 'error' | 'connected' | 'notConnected' | 'popular';
   className?: string;
 }
 
@@ -16,10 +16,6 @@ export interface ProgressBarProps {
 // Icon Types
 export interface IconProps {
   className?: string;
-}
-
-export interface StarIconProps extends IconProps {
-  filled: boolean;
 }
 
 // Column Configuration Type
@@ -94,7 +90,7 @@ export interface Document extends Record<string, unknown> {
   name: string;
   type: string;
   status: string;
-  statusVariant: 'published';
+  statusVariant: 'published' | 'draft' | 'processing' | 'error';
   size: string;
   lastUpdated: string;
 }

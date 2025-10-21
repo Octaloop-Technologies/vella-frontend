@@ -24,8 +24,8 @@ const LoginPage = () => {
       <div className="space-y-6">
         {/* Title and subtitle */}
         <div className="text-center">
-          <h1 className="text-[28px] font-bold text-[#1E1E1E] mb-2">Welcome Back</h1>
-          <p className="text-[#6E6E6E] text-sm">Sign in to your account to continue.</p>
+          <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Welcome Back</h1>
+          <p className="text-sm">Sign in to your account to continue.</p>
         </div>
 
         {/* Form */}
@@ -70,8 +70,8 @@ const LoginPage = () => {
 
         {/* Sign up link */}
         <div className="text-center text-sm">
-          <span className="text-[#6E6E6E]">Doesn't have an account? </span>
-          <Link href="/signup" className="text-[#1E1E1E] font-semibold hover:text-[#8266D4] transition-colors">
+          <span className="text-sm">Doesn't have an account? </span>
+          <Link href="/signup" className="font-bold hover:text-[#8266D4] transition-colors underline">
             Sign Up
           </Link>
         </div>

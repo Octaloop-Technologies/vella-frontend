@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Message, ActiveChat } from '@/types/chat';
+import Input from '../shared/Input';
 
 interface ChatMessageAreaProps {
   activeChat: ActiveChat | null;
@@ -53,16 +54,16 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
             </div>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-black">{activeChat.name}</h2>
+            <h2 className="font-medium mb-1">{activeChat.name}</h2>
             <div className="flex items-center gap-3 text-sm">
-              <span className="text-[#6B7280]">{activeChat.role}</span>
+              <span className="text-xs opacity-70">{activeChat.role}</span>
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-[#6B7280]">{activeChat.platform}</span>
+                <Image src="/svgs/messenger.svg" alt="Platform" width={16} height={16} />
+                <span className="text-xs opacity-70">{activeChat.platform}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#DC2626]"></div>
-                <span className="text-[#6B7280]">{activeChat.status}</span>
+                <div className="w-2 h-2 rounded-full bg-[#25A83D]"></div>
+                <span className="text-xs opacity-70">{activeChat.status}</span>
               </div>
             </div>
           </div>
@@ -88,17 +89,18 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
               </div>
             )}
             
-            <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[60%]`}>
+            <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[50%]`}>
               <div
-                className={`px-5 py-3 rounded-2xl ${
+                className={`px-5 py-3 rounded-[10px] font-medium text-sm opacity-70 ${
                   message.sender === 'user'
-                    ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
-                    : 'bg-[#F3F4F6] text-black'
+                    ? 'bg-[#007BFF1A] border border-[#8266D4]'
+                    : 'bg-[#FAF8F8] text-black'
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <p className="mb-2 leading-tight">{message.content}</p>
+                <span className="text-xs opacity-70">{message.timestamp}</span>
               </div>
-              <span className="text-xs text-[#6B7280] mt-1">{message.timestamp}</span>
+              
             </div>
 
             {message.sender === 'user' && (
@@ -117,21 +119,18 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
       </div>
 
       {/* Message Input */}
-      <div className="px-8 py-6 border-t border-[#E5E7EB]">
+      <div className="px-4 py-6 border-t border-[#E5E7EB]">
         <div className="flex items-center gap-3">
           <button className="p-3 hover:bg-[#F3F4F6] rounded-lg transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-            </svg>
+            <Image src="/svgs/clip.svg" alt="Attach" width={24} height={24} />
           </button>
 
-          <input
-            type="text"
+          <Input 
             placeholder="Type your message"
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1 px-5 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8266D4] text-sm"
+            containerClassName='w-full'
+            className='py-4'
           />
 
           <button
@@ -139,9 +138,7 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
             disabled={!messageInput.trim()}
             className="p-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            </svg>
+            <Image src="/svgs/send.svg" alt="Send" width={24} height={24} />
           </button>
         </div>
       </div>

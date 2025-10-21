@@ -76,3 +76,78 @@ body {
 .primary-gradient-light-text {
   color: var(--gradient-primary-gradient-light);
 }
+
+/* ReactFlow Custom Styles */
+.react-flow__node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.react-flow__node:hover {
+  z-index: 10 !important;
+}
+
+/* ReactFlow edge styles - simple dashed lines */
+.react-flow__edge-path {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  stroke-dasharray: 5, 5 !important;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #6B46C1 !important;
+  stroke-width: 2.5px !important;
+}
+
+/* Hide connection handles by default */
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: all;
+}
+
+.react-flow__node:hover .react-flow__handle {
+  opacity: 0;
+}
+
+.react-flow__controls {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.react-flow__controls-button {
+  background: white !important;
+  border: none !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  transition: all 0.2s ease !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #F3F4F6 !important;
+  transform: scale(1.05);
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+/* Ensure dashed lines are visible */
+.react-flow__edge-path[style*="stroke-dasharray"] {
+  stroke-dasharray: inherit !important;
+}
+
+/* Node selection pulse */
+@keyframes nodePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+

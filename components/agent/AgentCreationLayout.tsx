@@ -98,42 +98,42 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
 
   return (
     <DashboardLayout>
-      <div className="p-8 flex gap-6">
+      <div className="h-full flex">
         
         {/* Stepper Sidebar */}
-        <div className="bg-white rounded-[16px] border border-[#E5E7EB] p-6 w-80 flex-shrink-0">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-[#1E1E1E] mb-1">Create New Agent</h2>
-            <p className="text-sm text-[#6E6E6E] capitalize">{agentType} Agent</p>
+        <div className="w-80 flex-shrink-0 border-r border-[#0000001A] p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-1">Create New Agent</h2>
+            <p className="text-sm capitalize">{agentType} Agent</p>
           </div>
 
           <div className="space-y-3">
             {steps.map((step) => (
               <div
                 key={step.number}
-                className={`flex items-start space-x-3 p-3 rounded-[10px] transition-all ${
+                className={`flex items-start space-x-3 p-4 rounded-[10px] transition-all ${
                   step.isActive
-                    ? 'bg-[#F3F0FF] border border-[#8266D4]'
+                    ? 'bg-white border border-[#8266D4]'
                     : step.isCompleted
-                    ? 'bg-white border border-[#E5E7EB]'
-                    : 'bg-white border border-[#E5E7EB] opacity-50'
+                    ? 'bg-white border border-[#8266D4]'
+                    : 'bg-white border border-[#0000001A] opacity-60'
                 }`}
               >
                 <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs ${
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base ${
                     step.isCompleted
-                      ? 'bg-[#8266D4] text-white'
+                      ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
                       : step.isActive
-                      ? 'bg-[#8266D4] text-white'
-                      : 'bg-[#E5E7EB] text-[#9CA3AF]'
+                      ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                      : 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
                   }`}
                 >
                   {step.isCompleted ? (
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
                       <path
                         d="M13.3332 4L5.99984 11.3333L2.6665 8"
-                        stroke="white"
-                        strokeWidth="2"
+                        stroke="#25A83D"
+                        strokeWidth="1"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
@@ -145,15 +145,15 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
 
                 <div className="flex-1 min-w-0">
                   <h3
-                    className={`font-semibold text-xs mb-0.5 ${
-                      step.isActive || step.isCompleted ? 'text-[#1E1E1E]' : 'text-[#9CA3AF]'
+                    className={`text-base ${
+                      step.isActive || step.isCompleted ? 'text-[#0A0A0A]' : 'text-black'
                     }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`text-[10px] ${
-                      step.isActive || step.isCompleted ? 'text-[#6E6E6E]' : 'text-[#9CA3AF]'
+                    className={`text-xs ${
+                      step.isActive || step.isCompleted ? 'text-[#717182]' : 'text-black'
                     }`}
                   >
                     {step.subtitle}
@@ -165,7 +165,7 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 relative max-w-5xl">
           {children}
         </div>
       </div>

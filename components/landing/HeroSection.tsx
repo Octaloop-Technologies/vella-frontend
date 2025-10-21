@@ -69,11 +69,18 @@ const HeroSection: React.FC = () => {
                 </div>
 
                 {/* Right Content - Bird Illustration with Waveform */}
-                <div className="relative flex items-center justify-center w-full h-full">
+                <div className="relative flex items-end justify-center w-full h-full">
                     {/* Waveform Background */}
 
-                    {/* <Image src="/svgs/waveform.svg" alt="Waveform Background" width={400} height={400} className="absolute inset-0 w-full h-full object-contain" /> */}
-                    <Waveform />
+                    <Image
+                        src="/svgs/vela-text.svg"
+                        alt="Waveform Background"
+                        width={400}
+                        height={400}
+                        className='absolute w-48 bottom-36 right-24'
+                    />
+
+                    <Waveform className="absolute -bottom-24" />
 
                     {/* Bird Illustration with Float Animation */}
                     <Image
@@ -81,10 +88,10 @@ const HeroSection: React.FC = () => {
                         alt="Bird Illustration"
                         width={300}
                         height={300}
-                        className="absolute object-contain -top-28 right-12 bird-float z-10"
+                        className="absolute object-contain top-16 right-20 bird-float z-10"
                     />
 
-                    <div className="absolute -top-32 right-0 w-32 h-32 bg-[#CDEFF0] rounded-full opacity-35"></div>
+                    <div className="absolute -top-10 right-12 w-28 h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
                 </div>
             </div>
         </section>
