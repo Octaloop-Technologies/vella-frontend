@@ -129,18 +129,18 @@ function Step1() {
 
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Voice
+              Gender
             </label>
             <div className="relative">
               <select
-                value={agentData.voice}
-                onChange={(e) => updateAgentData({ voice: e.target.value })}
+                value={agentData.gender}
+                onChange={(e) => updateAgentData({ gender: e.target.value })}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
               >
                 <option>Select</option>
                 <option>Male</option>
                 <option>Female</option>
-                <option>Neutral</option>
+                <option>Prefer not to say</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -156,21 +156,66 @@ function Step1() {
             </div>
           </div>
         </div>
-        {agentType !== 'widget' && (
-          /* Voice for widget */
+        <div className='grid grid-cols-2 gap-6'>
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Persona & Tune
+              Persona
             </label>
-            <textarea
-              placeholder="Type..."
-              value={agentData.personaTune}
-              onChange={(e) => updateAgentData({ personaTune: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
-            />
+            <div className="relative">
+              <select
+                value={agentData.persona}
+                onChange={(e) => updateAgentData({ persona: e.target.value })}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+              >
+                <option>Select</option>
+                <option>Witty</option>
+                <option>Professional</option>
+                <option>Friendly</option>
+                <option>Formal</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
-        )}
+
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Tune
+            </label>
+            <div className="relative">
+              <select
+                value={agentData.tune}
+                onChange={(e) => updateAgentData({ tune: e.target.value })}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+              >
+                <option>Select</option>
+                <option>Balanced</option>
+                <option>Creative</option>
+                <option>Precise</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Buttons */}

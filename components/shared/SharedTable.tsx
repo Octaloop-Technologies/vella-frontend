@@ -169,6 +169,7 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
                 onClick={row.onViewDetails as () => void}
               />
               <DropdownItem icon={<PauseIcon />} label="Deactivate Agent" />
+              <DropdownItem icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />} label="Test Agent" onClick={row.onTestAgent as () => void} />
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Agent"

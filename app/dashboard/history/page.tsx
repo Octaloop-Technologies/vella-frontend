@@ -125,7 +125,7 @@ export default function History() {
     setValue: (val: string) => void;
     options: string[];
   }) => (
-    <div className="relative flex-1">
+    <div className="flex-1">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-5 py-3 border border-[#41288A80] bg-white rounded-lg text-sm font-medium text-[#1F2937] flex items-center justify-between"
@@ -143,7 +143,7 @@ export default function History() {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-2 bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-10">
+        <div className="mt-2 bg-white border border-[#E5E7EB] rounded-lg shadow-lg">
           <div className="py-1">
             {options.map((option) => (
               <button

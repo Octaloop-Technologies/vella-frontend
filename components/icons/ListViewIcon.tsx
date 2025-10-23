@@ -17,28 +17,28 @@ const CardViewIcon: React.FC<IconProps> = ({
             <path d="M2 21.5C3.10457 21.5 4 20.6046 4 19.5C4 18.3954 3.10457 17.5 2 17.5C0.89543 17.5 0 18.3954 0 19.5C0 20.6046 0.89543 21.5 2 21.5Z" fill="url(#paint5_linear_218_219)" />
             <defs>
                 <linearGradient id="paint0_linear_218_219" x1="15" y1="4.5" x2="15" y2="6.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
                 <linearGradient id="paint1_linear_218_219" x1="15" y1="11.5" x2="15" y2="13.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
                 <linearGradient id="paint2_linear_218_219" x1="15" y1="18.5" x2="15" y2="20.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
                 <linearGradient id="paint3_linear_218_219" x1="2" y1="3.5" x2="2" y2="7.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
                 <linearGradient id="paint4_linear_218_219" x1="2" y1="10.5" x2="2" y2="14.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
                 <linearGradient id="paint5_linear_218_219" x1="2" y1="17.5" x2="2" y2="21.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#8266D4" />
-                    <stop offset="1" stop-color="#41288A" />
+                    <stop stopColor="#8266D4" />
+                    <stop offset="1" stopColor="#41288A" />
                 </linearGradient>
             </defs>
         </svg>

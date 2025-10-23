@@ -48,7 +48,7 @@ const HowItWorksSection: React.FC = () => {
               <div key={index} className="relative flex flex-col items-center text-center">
                 {/* Step Number Circle */}
                 <div className="relative z-10 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-[#04B4C7] flex items-center justify-center shadow-[0px_0px_34.1px_0px_#00CACF80]">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-b from-[#41288A] to-[#8266D4] flex items-center justify-center shadow-[0px_0px_34.1px_0px_#8266D4]">
                     <div className="w-13 h-13 rounded-full bg-white flex items-center justify-center">
                       <span className="text-xl font-medium text-[#41288A]">
                         {step.number}

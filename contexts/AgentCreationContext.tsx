@@ -8,9 +8,9 @@ interface AgentCreationData {
   agentTypeDropdown: string;
   description: string;
   language: string;
-  personaTune: string;
-  voice: string; // For widget type
-  
+  gender: string;
+  persona: string;
+  tune: string;
   // Step 2
   selectedDocuments: string[];
   
@@ -38,8 +38,9 @@ const defaultAgentData: AgentCreationData = {
   agentTypeDropdown: 'Agent Type',
   description: '',
   language: 'Select',
-  personaTune: '',
-  voice: 'Select',
+  gender: 'Select',
+  persona: 'Select',
+  tune: 'Select',
   selectedDocuments: [],
   selectedChannels: [],
   selectedIntegrations: [],

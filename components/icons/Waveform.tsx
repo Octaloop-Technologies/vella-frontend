@@ -315,7 +315,7 @@ const Waveform: React.FC<{ className?: string }> = ({ className }) => {
         <g filter="url(#filter87_d_138_6091)">
             <path d="M224.137 137.928V77.1601L224.567 33.7548L224.996 77.1601V146.609V216.057L224.567 276.825L224.137 216.057V137.928Z" fill="white" />
         </g>
-        <g clip-path="url(#clip0_138_6091)">
+        <g clipPath="url(#clip0_138_6091)">
             <g filter="url(#filter88_d_138_6091)">
                 <path d="M19.2884 154.86V153.357L18.6442 152.284L18 153.357V155.075V156.793L18.6442 158.296L19.2884 156.793V154.86Z" fill="white" />
             </g>

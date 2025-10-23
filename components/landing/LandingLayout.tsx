@@ -16,10 +16,10 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                 <nav className="px-12 py-6 flex items-center justify-between">
                     {/* Logo */}
                     <Image
-                        src="/dashboard/png/logo.png"
-                        alt="VELA Logo"
-                        width={50}
-                        height={50}
+                        src="/svgs/bird2.svg"
+                        alt="Bird Illustration"
+                        width={107}
+                        height={84}
                         className="object-contain"
                     />
 
