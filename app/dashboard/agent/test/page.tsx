@@ -1,71 +1,396 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { Message } from '@/types/chat';
 import Input from '@/components/shared/Input';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function TestAgent() {
+function TestAgentContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    // Get agent data from URL parameters
+    const agentId = searchParams.get('id') || '';
+    const agentName = searchParams.get('name') || 'Sales Assistant';
+    const agentType = searchParams.get('type') || 'Inbound';
+    const agentStatus = searchParams.get('status') || 'Active';
+    const agentDescription = searchParams.get('description') || 'AI agent for customer interactions';
+    
     const [messageInput, setMessageInput] = useState('');
     const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
     const [isCallActive, setIsCallActive] = useState(false);
     const [callDuration, setCallDuration] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            sender: 'agent',
-            content: "Hello Sarah! I'm your Sales Assistant. I see you're interested in our platform. How can I help you today?",
-            timestamp: '09:53 AM'
-        },
-        {
-            id: '2',
-            sender: 'user',
-            content: "Hi! Yes, I'm looking for a solution to automate our customer support. Can you tell me more about your features?",
-            timestamp: '09:57 AM'
+    const [resolvedAgentName, setResolvedAgentName] = useState(agentName);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [conversationId, setConversationId] = useState('');
+    const [isStartingConversation, setIsStartingConversation] = useState(false);
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
+    const [error, setError] = useState('');
+    
+    // Audio recording state
+    const [isRecording, setIsRecording] = useState(false);
+    const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+    const [liveTranscript, setLiveTranscript] = useState('');
+    const [callMessages, setCallMessages] = useState<Message[]>([]);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+    const recognitionRef = useRef<any>(null);
+
+    const generateMessageId = () => {
+        if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+            return crypto.randomUUID();
         }
-    ]);
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
 
     const agentDetails = {
-        name: 'Sales Assistant',
-        status: 'Active',
-        persona: 'Adam',
-        tune: 'Professional and helpful',
+        name: resolvedAgentName,
+        status: agentStatus,
+        type: agentType,
+        description: agentDescription,
         lastUpdated: '2 minutes ago'
     };
 
-    const handleSendMessage = () => {
-        if (messageInput.trim()) {
-            const newMessage: Message = {
-                id: String(messages.length + 1),
+    const startConversation = useCallback(async (targetAgentId: string) => {
+        if (!targetAgentId) {
+            setError('Agent information is missing. Navigate here from the Agents list.');
+            return;
+        }
+
+        setIsStartingConversation(true);
+        setError('');
+        setConversationId('');
+        setMessages([]);
+
+        try {
+            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/start/${targetAgentId}?channel=phone`, {
+                method: 'POST',
+                headers: {
+                    accept: 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to start conversation');
+            }
+
+            const data = await response.json();
+            const conversation = data?.conversation;
+
+            if (!conversation?.conversation_id) {
+                throw new Error('Conversation response missing ID');
+            }
+
+            setConversationId(conversation.conversation_id);
+            if (conversation.agent_name) {
+                setResolvedAgentName(conversation.agent_name);
+            }
+
+            if (conversation.greeting) {
+                const greetingMessage: Message = {
+                    id: generateMessageId(),
+                    sender: 'agent',
+                    content: conversation.greeting,
+                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                    audioBase64: conversation.greeting_audio || undefined
+                };
+                setMessages([greetingMessage]);
+            } else {
+                setMessages([]);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unable to start conversation');
+        } finally {
+            setIsStartingConversation(false);
+        }
+    }, []);
+
+    // Send text message (used by typing in chat tab)
+    const sendTextMessage = async (text: string) => {
+        if (!conversationId) {
+            return;
+        }
+
+        const userMessage: Message = {
+            id: generateMessageId(),
+            sender: 'user',
+            content: text,
+            timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setMessages((prev) => [...prev, userMessage]);
+        setIsSendingMessage(true);
+        setError('');
+
+        try {
+            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/${conversationId}/message?message=${encodeURIComponent(text)}`, {
+                method: 'POST',
+                headers: {
+                    accept: 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send message');
+            }
+
+            const data = await response.json();
+            const agentResponse = data?.response?.agent_response;
+
+            if (agentResponse) {
+                const agentMessage: Message = {
+                    id: generateMessageId(),
+                    sender: 'agent',
+                    content: agentResponse,
+                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                };
+                setMessages((prev) => [...prev, agentMessage]);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unable to send message');
+        } finally {
+            setIsSendingMessage(false);
+        }
+    };
+
+    const handleSendMessage = async () => {
+        const trimmedMessage = messageInput.trim();
+        if (!trimmedMessage || !conversationId) {
+            return;
+        }
+
+        setMessageInput('');
+        await sendTextMessage(trimmedMessage);
+    };
+
+    // Convert base64 audio to blob and play it
+    const playBase64Audio = (base64Audio: string) => {
+        try {
+            // Don't play if muted
+            if (isMuted) {
+                return;
+            }
+            
+            // Stop any currently playing audio
+            if (currentAudioRef.current) {
+                currentAudioRef.current.pause();
+                currentAudioRef.current = null;
+            }
+
+            // Decode base64 to binary
+            const binaryString = atob(base64Audio);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            const blob = new Blob([bytes], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(blob);
+            
+            const audio = new Audio(audioUrl);
+            currentAudioRef.current = audio;
+            
+            audio.onended = () => {
+                URL.revokeObjectURL(audioUrl);
+                currentAudioRef.current = null;
+            };
+            
+            audio.play().catch(err => {
+                console.error('Audio playback failed:', err);
+            });
+        } catch (err) {
+            console.error('Failed to play base64 audio:', err);
+        }
+    };
+
+    // Start recording audio with live transcription
+    const startRecording = async () => {
+        try {
+            setLiveTranscript('Listening...');
+            
+            // Initialize Web Speech API for live transcription
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event: any) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    setLiveTranscript(finalTranscript + interimTranscript || 'Listening...');
+                };
+
+                recognition.onerror = (event: any) => {
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error !== 'no-speech') {
+                        setError('Speech recognition error: ' + event.error);
+                    }
+                };
+
+                recognition.start();
+                recognitionRef.current = recognition;
+            } else {
+                setLiveTranscript('Speak now...');
+            }
+
+            setIsRecording(true);
+        } catch (err) {
+            setError('Microphone access denied or not available');
+            console.error('Recording error:', err);
+        }
+    };
+
+    // Stop recording audio and send message
+    const stopRecording = async () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
+        }
+        
+        setIsRecording(false);
+        
+        const transcript = liveTranscript.replace('Listening...', '').trim();
+        
+        if (!transcript || transcript === '') {
+            setLiveTranscript('');
+            setError('No speech detected. Please try again.');
+            return;
+        }
+
+        // Only for audio call tab
+        await sendVoiceMessage(transcript);
+        setLiveTranscript('');
+    };
+
+    // Send voice message to backend (for audio call tab)
+    const sendVoiceMessage = async (text: string) => {
+        if (!conversationId) {
+            setError('No active conversation');
+            return;
+        }
+
+        setIsProcessingAudio(true);
+        setError('');
+
+        try {
+            // Add user message to call messages
+            const userMessage: Message = {
+                id: generateMessageId(),
                 sender: 'user',
-                content: messageInput,
+                content: text,
                 timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
             };
-            setMessages([...messages, newMessage]);
-            setMessageInput('');
+            setCallMessages((prev) => [...prev, userMessage]);
+
+            // Send to backend
+            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/${conversationId}/message?message=${encodeURIComponent(text)}`, {
+                method: 'POST',
+                headers: {
+                    accept: 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send message');
+            }
+
+            const data = await response.json();
+            const agentResponse = data?.response?.agent_response;
+            const responseAudio = data?.response?.response_audio;
+
+            if (agentResponse) {
+                const agentMessage: Message = {
+                    id: generateMessageId(),
+                    sender: 'agent',
+                    content: agentResponse,
+                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                    audioBase64: responseAudio || undefined
+                };
+                setCallMessages((prev) => [...prev, agentMessage]);
+                
+                // Auto-play response audio
+                if (responseAudio) {
+                    playBase64Audio(responseAudio);
+                }
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unable to send message');
+        } finally {
+            setIsProcessingAudio(false);
         }
     };
 
     const handleClearChat = () => {
         setMessages([]);
+        setCallMessages([]);
     };
 
     const handleStartCall = () => {
         setIsCallActive(true);
         setCallDuration(0);
+        setCallMessages([]);
+        setLiveTranscript('');
+        
+        // Play greeting audio from first message if available
+        if (messages.length > 0 && messages[0].sender === 'agent' && messages[0].audioBase64) {
+            playBase64Audio(messages[0].audioBase64);
+            
+            // Add greeting to call messages
+            setCallMessages([{
+                id: generateMessageId(),
+                sender: 'agent',
+                content: messages[0].content,
+                timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                audioBase64: messages[0].audioBase64
+            }]);
+        }
     };
 
     const handleEndCall = () => {
         setIsCallActive(false);
         setCallDuration(0);
         setIsMuted(false);
+        setLiveTranscript('');
+        
+        // Stop any ongoing recording
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
+        }
+        
+        // Stop any playing audio
+        if (currentAudioRef.current) {
+            currentAudioRef.current.pause();
+            currentAudioRef.current = null;
+        }
+        
+        setIsRecording(false);
     };
 
     const toggleMute = () => {
-        setIsMuted(!isMuted);
+        const newMuteState = !isMuted;
+        setIsMuted(newMuteState);
+        
+        // Mute/unmute current audio
+        if (currentAudioRef.current) {
+            currentAudioRef.current.muted = newMuteState;
+        }
     };
 
     // Timer effect for call duration
@@ -91,6 +416,47 @@ export default function TestAgent() {
     const handleBack = () => {
         router.back();
     };
+
+    const handleRetryConversation = () => {
+        if (agentId) {
+            startConversation(agentId);
+        }
+    };
+
+    const isInitializingConversationRef = useRef(false);
+
+    useEffect(() => {
+        if (!agentId) {
+            setError('Agent information is missing. Navigate here from the Agents list.');
+            setConversationId('');
+            setMessages([]);
+            return;
+        }
+
+        if (isInitializingConversationRef.current) {
+            return;
+        }
+
+        isInitializingConversationRef.current = true;
+
+        startConversation(agentId).finally(() => {
+            isInitializingConversationRef.current = false;
+        });
+    }, [agentId, startConversation]);
+
+    useEffect(() => {
+        setResolvedAgentName(agentName);
+    }, [agentName]);
+
+    // Cleanup audio on unmount
+    useEffect(() => {
+        return () => {
+            if (currentAudioRef.current) {
+                currentAudioRef.current.pause();
+                currentAudioRef.current = null;
+            }
+        };
+    }, []);
 
     return (
         <div className="h-screen bg-[#F9FAFB] flex flex-col">
@@ -118,7 +484,7 @@ export default function TestAgent() {
                                     : 'bg-white text-[#6B7280] border border-white'
                                     }`}
                             >
-                                Chat Text
+                                Test Chat
                             </button>
                             <button
                                 onClick={() => setActiveTab('call')}
@@ -127,16 +493,34 @@ export default function TestAgent() {
                                     : 'bg-white text-[#6B7280] border border-white'
                                     }`}
                             >
-                                Audio Call
+                                Test Audio
                             </button>
                         </div>
                     </div>
-                    <div className='flex flex-1'>
+                    <div className='flex flex-1 h-[80vh] overflow-auto'>
                         {
                             activeTab === 'chat' ? (
                                 <div className='flex flex-col flex-1'>
                                     {/* Messages Area */}
                                     <div className="flex-1 overflow-y-auto px-8 py-6">
+                                        {error && (
+                                            <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                                                <span>{error}</span>
+                                                {agentId && (
+                                                    <button
+                                                        onClick={handleRetryConversation}
+                                                        className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100"
+                                                    >
+                                                        Retry
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                        {!error && isStartingConversation && (
+                                            <div className="mb-4 text-sm text-[#717182]">
+                                                Initializing conversation...
+                                            </div>
+                                        )}
                                         {messages.map((message) => (
                                             <div
                                                 key={message.id}
@@ -162,7 +546,7 @@ export default function TestAgent() {
                                                             }`}
                                                     >
                                                         <p className="mb-3 leading-tight">{message.content}</p>
-                                                        <span className="text-xs opacity-70">{message.timestamp}</span>
+                                                        <span className="text-xs opacity-70 block">{message.timestamp}</span>
                                                     </div>
 
                                                 </div>
@@ -180,26 +564,50 @@ export default function TestAgent() {
                                                 )}
                                             </div>
                                         ))}
+                                        {isSendingMessage && (
+                                            <div className="flex gap-3 mb-6 justify-start">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                    <Image
+                                                        src="/dashboard/png/user-avatar.png"
+                                                        alt="Agent Avatar"
+                                                        width={40}
+                                                        height={40}
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col items-start max-w-[40%]">
+                                                    <div className="px-5 py-3 rounded-[10px] font-medium text-sm bg-[#FAF8F8] text-black opacity-70">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Message Input */}
                                     <div className="px-4 py-6 border-t border-[#E5E7EB]">
                                         <div className="flex items-center gap-3">
-                                            <button className="p-3 hover:bg-[#F3F4F6] rounded-lg transition-colors">
-                                                <Image src="/svgs/clip.svg" alt="Attach" width={24} height={24} />
-                                            </button>
-
                                             <Input
                                                 placeholder="Type your message"
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSendMessage();
+                                                    }
+                                                }}
                                                 containerClassName='w-full'
                                                 className='py-4'
                                             />
 
                                             <button
                                                 onClick={handleSendMessage}
-                                                disabled={!messageInput.trim()}
+                                                disabled={!messageInput.trim() || !conversationId || isSendingMessage}
                                                 className="p-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Image src="/svgs/send.svg" alt="Send" width={24} height={24} />
@@ -208,10 +616,23 @@ export default function TestAgent() {
                                     </div>
                                 </div>
                             ) :
-                                (<div className="flex flex-1 flex-col items-center justify-center">
+                                (<div className="flex flex-1 flex-col">
                                     {!isCallActive ? (
-                                        <>
-                                            <p className='text-sm text-[#717182] mb-4'>Ready to start call</p>
+                                        <div className="flex flex-1 flex-col items-center justify-center">
+                                            {error && (
+                                                <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                                                    <span>{error}</span>
+                                                    {agentId && (
+                                                        <button
+                                                            onClick={handleRetryConversation}
+                                                            className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100"
+                                                        >
+                                                            Retry
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {/* <p className='text-sm text-[#717182] mb-4'>Ready to start call</p> */}
                                             <div className='w-9 h-9 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] flex items-center justify-center mb-4'>
                                                 <Image
                                                     src="/svgs/bot.svg"
@@ -220,51 +641,155 @@ export default function TestAgent() {
                                                     height={19}
                                                 />
                                             </div>
-                                            <h2 className="text-lg mb-7 text-[#0A0A0A]">Testing: Sales Assistant</h2>
+                                            <h2 className="text-lg mb-7 text-[#0A0A0A]">Testing: {agentDetails.name}</h2>
                                             <button
                                                 onClick={handleStartCall}
-                                                className="w-3xs px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all"
+                                                disabled={!conversationId}
+                                                className="w-3xs px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Image src="/svgs/phone3.svg" alt="Phone" width={24} height={24} className='inline-block mr-3' />
-                                                Start Call
+                                                Test Audio 
                                             </button>
-                                        </>
+                                        </div>
                                     ) : (
                                         <>
-                                            <p className='text-sm text-[#717182] mb-4'>Ready to start call</p>
-                                            <div className='w-9 h-9 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] flex items-center justify-center mb-4'>
-                                                <Image
-                                                    src="/svgs/bot.svg"
-                                                    alt="Bot Illustration"
-                                                    width={19}
-                                                    height={19}
-                                                />
+                                            {/* Call Conversation Area */}
+                                            <div className="flex-1 overflow-y-auto px-8 py-6">
+                                                {error && (
+                                                    <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                                                        <span>{error}</span>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Call Messages */}
+                                                {callMessages.map((message) => (
+                                                    <div
+                                                        key={message.id}
+                                                        className={`flex gap-3 mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                                                    >
+                                                        {message.sender === 'agent' && (
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                                <Image
+                                                                    src="/dashboard/png/user-avatar.png"
+                                                                    alt="Agent Avatar"
+                                                                    width={40}
+                                                                    height={40}
+                                                                    className="object-cover"
+                                                                />
+                                                            </div>
+                                                        )}
+
+                                                        <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[40%]`}>
+                                                            <div
+                                                                className={`px-5 py-3 rounded-[10px] font-medium text-sm opacity-70 ${message.sender === 'user'
+                                                                    ? 'bg-[#007BFF1A] border border-[#8266D4]'
+                                                                    : 'bg-[#FAF8F8] text-black'
+                                                                    }`}
+                                                            >
+                                                                <p className="mb-2 leading-tight">{message.content}</p>
+                                                                <span className="text-xs opacity-70 block">{message.timestamp}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {message.sender === 'user' && (
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                                <Image
+                                                                    src="/dashboard/png/user-avatar.png"
+                                                                    alt="User"
+                                                                    width={40}
+                                                                    height={40}
+                                                                    className="object-cover"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                
+                                                {/* Live Transcript */}
+                                                {isRecording && liveTranscript && (
+                                                    <div className="flex gap-3 mb-6 justify-end">
+                                                        <div className="flex flex-col items-end max-w-[40%]">
+                                                            <div className="px-5 py-3 rounded-[10px] font-medium text-sm bg-[#007BFF1A] border border-[#8266D4] opacity-50">
+                                                                <p className="mb-2 leading-tight italic">{liveTranscript}</p>
+                                                                <span className="text-xs opacity-70 block">Speaking...</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                                            <Image
+                                                                src="/dashboard/png/user-avatar.png"
+                                                                alt="User"
+                                                                width={40}
+                                                                height={40}
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {isProcessingAudio && (
+                                                    <div className="text-center text-sm text-[#717182] mb-4">
+                                                        Processing your message...
+                                                    </div>
+                                                )}
                                             </div>
-                                            <h2 className="text-lg mb-4 text-[#0A0A0A]">Testing: Sales Assistant</h2>
-                                            <p className="text-sm mb-8 text-[#717182]">{formatDuration(callDuration)}</p>
-                                            <div className="flex items-center gap-4">
-                                                <button
-                                                    onClick={toggleMute}
-                                                    className="w-12 h-12 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center hover:bg-gray-50 transition-all"
-                                                >
-                                                    <Image 
-                                                        src={"/svgs/mic.svg"} 
-                                                        alt="Microphone" 
-                                                        width={20} 
-                                                        height={20} 
-                                                    />
-                                                </button>
-                                                <button
-                                                    className="w-12 h-12 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center hover:bg-gray-50 transition-all"
-                                                >
-                                                    <Image src="/svgs/speaker.svg" alt="Volume" width={20} height={20} />
-                                                </button>
-                                                <button
-                                                    onClick={handleEndCall}
-                                                    className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-all"
-                                                >
-                                                    <Image src="/svgs/abort-call.svg" alt="End Call" width={20} height={20} />
-                                                </button>
+
+                                            {/* Call Controls Footer */}
+                                            <div className="px-8 py-6 border-t border-[#E5E7EB] bg-white">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className='w-16 h-16 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] flex items-center justify-center'>
+                                                        <Image
+                                                            src="/svgs/bot.svg"
+                                                            alt="Bot Illustration"
+                                                            width={24}
+                                                            height={24}
+                                                        />
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <h2 className="text-base font-medium text-[#0A0A0A] mb-1">{agentDetails.name}</h2>
+                                                        <p className="text-sm text-[#717182]">{formatDuration(callDuration)}</p>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-4">
+                                                        <button
+                                                            onClick={isRecording ? stopRecording : startRecording}
+                                                            disabled={isProcessingAudio}
+                                                            className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                                                isRecording 
+                                                                    ? 'bg-red-500 border-red-500 animate-pulse' 
+                                                                    : 'bg-white border-[#E5E7EB] hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            <Image 
+                                                                src={"/svgs/mic.svg"} 
+                                                                alt="Microphone" 
+                                                                width={22} 
+                                                                height={22}
+                                                                className={isRecording ? 'brightness-0 invert' : ''}
+                                                            />
+                                                        </button>
+                                                        <button
+                                                            onClick={toggleMute}
+                                                            className="w-14 h-14 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center hover:bg-gray-50 transition-all"
+                                                        >
+                                                            <Image 
+                                                                src={isMuted ? "/svgs/speaker-mute.svg" : "/svgs/speaker.svg"} 
+                                                                alt="Volume" 
+                                                                width={22} 
+                                                                height={22} 
+                                                            />
+                                                        </button>
+                                                        <button
+                                                            onClick={handleEndCall}
+                                                            className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-all"
+                                                        >
+                                                            <Image src="/svgs/abort-call.svg" alt="End Call" width={22} height={22} />
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <p className="text-xs text-[#717182]">
+                                                        {isRecording ? '🔴 Recording... Click mic to stop and send' : 'Click microphone to speak'}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </>
                                     )}
@@ -277,7 +802,7 @@ export default function TestAgent() {
                 </div>
 
                 {/* Agent Details Panel */}
-                <div className="w-[20%] max-w-[400px] bg-white p-6 border-l border-[#0000001A]">
+                <div className="w-[20%] max-w-[400px] overflow-auto bg-white p-6 border-l border-[#0000001A]">
                     <h2 className="text-lg font-medium mb-6">Agent Details</h2>
 
                     <div className="space-y-6">
@@ -289,19 +814,19 @@ export default function TestAgent() {
                             </div>
                         </div>
 
-                        {/* Persona */}
+                        {/* Type */}
                         <div>
-                            <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Persona</label>
+                            <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Type</label>
                             <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm">
-                                {agentDetails.persona}
+                                {agentDetails.type}
                             </div>
                         </div>
 
-                        {/* Tune */}
+                        {/* Description */}
                         <div>
-                            <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Tune</label>
-                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm">
-                                {agentDetails.tune}
+                            <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Description</label>
+                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm break-words">
+                                {agentDetails.description}
                             </div>
                         </div>
 
@@ -313,16 +838,31 @@ export default function TestAgent() {
                             </div>
                         </div>
 
-                        {/* Clear Chat Button */}
+                        {/* Clear Chat Button */} 
                         <button
                             onClick={handleClearChat}
                             className="w-full px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all mt-"
                         >
-                            Clear Chat
+                            Clear Chat 
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function TestAgent() {
+    return (
+        <Suspense fallback={
+            <div className="h-screen bg-[#F9FAFB] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-[#8266D4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-[#717182]">Loading agent...</p>
+                </div>
+            </div>
+        }>
+            <TestAgentContent />
+        </Suspense>
     );
 }
