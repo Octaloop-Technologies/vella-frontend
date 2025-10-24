@@ -38,6 +38,8 @@ function TestAgentContent() {
     const audioChunksRef = useRef<Blob[]>([]);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const recognitionRef = useRef<any>(null);
+    const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
+    const callMessagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const generateMessageId = () => {
         if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -458,6 +460,20 @@ function TestAgentContent() {
         };
     }, []);
 
+    // Auto-scroll to latest message in chat
+    useEffect(() => {
+        if (activeTab === 'chat' && chatMessagesEndRef.current) {
+            chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isSendingMessage, activeTab]);
+
+    // Auto-scroll to latest message in call
+    useEffect(() => {
+        if (activeTab === 'call' && isCallActive && callMessagesEndRef.current) {
+            callMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [callMessages, isProcessingAudio, isRecording, liveTranscript, activeTab, isCallActive]);
+
     return (
         <div className="h-screen bg-[#F9FAFB] flex flex-col">
             {/* Header */}
@@ -586,6 +602,7 @@ function TestAgentContent() {
                                                 </div>
                                             </div>
                                         )}
+                                        <div ref={chatMessagesEndRef} />
                                     </div>
 
                                     {/* Message Input */}
@@ -731,6 +748,7 @@ function TestAgentContent() {
                                                         Processing your message...
                                                     </div>
                                                 )}
+                                                <div ref={callMessagesEndRef} />
                                             </div>
 
                                             {/* Call Controls Footer */}
