@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const BASE_URL = 'https://ai-voice-agent-backend.octaloop.dev/api/v1';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     voiceId: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
