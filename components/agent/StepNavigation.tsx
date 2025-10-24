@@ -7,6 +7,7 @@ interface StepNavigationProps {
   onNext: () => void;
   nextLabel?: string;
   previousLabel?: string;
+  disabled?: boolean;
 }
 
 const StepNavigation: React.FC<StepNavigationProps> = ({
@@ -14,6 +15,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
   onNext,
   nextLabel = 'Next',
   previousLabel = 'Previous',
+  disabled = false,
 }) => {
   return (
     <div className="absolute bottom-8 left-0 w-full flex items-center justify-between mt-8 px-10">
@@ -39,7 +41,12 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
 
       <button
         onClick={onNext}
-        className="px-8 py-3 w-64 rounded-[10px] bg-gradient-to-b from-[#8266D4] to-[#41288A] shadow-card text-white font-medium flex items-center justify-center space-x-3"
+        disabled={disabled}
+        className={`px-8 py-3 w-64 rounded-[10px] shadow-card text-white font-medium flex items-center justify-center space-x-3 ${
+          disabled 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-gradient-to-b from-[#8266D4] to-[#41288A] hover:from-[#7055C2] hover:to-[#372078]'
+        }`}
       >
         <span>{nextLabel}</span>
         {

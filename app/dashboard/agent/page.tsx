@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import SharedTable from '@/components/shared/SharedTable';
@@ -21,6 +21,7 @@ import EyeIcon from '@/components/icons/EyeIcon';
 import FileEditIcon from '@/components/icons/FileEditIcon';
 import PauseIcon from '@/components/icons/PauseIcon';
 import TrashIcon from '@/components/icons/TrashIcon';
+import { useAgents } from '@/hooks/useAgents';
 
 export default function Agent() {
   const router = useRouter();
@@ -34,54 +35,32 @@ export default function Agent() {
   const [selectedAgent, setSelectedAgent] = useState<AgentsTable | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<AgentsTable | null>(null);
 
-  const agentsData: AgentsTable[] = [
-    {
-      name: 'Sales Assistant',
-      type: 'Outbound',
-      typeVariant: 'outbound',
-      status: 'Active',
-      statusVariant: 'active',
-      conversations: '342',
-      successRate: '89%',
-      lastActive: '2 minutes ago'
-    },
-    {
-      name: 'Support Bot',
-      type: 'Inbound',
-      typeVariant: 'inbound',
-      status: 'Active',
-      statusVariant: 'active',
-      conversations: '342',
-      successRate: '89%',
-      lastActive: '2 minutes ago'
-    },
-    {
-      name: 'Lead Generator',
-      type: 'Outbound',
-      typeVariant: 'outbound',
-      status: 'Active',
-      statusVariant: 'active',
-      conversations: '342',
-      successRate: '89%',
-      lastActive: '2 minutes ago'
-    },
-    {
-      name: 'Customer Success',
-      type: 'Outbound',
-      typeVariant: 'outbound',
-      status: 'Active',
-      statusVariant: 'active',
-      conversations: '342',
-      successRate: '89%',
-      lastActive: '2 minutes ago'
-    },
-  ];
+  // Use the agents hook to fetch real data
+  const { 
+    agents: agentsData, 
+    loading, 
+    error, 
+    total,
+    searchAgents, 
+    deleteAgent: apiDeleteAgent,
+    refreshAgents 
+  } = useAgents();
 
-  const filteredData = agentsData.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'All Agents' || agent.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchAgents({
+        search: searchTerm,
+        status: filterStatus,
+        page: 1,
+        limit: 10
+      });
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, filterStatus, searchAgents]);
+
+  const filteredData = agentsData;
 
   const handleViewDetails = (agent: AgentsTable) => {
     setSelectedAgent(agent);
@@ -97,10 +76,22 @@ export default function Agent() {
     router.push('/dashboard/agent/test');
   };
 
-  const handleConfirmDelete = () => {
-    // Add your delete logic here
-    console.log('Deleting agent:', agentToDelete?.name);
-    setAgentToDelete(null);
+  const handleConfirmDelete = async () => {
+    if (!agentToDelete?.id) {
+      console.error('No agent ID to delete');
+      return;
+    }
+
+    try {
+      await apiDeleteAgent(agentToDelete.id);
+      setAgentToDelete(null);
+      setIsDeleteModalOpen(false);
+      // Show success message (you can add toast notification here)
+      console.log('Agent deleted successfully:', agentToDelete.name);
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+      // Show error message (you can add toast notification here)
+    }
   };
 
   // Updated SharedTable data with action handlers
@@ -167,7 +158,10 @@ export default function Agent() {
           {/* View Toggle and Agents Section */}
           <div className="">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-medium text-black">Agents</h2>
+              <div>
+                <h2 className="text-lg font-medium text-black">Agents</h2>
+                {!loading && <p className="text-sm text-gray-500 mt-1">Total: {total} agents</p>}
+              </div>
               <div className="flex items-center space-x-2 border border-[#EBEBEB] p-[5px] rounded-[10px]">
                 <button
                   onClick={() => setView('list')}
@@ -185,44 +179,89 @@ export default function Agent() {
             </div>
           </div>
 
-          {/* Conditional Rendering: Table or Grid */}
-          {view === 'list' ? (
-            <SharedTable<AgentsTable>
-              type="agents"
-              data={tableData}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredData.map((agent, index) => (
-                <ItemCard
-                  key={index}
-                  icon={
-                    <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
-                      <AgentIcon color='white' className="w-10 h-10" />
-                    </div>
-                  }
-                  title={agent.name}
-                  description="Helps qualify leads and schedule demos"
-                  badges={[
-                    { label: agent.type, variant: agent.typeVariant },
-                    { label: agent.status, variant: agent.statusVariant }
-                  ]}
-                  stats={[
-                    { label: 'Conversations', value: agent.conversations },
-                    { label: 'Success Rate', value: agent.successRate },
-                    { label: 'Last Active', value: agent.lastActive }
-                  ]}
-                  menuItems={[
-                    { icon: <FileEditIcon />, label: 'Edit Agent' },
-                    { icon: <CopyIcon />, label: 'Duplicate Agent' },
-                    { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
-                    { icon: <PauseIcon />, label: 'Deactivate Agent' },
-                    { icon: <AgentIcon className="w-4 h-4 text-[#1F2937]"  />, label: 'Test Agent', onClick: () => handleTestAgent(agent) },
-                    { icon: <TrashIcon />, label: 'Delete Agent', className: 'text-[#DC2626]', onClick: () => handleDeleteAgent(agent) }
-                  ]}
-                />
-              ))}
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+              <span className="ml-3 text-gray-600">Loading agents...</span>
             </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="text-red-500 mb-2">⚠️ Error loading agents</div>
+              <p className="text-gray-600 text-sm mb-4">{error}</p>
+              <button 
+                onClick={refreshAgents}
+                className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* No Data State */}
+          {!loading && !error && filteredData.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="text-gray-400 text-6xl mb-4">🤖</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No agents found</h3>
+              <p className="text-gray-600 text-sm mb-6">
+                {searchTerm || filterStatus !== 'All Agents' 
+                  ? 'Try adjusting your search or filter criteria' 
+                  : 'Get started by creating your first agent'}
+              </p>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Create Your First Agent
+              </button>
+            </div>
+          )}
+
+          {/* Conditional Rendering: Table or Grid */}
+          {!loading && !error && filteredData.length > 0 && (
+            <>
+              {view === 'list' ? (
+                <SharedTable<AgentsTable>
+                  type="agents"
+                  data={tableData}
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredData.map((agent, index) => (
+                    <ItemCard
+                      key={agent.id || index}
+                      icon={
+                        <div className="w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] rounded-xl flex items-center justify-center">
+                          <AgentIcon color='white' className="w-10 h-10" />
+                        </div>
+                      }
+                      title={agent.name}
+                      description={agent.description || "AI agent for customer interactions"}
+                      badges={[
+                        { label: agent.type, variant: agent.typeVariant },
+                        { label: agent.status, variant: agent.statusVariant }
+                      ]}
+                      stats={[
+                        { label: 'Conversations', value: agent.conversations },
+                        { label: 'Success Rate', value: agent.successRate },
+                        { label: 'Last Active', value: agent.lastActive }
+                      ]}
+                      menuItems={[
+                        { icon: <FileEditIcon />, label: 'Edit Agent' },
+                        { icon: <CopyIcon />, label: 'Duplicate Agent' },
+                        { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
+                        { icon: <PauseIcon />, label: 'Deactivate Agent' },
+                        { icon: <AgentIcon className="w-4 h-4 text-[#1F2937]"  />, label: 'Test Agent', onClick: () => handleTestAgent(agent) },
+                        { icon: <TrashIcon />, label: 'Delete Agent', className: 'text-[#DC2626]', onClick: () => handleDeleteAgent(agent) }
+                      ]}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </Card> 
       </div>

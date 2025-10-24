@@ -2,19 +2,12 @@ import React from 'react';
 import BaseModal from '@/components/shared/BaseModal';
 import Card from '@/components/shared/Card';  
 import Image from 'next/image';
+import { AgentsTable } from '@/types/table';
 
 interface AgentDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agent?: {
-    name: string;
-    type: string;
-    typeVariant: 'outbound' | 'inbound';
-    status: string;
-    statusVariant: 'active' | 'draft';
-    conversations: string;
-    successRate: string;
-  };
+  agent?: AgentsTable;
 }
 
 const AgentDetailModal: React.FC<AgentDetailModalProps> = ({ 
@@ -27,7 +20,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
     status: 'Active',
     statusVariant: 'active',
     conversations: '342',
-    successRate: '89%'
+    successRate: '89%',
+    lastActive: '2 minutes ago'
   }
 }) => {
   const assistantStats = [
