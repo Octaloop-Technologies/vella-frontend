@@ -55,14 +55,48 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Received body for new agent:', JSON.stringify(body, null, 2));
+    // Map frontend field names to backend API field names
+    const apiPayload = {
+      name: body.agentName || body.name,
+      description: body.description,
+      agent_type: body.agentTypeDropdown || body.agent_type || body.agentType,
+      language: body.language,
+      gender: body.gender,
+      persona: body.persona,
+      voice_id: body.voiceId || body.voice_id,
+      tune: body.tune,
+      voice_settings:"",
+      ...body
+    };
+
+    // Remove frontend-specific fields that aren't needed by the API
+    delete apiPayload.agentName;
+    delete apiPayload.agentTypeDropdown;
+    delete apiPayload.agentType;
+    delete apiPayload.voiceId;
+    
+    console.log('Sending to API:', JSON.stringify(apiPayload, null, 2));
+    
+    // Convert to form data format (application/x-www-form-urlencoded)
+    const formData = new URLSearchParams();
+    Object.entries(apiPayload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
     
     const response = await fetch(`${BASE_URL}/agents/`, {
       method: 'POST',
       headers: {
         'accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify(body),
+      body: formData.toString(),
     });
 
     if (!response.ok) {
