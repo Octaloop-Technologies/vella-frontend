@@ -7,6 +7,8 @@ import { useAgentCreation } from '@/contexts/AgentCreationContext';
 import Card from '@/components/shared/Card';
 import Image from 'next/image';
 import Input from '@/components/shared/Input';
+import { useToast } from '@/contexts/ToastContext';
+import { configService, CreateAgentRequest } from '@/lib/configApi';
 
 export function Step3Channels() {
   const router = useRouter();
@@ -324,10 +326,54 @@ export function Step5ReviewPublish() {
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'inbound';
   const { agentData } = useAgentCreation();
+  const { addToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handlePublish = () => {
-    console.log('Publishing agent:', agentData);
-    router.push('/dashboard/agent');
+  const handlePublish = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Publishing agent:', agentData);
+      
+      // Transform the agentData to match the API requirements
+      const createAgentData: CreateAgentRequest = {
+        name: agentData.agentName || '',
+        description: agentData.description || '',
+        agent_type: agentData.agentTypeDropdown as 'phone_only' | 'chat_only' | 'omnichannel',
+        language: agentData.language || '',
+        gender: agentData.gender as 'Male' | 'Female',
+        persona: agentData.persona || '',
+        tune: agentData.tune || '',
+        voice_id: agentData.voiceId || '',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.5,
+          style: 0,
+          use_speaker_boost: true
+        },
+        model_id: 'eleven_monolingual_v1'
+      };
+
+      console.log('Sending agent data to API:', createAgentData);
+      
+      const result = await configService.createAgent(createAgentData);
+      console.log('Agent created successfully:', result);
+      
+      addToast({
+        message: `Agent "${agentData.agentName}" created successfully!`,
+        type: 'success'
+      });
+      
+      // Navigate back to agents list
+      router.push('/dashboard/agent');
+    } catch (error) {
+      console.error('Failed to create agent:', error);
+      addToast({
+        message: `Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const previousStep = agentType === 'widget' ? 3 : 4;
@@ -384,7 +430,8 @@ export function Step5ReviewPublish() {
       <StepNavigation
         onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${previousStep}`)}
         onNext={handlePublish}
-        nextLabel="Publish Agent"
+        nextLabel={isLoading ? "Creating Agent..." : "Publish Agent"}
+        disabled={isLoading}
       />
     </div>
   );

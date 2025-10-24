@@ -165,7 +165,7 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 relative max-w-5xl">
+        <div className="flex-1 relative ">
           {children}
         </div>
       </div>

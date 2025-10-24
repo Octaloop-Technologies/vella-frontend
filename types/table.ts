@@ -50,14 +50,21 @@ export interface TopAgent extends Record<string, unknown> {
 }
 
 export interface AgentsTable extends Record<string, unknown> {
+  id?: string;
   name: string;
   type: string;
-  typeVariant: 'outbound' | 'inbound';
+  typeVariant: 'outbound' | 'inbound' | 'omnichannel';
   status: string;
-  statusVariant: 'active';
+  statusVariant: 'active' | 'draft' | 'disabled';
   conversations: string;
   successRate: string;
   lastActive: string;
+  description?: string;
+  language?: string;
+  gender?: string;
+  persona?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface WorkflowsTable extends Record<string, unknown> {

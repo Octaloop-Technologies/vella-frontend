@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 interface AgentCreationData {
   // Step 1
@@ -11,6 +11,7 @@ interface AgentCreationData {
   gender: string;
   persona: string;
   tune: string;
+  voiceId: string;
   // Step 2
   selectedDocuments: string[];
   
@@ -35,12 +36,13 @@ interface AgentCreationContextType {
 
 const defaultAgentData: AgentCreationData = {
   agentName: '',
-  agentTypeDropdown: 'Agent Type',
+  agentTypeDropdown: '',
   description: '',
-  language: 'Select',
-  gender: 'Select',
-  persona: 'Select',
-  tune: 'Select',
+  language: '',
+  gender: '',
+  persona: '',
+  tune: '',
+  voiceId: '',
   selectedDocuments: [],
   selectedChannels: [],
   selectedIntegrations: [],
@@ -67,13 +69,13 @@ interface AgentCreationProviderProps {
 export const AgentCreationProvider: React.FC<AgentCreationProviderProps> = ({ children }) => {
   const [agentData, setAgentData] = useState<AgentCreationData>(defaultAgentData);
 
-  const updateAgentData = (data: Partial<AgentCreationData>) => {
+  const updateAgentData = useCallback((data: Partial<AgentCreationData>) => {
     setAgentData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const resetAgentData = () => {
+  const resetAgentData = useCallback(() => {
     setAgentData(defaultAgentData);
-  };
+  }, []);
 
   return (
     <AgentCreationContext.Provider value={{ agentData, updateAgentData, resetAgentData }}>
