@@ -3,6 +3,8 @@ export interface Message {
   sender: 'user' | 'agent';
   content: string;
   timestamp: string;
+  audioBase64?: string;
+  audioMimeType?: string;
 }
 
 export interface Conversation {

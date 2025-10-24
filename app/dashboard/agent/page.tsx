@@ -73,7 +73,15 @@ export default function Agent() {
   };
 
   const handleTestAgent = (agent: AgentsTable) => {
-    router.push('/dashboard/agent/test');
+    // Pass agent data as URL parameters
+    const params = new URLSearchParams({
+      id: agent.id || '',
+      name: agent.name || '',
+      type: agent.type || '',
+      status: agent.status || '',
+      description: agent.description || ''
+    });
+    router.push(`/dashboard/agent/test?${params.toString()}`);
   };
 
   const handleConfirmDelete = async () => {

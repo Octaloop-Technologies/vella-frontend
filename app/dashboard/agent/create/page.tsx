@@ -187,7 +187,14 @@ function Step1() {
             <div className="relative">
               <select
                 value={agentData.gender}
-                onChange={(e) => updateAgentData({ gender: e.target.value })}
+                onChange={(e) => {
+                  updateAgentData({ 
+                    gender: e.target.value,
+                    persona: '',
+                    voiceId: '',
+                    tune: ''
+                  });
+                }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={gendersLoading}
               >
