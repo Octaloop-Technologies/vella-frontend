@@ -16,13 +16,17 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
             {/* Header/Navigation */}
             <header className="fixed top-0 left-0 right-0 z-50">
                 <nav className="px-4 sm:px-6 md:px-12 py-4 md:py-6 flex items-center justify-between">
-                    <Image
-                        src="/svgs/bird2.svg"
-                        alt="Bird Illustration"
-                        width={107}
-                        height={84}
-                        className="object-contain w-16 h-12 sm:w-20 sm:h-16 md:w-[107px] md:h-[84px]"
-                    />
+                    <div className='flex items-center'>
+                        <p className='text-[#53399E] font-bold text-lg -mr-4'>VELA</p>
+                        <Image
+                            src="/svgs/bird2.svg"
+                            alt="Bird Illustration"
+                            width={107}
+                            height={84}
+                            className="object-contain w-16 h-12 sm:w-20 sm:h-16 md:w-[107px] md:h-[84px]"
+                        />
+                    </div>
+
 
                     <div className="hidden md:flex items-center gap-8 lg:gap-14 px-6 lg:px-12 py-4 lg:py-5 rounded-[50px] bg-[#FFFFFF1A] border border-white/70 backdrop-blur-md">
                         <Link href="#home" className="text-[#41288A] font-medium text-base lg:text-lg hover:text-[#8266D4] transition-colors relative after:absolute after:bottom-[-4px] after:left-1/2 after:-translate-x-1/2 after:w-2 after:h-2 after:bg-[#41288A] after:rounded-full">
@@ -158,7 +162,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                         <div className="sm:col-span-2 lg:col-span-1">
                             <h3 className="font-semibold text-sm mb-4 text-white">Stay Updated</h3>
                             <p className="text-sm text-gray-300 mb-4">Get The Latest Updates And Insights</p>
-                            <form className="flex flex-col sm:flex-row gap-2">
+                            <form className="flex flex-col 2xl:flex-row gap-2">
                                 <input
                                     type="email"
                                     placeholder="Enter your email"

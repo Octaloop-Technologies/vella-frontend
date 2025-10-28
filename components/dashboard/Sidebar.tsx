@@ -11,7 +11,7 @@ const Sidebar: React.FC = () => {
   const pathname = usePathname();
 
   return (
-    <div className="w-60 h-screen primary-gradient-light border-r border-brand-gray-light flex flex-col">
+    <div className="w-60 h-screen primary-gradient border-r border-brand-gray-light flex flex-col">
       {/* Logo Section */}
       <div className="p-6">
         <div className="flex items-center justify-center space-x-2">

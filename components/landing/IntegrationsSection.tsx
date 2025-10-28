@@ -26,10 +26,10 @@ const IntegrationsSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-6xl py-1 font-bold bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent mb-3">
+          <h2 className="text-4xl md:text-6xl py-1 font-bold bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent mb-3">
             Connect Everything
           </h2>
-          <p className="text-2xl text-[#4A5565]">
+          <p className="text-xl md:text-2xl text-[#4A5565]">
             Seamless integrations with your favorite tools
           </p>
         </div>

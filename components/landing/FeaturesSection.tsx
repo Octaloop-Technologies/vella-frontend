@@ -56,10 +56,10 @@ const FeaturesSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-6xl font-bold mb-4 bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-b from-[#41288A] to-[#8266D4] bg-clip-text text-transparent">
             Built for Performance
           </h2>
-          <p className="text-2xl text-[#4A5565] max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-[#4A5565] max-w-3xl mx-auto">
             Everything you need to create exceptional voice AI experiences
           </p>
         </div>

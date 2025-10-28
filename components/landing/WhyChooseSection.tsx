@@ -58,10 +58,10 @@ const WhyChooseSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-6xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-4">
             Why Choose VELA
           </h2>
-          <p className="text-2xl text-white max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-white max-w-3xl mx-auto">
             Transform your business communications with intelligent voice automation
           </p>
         </div>
