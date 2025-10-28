@@ -7,7 +7,7 @@ import Waveform from '../icons/Waveform';
 
 const HeroSection: React.FC = () => {
     return (
-        <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-[#F7F7F7] pt-20 lg:pt-0">
+        <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-[#F7F7F7] pt-20 lg:pt-20">
             {/* Decorative Background Elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-[300px] left-1/2 -translate-x-1/2 w-[900px] h-[1000px] bg-[#00CACF] rounded-full blur-[150px] opacity-35"></div>

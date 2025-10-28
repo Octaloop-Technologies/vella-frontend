@@ -14,7 +14,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
     return (
         <div className="min-h-screen">
             {/* Header/Navigation */}
-            <header className="fixed top-0 left-0 right-0 z-50">
+            <header className="absolute top-0 left-0 right-0 z-50">
                 <nav className="px-4 sm:px-6 md:px-12 py-4 md:py-6 flex items-center justify-between">
                     <div className='flex items-center'>
                         <p className='text-[#53399E] font-bold text-lg -mr-4'>VELA</p>
