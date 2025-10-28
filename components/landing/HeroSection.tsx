@@ -36,14 +36,14 @@ const HeroSection: React.FC = () => {
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
                         <Link href="/signup" className="w-full sm:w-auto">
-                            <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium text-sm sm:text-base shadow-card transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
+                            <button className="w-full sm:w-auto lg:w-[250px] px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium text-sm sm:text-base shadow-card transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
                                 Start Building Free
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
                             </button>
                         </Link>
-                        <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white backdrop-blur-sm text-[#41288A] rounded-lg font-medium text-sm sm:text-base hover:bg-white shadow-card flex items-center justify-center gap-2">
+                        <button className="w-full sm:w-auto lg:w-[250px] px-6 sm:px-8 py-3 sm:py-4 bg-white backdrop-blur-sm text-[#41288A] rounded-lg font-medium text-sm sm:text-base hover:bg-white shadow-card flex items-center justify-center gap-2">
                             Watch Demo
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polygon points="5 3 19 12 5 21 5 3" />
@@ -53,15 +53,15 @@ const HeroSection: React.FC = () => {
 
                     {/* Stats Cards */}
                     <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 pt-6 sm:pt-8">
-                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[100px]">
+                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[150px]">
                             <div className="text-base sm:text-lg font-bold text-[#099BBD]">99.9%</div>
                             <div className="text-xs sm:text-sm text-black mt-0.5">Uptime</div>
                         </div>
-                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[100px]">
+                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[150px]">
                             <div className="text-base sm:text-lg font-bold text-[#099BBD]">50ms</div>
                             <div className="text-xs sm:text-sm text-black mt-0.5">Response Time</div>
                         </div>
-                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[100px]">
+                        <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm px-4 py-3 sm:py-4 rounded-xl border border-gray-100 shadow-card min-w-[150px]">
                             <div className="text-base sm:text-lg font-bold text-[#099BBD]">24/7</div>
                             <div className="text-xs sm:text-sm text-black mt-0.5">Support</div>
                         </div>
@@ -79,10 +79,10 @@ const HeroSection: React.FC = () => {
                         alt="Bird Illustration"
                         width={300}
                         height={300}
-                        className="absolute object-contain top-8 sm:top-12 md:top-16 right-8 sm:right-12 md:right-20 bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] h-auto"
+                        className="absolute object-contain top-8 sm:top-12 md:top-16 -right-8 bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px] lg:w-[400px] h-auto"
                     />
 
-                    <div className="absolute -top-6 sm:-top-8 md:-top-10 right-6 sm:right-8 md:right-12 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
+                    <div className="absolute -top-6 -right-6 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
                 </div>
             </div>
         </section>
