@@ -7,6 +7,7 @@ import type {
   AgentTypeConfig,
   Language, 
   Gender, 
+  Accent,
   Persona, 
   Tune,
   VoiceDetailsResponse
@@ -117,6 +118,68 @@ export function usePersonasByGender(gender?: string) {
 
     fetchPersonas();
   }, [gender]);
+
+  return { personas, loading, error };
+}
+
+export function useAccentsByGender(gender?: string) {
+  const [accents, setAccents] = useState<Accent[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!gender) {
+      setAccents([]);
+      return;
+    }
+
+    const fetchAccents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await configService.getAccentsByGender(gender);
+        setAccents(data);
+      } catch (err) {
+        console.error('Failed to fetch accents:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch accents');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccents();
+  }, [gender]);
+
+  return { accents, loading, error };
+}
+
+export function usePersonasByAccent(accent?: string, gender?: string) {
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accent || !gender) {
+      setPersonas([]);
+      return;
+    }
+
+    const fetchPersonas = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await configService.getPersonasByAccent(accent, gender);
+        setPersonas(data);
+      } catch (err) {
+        console.error('Failed to fetch personas by accent:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch personas');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPersonas();
+  }, [accent, gender]);
 
   return { personas, loading, error };
 }

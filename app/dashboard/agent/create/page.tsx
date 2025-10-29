@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AgentCreationLayout from '@/components/agent/AgentCreationLayout';
 import StepNavigation from '@/components/agent/StepNavigation';
@@ -9,7 +9,7 @@ import { Step3Channels, Step3WidgetSettings, Step4PhoneNumber, Step5ReviewPublis
 import Input from '@/components/shared/Input';
 import Card from '@/components/shared/Card';
 import Image from 'next/image';
-import { useAgentTypes, useLanguages, useGenders, usePersonasByGender, useVoiceDetails } from '@/hooks/useConfig';
+import { useAgentTypes, useLanguages, useGenders, useAccentsByGender, usePersonasByAccent, useVoiceDetails } from '@/hooks/useConfig';
 import { useToast } from '@/contexts/ToastContext';
 
 // Step Components
@@ -20,11 +20,17 @@ function Step1() {
   const { agentData, updateAgentData } = useAgentCreation();
   const { addToast } = useToast();
 
+  // AI description generator state
+  const [showGenPanel, setShowGenPanel] = useState(false);
+  const [genRequest, setGenRequest] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // Configuration hooks
   const { agentTypes, loading: agentTypesLoading, error: agentTypesError } = useAgentTypes();
   const { languages, loading: languagesLoading, error: languagesError } = useLanguages();
   const { genders, loading: gendersLoading, error: gendersError } = useGenders();
-  const { personas, loading: personasLoading, error: personasError } = usePersonasByGender(agentData.gender);
+  const { accents, loading: accentsLoading, error: accentsError } = useAccentsByGender(agentData.gender);
+  const { personas, loading: personasLoading, error: personasError } = usePersonasByAccent(agentData.accent, agentData.gender);
   const { voiceDetails, loading: voiceLoading } = useVoiceDetails(agentData.voiceId);
 
   // Auto-set tune from voice details
@@ -43,6 +49,7 @@ function Step1() {
       { field: agentData.description, name: 'Description' },
       { field: agentData.language, name: 'Language' },
       { field: agentData.gender, name: 'Gender' },
+      { field: agentData.accent, name: 'Accent' },
       { field: agentData.persona, name: 'Persona' },
     ];
 
@@ -127,11 +134,26 @@ function Step1() {
           </div>
         </div>
 
-        {/* Description */}
+        {/* Description (with AI generator) */}
         <div>
-          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-            Description
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Description
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                // Prefill a reasonable user_request based on current inputs
+                const seed = agentData.description || `I am creating an agent named ${agentData.agentName || 'Sales Assistant'}. Please generate a concise professional agent description suitable for ${agentData.agentTypeDropdown || agentType} use.`;
+                setGenRequest(seed);
+                setShowGenPanel((s) => !s);
+              }}
+              className="text-sm text-[#8266D4] hover:underline"
+            >
+              {showGenPanel ? 'Close AI' : 'Generate with AI'}
+            </button>
+          </div>
+
           <textarea
             placeholder="Type..."
             value={agentData.description}
@@ -139,6 +161,77 @@ function Step1() {
             rows={4}
             className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
           />
+
+          {showGenPanel && (
+            <div className="mt-3 p-3 border border-[#E5E7EB] rounded-lg bg-white">
+              <label className="block text-xs font-medium text-[#1E1E1E] mb-2">Seed / Prompt for AI</label>
+              <textarea
+                value={genRequest}
+                onChange={(e) => setGenRequest(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 bg-[#F7F7F8] rounded-md text-sm outline-none"
+                placeholder="Describe what you want the agent to do, e.g. 'I am a sales rep, build a sales agent that...'"
+              />
+
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    if (!genRequest.trim()) {
+                      addToast({ message: 'Please enter a prompt seed for the AI', type: 'error' });
+                      return;
+                    }
+
+                    try {
+                      setIsGenerating(true);
+                      const body = new URLSearchParams();
+                      body.append('user_request', genRequest);
+                      body.append('agent_type', agentData.agentTypeDropdown || agentType || '');
+                      body.append('industry', '');
+                      body.append('tone', '');
+
+                      const res = await fetch('https://ai-voice-agent-backend.octaloop.dev/agents/generate-prompt', {
+                        method: 'POST',
+                        headers: {
+                          accept: 'application/json',
+                          'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: body.toString()
+                      });
+
+                      if (!res.ok) {
+                        const txt = await res.text().catch(() => '');
+                        throw new Error(`Failed to generate: ${res.status} ${txt}`);
+                      }
+
+                      const data = await res.json();
+                      if (data?.generated_prompt) {
+                        updateAgentData({ description: data.generated_prompt });
+                        addToast({ message: 'Description generated successfully', type: 'success' });
+                        setShowGenPanel(false);
+                      } else {
+                        addToast({ message: data?.message || 'No prompt returned', type: 'error' });
+                      }
+                    } catch (err) {
+                      addToast({ message: err instanceof Error ? err.message : 'Generation failed', type: 'error' });
+                    } finally {
+                      setIsGenerating(false);
+                    }
+                  }}
+                  disabled={isGenerating}
+                  className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-md disabled:opacity-50"
+                >
+                  {isGenerating ? 'Generating…' : 'Generate'}
+                </button>
+
+                <button
+                  onClick={() => setShowGenPanel(false)}
+                  className="px-4 py-2 border rounded-md text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Language */}
@@ -190,6 +283,7 @@ function Step1() {
                 onChange={(e) => {
                   updateAgentData({ 
                     gender: e.target.value,
+                    accent: '',
                     persona: '',
                     voiceId: '',
                     tune: ''
@@ -224,53 +318,108 @@ function Step1() {
             )}
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-            Persona
-          </label>
-          <div className="relative">
-            <select
-              value={agentData.persona}
-              onChange={(e) => {
-                updateAgentData({ persona: e.target.value });
-                // Find the selected persona and set the voice_id
-                const selectedPersona = personas.find(p => p.code === e.target.value);
-                if (selectedPersona) {
-                  updateAgentData({ voiceId: selectedPersona.voice_id });
-                }
-              }}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-              disabled={personasLoading || !agentData.gender}
-            >
-              <option value="">
-                {!agentData.gender 
-                  ? 'Select gender first' 
-                  : personasLoading 
-                  ? 'Loading personas...' 
-                  : 'Select Persona'
-                }
-              </option>
-              {personas.map((persona, index) => (
-                <option key={`${persona.code}-${index}`} value={persona.code}>
-                  {persona.name}
+
+        {/* Accent and Persona in one row */}
+        <div className='grid grid-cols-2 gap-6'>
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Accent
+            </label>
+            <div className="relative">
+              <select
+                value={agentData.accent}
+                onChange={(e) => {
+                  updateAgentData({ 
+                    accent: e.target.value,
+                    persona: '',
+                    voiceId: '',
+                    tune: ''
+                  });
+                }}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+                disabled={accentsLoading || !agentData.gender}
+              >
+                <option value="">
+                  {!agentData.gender 
+                    ? 'Select gender first' 
+                    : accentsLoading 
+                    ? 'Loading accents...' 
+                    : 'Select Accent'
+                  }
                 </option>
-              ))}
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                <path
-                  d="M1 1.5L6 6.5L11 1.5"
-                  stroke="#1E1E1E"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+                {accents.map((accent) => (
+                  <option key={accent.code} value={accent.code}>
+                    {accent.name} ({accent.voice_count} voices)
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
+            {accentsError && (
+              <p className="text-red-500 text-xs mt-1">{accentsError}</p>
+            )}
           </div>
-          {personasError && (
-            <p className="text-red-500 text-xs mt-1">{personasError}</p>
-          )}
+
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
+              Persona
+            </label>
+            <div className="relative">
+              <select
+                value={agentData.persona}
+                onChange={(e) => {
+                  updateAgentData({ persona: e.target.value });
+                  // Find the selected persona and set the voice_id
+                  const selectedPersona = personas.find(p => p.code === e.target.value);
+                  if (selectedPersona) {
+                    updateAgentData({ voiceId: selectedPersona.voice_id });
+                  }
+                }}
+                className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+                disabled={personasLoading || !agentData.gender || !agentData.accent}
+              >
+                <option value="">
+                  {!agentData.gender 
+                    ? 'Select gender first' 
+                    : !agentData.accent
+                    ? 'Select accent first'
+                    : personasLoading 
+                    ? 'Loading personas...' 
+                    : 'Select Persona'
+                  }
+                </option>
+                {personas.map((persona, index) => (
+                  <option key={`${persona.code}-${index}`} value={persona.code}>
+                    {persona.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#1E1E1E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            {personasError && (
+              <p className="text-red-500 text-xs mt-1">{personasError}</p>
+            )}
+          </div>
         </div>
       </div>
 

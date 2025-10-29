@@ -27,17 +27,35 @@ export interface Gender {
   voice_count: number;
 }
 
+export interface Voice {
+  name: string;
+  voice_id: string;
+  gender: string;
+  description: string;
+  preview_url: string;
+}
+
+export interface Accent {
+  code: string;
+  name: string;
+  voice_count: number;
+  gender: string;
+  all_voices: Voice[];
+}
+
 export interface Persona {
   code: string;
   name: string;
   description: string;
   voice_id: string;
+  accent: string;
   metadata: {
     gender: string;
     accent: string;
     age: string;
     use_case: string;
     descriptive: string;
+    language: string;
   };
 }
 
@@ -162,6 +180,16 @@ class ConfigService {
   // Get personas by gender
   async getPersonasByGender(gender: string): Promise<Persona[]> {
     return this.makeRequest<Persona[]>(`personas/by-gender/${gender}`);
+  }
+
+  // Get accents by gender
+  async getAccentsByGender(gender: string): Promise<Accent[]> {
+    return this.makeRequest<Accent[]>(`accents/by-gender/${gender}`);
+  }
+
+  // Get personas by accent and gender
+  async getPersonasByAccent(accent: string, gender: string): Promise<Persona[]> {
+    return this.makeRequest<Persona[]>(`personas/by-accent/${accent}?gender=${gender}`);
   }
 
   // Get available tunes
