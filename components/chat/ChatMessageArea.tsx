@@ -31,7 +31,7 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
     return (
       <div className="flex-1 flex items-center justify-center bg-[#F9FAFB]">
         <div className="text-center">
-          <p className="text-[#6B7280] text-lg">Select a conversation to start chatting</p>
+          <p className="text-[#6B7280] text-lg text-black">Select a conversation to start chatting</p>
         </div>
       </div>
     );
@@ -54,16 +54,16 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
             </div>
           </div>
           <div>
-            <h2 className="font-medium mb-1">{activeChat.name}</h2>
+            <h2 className="font-medium mb-1 text-black">{activeChat.name}</h2>
             <div className="flex items-center gap-3 text-sm">
-              <span className="text-xs opacity-70">{activeChat.role}</span>
+              <span className="text-xs opacity-70 text-black">{activeChat.role}</span>
               <div className="flex items-center gap-1.5">
                 <Image src="/svgs/messenger.svg" alt="Platform" width={16} height={16} />
-                <span className="text-xs opacity-70">{activeChat.platform}</span>
+                <span className="text-xs opacity-70 text-black">{activeChat.platform}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-[#25A83D]"></div>
-                <span className="text-xs opacity-70">{activeChat.status}</span>
+                <span className="text-xs opacity-70 text-black">{activeChat.status}</span>
               </div>
             </div>
           </div>
@@ -97,8 +97,8 @@ export default function ChatMessageArea({ activeChat, messages }: ChatMessageAre
                     : 'bg-[#FAF8F8] text-black'
                 }`}
               >
-                <p className="mb-2 leading-tight">{message.content}</p>
-                <span className="text-xs opacity-70">{message.timestamp}</span>
+                <p className="mb-2 leading-tight text-black">{message.content}</p>
+                <span className="text-xs opacity-70 text-black">{message.timestamp}</span>
               </div>
               
             </div>

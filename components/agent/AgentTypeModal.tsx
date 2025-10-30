@@ -83,7 +83,7 @@ const AgentTypeModal: React.FC<AgentTypeModalProps> = ({ isOpen, onClose }) => {
     <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-6xl" title="Create New Agent" subtitle="Follow the steps to create and configure your new AI agent">
       <div className="p-12">
         {/* Title */}
-        <h3 className="text-lg font-medium mb-8 text-center">
+        <h3 className="text-lg font-medium mb-8 text-center text-black">
           Choose Agent Type
         </h3>
 
@@ -100,15 +100,15 @@ const AgentTypeModal: React.FC<AgentTypeModalProps> = ({ isOpen, onClose }) => {
                 <div className="mb-4 w-16 h-16 bg-gradient-to-b from-[#41288A] to-[#301971] flex items-center justify-center rounded-xl">{type.icon}</div>
 
                 {/* Title */}
-                <h4 className="text-lg font-semibold mb-2">{type.title}</h4>
+                <h4 className="text-lg font-semibold mb-2 text-black">{type.title}</h4>
 
                 {/* Description */}
-                <p className="text-sm font-medium mb-4">{type.description}</p>
+                <p className="text-sm font-medium mb-4 text-black">{type.description}</p>
 
                 {/* Features */}
                 <ul className="space-y-1 list-disc pl-5">
                   {type.features.map((feature, index) => (
-                    <li key={index} className="text-xs font-medium">
+                    <li key={index} className="text-xs font-medium text-black">
                       {feature}
                     </li>
                   ))}

@@ -73,16 +73,16 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                             <Link href="#home" onClick={() => setMobileMenuOpen(false)} className="block text-[#41288A] font-medium text-lg py-2">
                                 Home
                             </Link>
-                            <Link href="#about" onClick={() => setMobileMenuOpen(false)} className="block font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
+                            <Link href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-black font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
                                 About
                             </Link>
-                            <Link href="#blog" onClick={() => setMobileMenuOpen(false)} className="block font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
+                            <Link href="#blog" onClick={() => setMobileMenuOpen(false)} className="block text-black font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
                                 Blog
                             </Link>
-                            <Link href="#careers" onClick={() => setMobileMenuOpen(false)} className="block font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
+                            <Link href="#careers" onClick={() => setMobileMenuOpen(false)} className="block text-black font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
                                 Careers
                             </Link>
-                            <Link href="#contact" onClick={() => setMobileMenuOpen(false)} className="block font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
+                            <Link href="#contact" onClick={() => setMobileMenuOpen(false)} className="block text-black font-medium text-lg py-2 hover:text-[#8266D4] transition-colors">
                                 Contact
                             </Link>
                         </div>

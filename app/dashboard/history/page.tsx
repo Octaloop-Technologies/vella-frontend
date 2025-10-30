@@ -130,7 +130,7 @@ export default function History() {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-5 py-3 border border-[#41288A80] bg-white rounded-lg text-sm font-medium text-[#1F2937] flex items-center justify-between"
       >
-        <span className="text-base font-medium">{value}</span>
+        <span className="text-base font-medium text-black">{value}</span>
         <svg
           width="16"
           height="9"
@@ -155,7 +155,7 @@ export default function History() {
                 className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[#F3F4F6] flex items-center justify-between ${value === option ? 'bg-[#EEF2FF]' : ''
                   }`}
               >
-                <span className={value === option ? 'font-medium text-[#1F2937]' : 'text-[#6B7280]'}>
+                <span className={value === option ? 'font-medium text-[#1F2937] text-black' : 'text-[#6B7280] text-black'}>
                   {option}
                 </span>
                 {value === option && (
@@ -203,7 +203,7 @@ export default function History() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Image src="/svgs/filter.svg" alt="Filters" width={24} height={24} />
-                <span className="font-medium">Filters</span>
+                <span className="font-medium text-black">Filters</span>
               </div>
               <div className="flex-1 flex items-center gap-4">
                 <FilterDropdown

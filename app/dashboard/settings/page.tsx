@@ -77,7 +77,7 @@ export default function Settings() {
             {/* Personal Information Card */}
             <Card className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-medium">Personal Information</h2>
+                <h2 className="text-lg font-medium text-black">Personal Information</h2>
                 <button
                   onClick={() => setIsEditModalOpen(true)}
                   className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors cursor-pointer"
@@ -111,7 +111,7 @@ export default function Settings() {
 
             {/* Update Password Card */}
             <Card className="p-4">
-              <h2 className="text-lg font-medium mb-4">Update Password</h2>
+              <h2 className="text-lg font-medium mb-4 text-black">Update Password</h2>
 
               <div className="space-y-4 mb-6">
                 <div className="grid grid-cols-2 gap-6 mb-4">
@@ -156,7 +156,7 @@ export default function Settings() {
         {/* Notification Tab Content */}
         {activeTab === 'notification' && (
           <Card className="p-6">
-            <h2 className="text-lg font-medium mb-6">Notification Preferences</h2>
+            <h2 className="text-lg font-medium mb-6 text-black">Notification Preferences</h2>
 
             <div className="space-y-6">
               {/* Email Notifications */}
@@ -172,8 +172,8 @@ export default function Settings() {
                   />
                 </button>
                 <div>
-                  <h3 className="font-medium mb-2">Email Notifications</h3>
-                  <p className="text-xs opacity-70">Receive email alerts for agent activities and system updates</p>
+                  <h3 className="font-medium mb-2 text-black">Email Notifications</h3>
+                  <p className="text-xs opacity-70 text-black">Receive email alerts for agent activities and system updates</p>
                 </div>
               </div>
 
@@ -190,8 +190,8 @@ export default function Settings() {
                   />
                 </button>
                 <div>
-                  <h3 className="font-medium mb-2">SMS Notifications</h3>
-                  <p className="text-xs opacity-70">Get urgent alerts via SMS for critical issues</p>
+                  <h3 className="font-medium mb-2 text-black">SMS Notifications</h3>
+                  <p className="text-xs opacity-70 text-black">Get urgent alerts via SMS for critical issues</p>
                 </div>
 
               </div>

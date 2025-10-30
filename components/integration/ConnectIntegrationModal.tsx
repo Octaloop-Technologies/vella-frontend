@@ -47,12 +47,12 @@ const ConnectIntegrationModal: React.FC<ConnectIntegrationModalProps> = ({
       <div className="p-10">
         {/* Features List */}
         <Card className="mb-6 border border-[#EBEBEB] p-5">
-          <p className="font-medium mb-3">What you'll get:</p>
+          <p className="font-medium mb-3 text-black">What you'll get:</p>
           <div className="space-y-4">
             {integration.footerTags.map((feature, index) => (
               <div key={index} className="flex items-start">
                 <Image src="/svgs/tick.svg" alt="Feature" width={24} height={24} className="inline-block mr-2 mt-1 flex-shrink-0"/>
-                <span className="text-sm font-medium">{feature}</span>
+                <span className="text-sm font-medium text-black">{feature}</span>
               </div>
             ))}
           </div>

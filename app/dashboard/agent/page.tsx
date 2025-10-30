@@ -168,7 +168,7 @@ export default function Agent() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-medium text-black">Agents</h2>
-                {!loading && <p className="text-sm text-gray-500 mt-1">Total: {total} agents</p>}
+                {!loading && <p className="text-sm text-gray-500 mt-1 text-black">Total: {total} agents</p>}
               </div>
               <div className="flex items-center space-x-2 border border-[#EBEBEB] p-[5px] rounded-[10px]">
                 <button
@@ -191,15 +191,15 @@ export default function Agent() {
           {loading && (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
-              <span className="ml-3 text-gray-600">Loading agents...</span>
+              <span className="ml-3 text-gray-600 text-black">Loading agents...</span>
             </div>
           )}
 
           {/* Error State */}
           {error && !loading && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="text-red-500 mb-2">⚠️ Error loading agents</div>
-              <p className="text-gray-600 text-sm mb-4">{error}</p>
+              <div className="text-red-500 mb-2 text-black">⚠️ Error loading agents</div>
+              <p className="text-gray-600 text-sm mb-4 text-black">{error}</p>
               <button 
                 onClick={refreshAgents}
                 className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:opacity-90 transition-opacity"
@@ -213,8 +213,8 @@ export default function Agent() {
           {!loading && !error && filteredData.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🤖</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No agents found</h3>
-              <p className="text-gray-600 text-sm mb-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-2 text-black">No agents found</h3>
+              <p className="text-gray-600 text-sm mb-6 text-black">
                 {searchTerm || filterStatus !== 'All Agents' 
                   ? 'Try adjusting your search or filter criteria' 
                   : 'Get started by creating your first agent'}

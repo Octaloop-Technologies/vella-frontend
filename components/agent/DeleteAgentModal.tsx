@@ -33,10 +33,10 @@ const DeleteAgentModal: React.FC<DeleteAgentModalProps> = ({
         </div>
 
         {/* Title */}
-        <h2 className="text-lg font-medium mb-3">Delete Agent</h2>
+        <h2 className="text-lg font-medium mb-3 text-black">Delete Agent</h2>
         
         {/* Description */}
-        <p className="text-xs opacity-70 mb-8">
+        <p className="text-xs opacity-70 mb-8 text-black">
           This action cannot be undone. Delete agent "{agentName}"?
         </p>
 

@@ -111,8 +111,8 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
           >
             <div className="flex flex-col items-center">
               <Image className='mb-4' src="/svgs/upload2.svg" alt="Upload" width={24} height={24} />
-              <p className="font-medium mb-1">Drop files here or click to browse</p>
-              <p className="text-xs">Supports PDF, Word, CSV, and text files</p>
+              <p className="font-medium mb-1 text-black">Drop files here or click to browse</p>
+              <p className="text-xs text-black">Supports PDF, Word, CSV, and text files</p>
               <input
                 type="file"
                 onChange={handleFileSelect}
@@ -130,7 +130,7 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
             <textarea
               placeholder="Paste or type your content here..."
               rows={8}
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-lg outline-none text-sm border border-transparent resize-none"
+              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-lg outline-none text-sm border border-transparent resize-none text-black"
             />
           </div>
         )}
@@ -141,7 +141,7 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
             <input
               type="url"
               placeholder="https://example.com/document"
-              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-lg outline-none text-sm border border-transparent"
+              className="w-full px-4 py-3 bg-[#EBEBEB] rounded-lg outline-none text-sm border border-transparent text-black"
             />
           </div>
         )}

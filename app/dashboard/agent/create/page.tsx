@@ -169,7 +169,7 @@ function Step1() {
                 value={genRequest}
                 onChange={(e) => setGenRequest(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-[#F7F7F8] rounded-md text-sm outline-none"
+                className="w-full px-3 py-2 bg-[#F7F7F8] rounded-md text-sm outline-none text-black"
                 placeholder="Describe what you want the agent to do, e.g. 'I am a sales rep, build a sales agent that...'"
               />
 
@@ -225,7 +225,7 @@ function Step1() {
 
                 <button
                   onClick={() => setShowGenPanel(false)}
-                  className="px-4 py-2 border rounded-md text-sm"
+                  className="px-4 py-2 border rounded-md text-sm text-black"
                 >
                   Cancel
                 </button>
@@ -426,33 +426,33 @@ function Step1() {
       {/* Voice Preview Section */}
       {agentData.voiceId && (
         <Card className="p-6 mt-6">
-          <h3 className="text-lg font-medium mb-4">Selected Voice & Tune</h3>
+          <h3 className="text-lg font-medium mb-4 text-black">Selected Voice & Tune</h3>
           {voiceLoading ? (
-            <p className="text-sm text-gray-500">Loading voice details...</p>
+            <p className="text-sm text-gray-500 text-black">Loading voice details...</p>
           ) : voiceDetails?.success ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Voice Name:</span>
-                  <p className="text-[#717182] mt-1">{voiceDetails.voice.name}</p>
+                  <p className="text-[#717182] mt-1 text-black">{voiceDetails.voice.name}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Tune (Tone):</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.descriptive}</p>
+                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.descriptive}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Accent:</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.accent}</p>
+                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.accent}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Age:</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.age}</p>
+                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.age}</p>
                 </div>
               </div>
 
               <div>
                 <span className="font-medium text-[#1E1E1E] text-sm">Description:</span>
-                <p className="text-[#717182] text-sm mt-1">{voiceDetails.voice.description}</p>
+                <p className="text-[#717182] text-sm mt-1 text-black">{voiceDetails.voice.description}</p>
               </div>
               
               {voiceDetails.voice.preview_url && (
@@ -468,7 +468,7 @@ function Step1() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-red-500">Failed to load voice details</p>
+            <p className="text-sm text-red-500 text-black">Failed to load voice details</p>
           )}
         </Card>
       )}
@@ -531,8 +531,8 @@ function Step2() {
                 height={24}
               />
               <div className='space-y-1'>
-                <h3 className="font-medium text-sm">{doc.name}</h3>
-                <p className="text-xs text-[#2B231E] opacity-50">{doc.lastUpdated}</p>
+                <h3 className="font-medium text-sm text-black">{doc.name}</h3>
+                <p className="text-xs text-[#2B231E] opacity-50 text-black">{doc.lastUpdated}</p>
               </div>
             </div>
 
@@ -611,7 +611,7 @@ function CreateAgentContent() {
 export default function CreateAgentPage() {
   return (
     <AgentCreationProvider>
-      <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen text-black">Loading...</div>}>
         <CreateAgentContent />
       </Suspense>
     </AgentCreationProvider>

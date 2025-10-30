@@ -61,8 +61,8 @@ const BaseModal: React.FC<BaseModalProps> = ({
         {
           (title || subtitle || showCloseButton) &&
           <div className='px-3 pt-6 pb-4 border-b border-[#0000001A]'>
-            {title && <h2 className="text-lg font-medium mb-1">{title}</h2>}
-            {subtitle && <p className="text-xs font-medium opacity-70">{subtitle}</p>}
+            {title && <h2 className="text-lg font-medium mb-1 text-black">{title}</h2>}
+            {subtitle && <p className="text-xs font-medium opacity-70 text-black">{subtitle}</p>}
             {showCloseButton && (
               <button
                 onClick={onClose}

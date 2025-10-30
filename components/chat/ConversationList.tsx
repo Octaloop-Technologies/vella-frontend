@@ -27,7 +27,7 @@ export default function ConversationList({
     <div className="w-[30%] bg-white flex flex-col rounded-[10px]">
       {/* Header */}
       <div className="p-3">
-        <h2 className="text-lg font-semibold mb-4">Conversations</h2>
+        <h2 className="text-lg font-semibold mb-4 text-black">Conversations</h2>
 
         {/* Search Input */}
         <div className="relative ">
@@ -65,9 +65,9 @@ export default function ConversationList({
 
             <div className="flex-1 text-left min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium">{conversation.name}</h3>
+                <h3 className="font-medium text-black">{conversation.name}</h3>
               </div>
-              <p className="text-xs opacity-70 truncate">{conversation.lastMessage}</p>
+              <p className="text-xs opacity-70 truncate text-black">{conversation.lastMessage}</p>
             </div>
           </button>
         ))}

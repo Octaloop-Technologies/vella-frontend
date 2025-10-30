@@ -478,13 +478,13 @@ function TestAgentContent() {
         <div className="h-screen bg-[#F9FAFB] flex flex-col">
             {/* Header */}
             <div className="bg-white border-b border-[#E5E7EB] px-5 py-6">
-                <button
-                    onClick={handleBack}
-                    className="flex items-center gap-3 transition-colors"
-                >
-                    <Image src="/svgs/back.svg" alt="Back" width={16} height={16} className='mb-1' />
-                    <span className="font-medium">Test {agentDetails.name}</span>
-                </button>
+            <button
+                onClick={handleBack}
+                className="flex items-center gap-3 transition-colors"
+            >
+                <Image src="/svgs/back.svg" alt="Back" width={16} height={16} className='mb-1' />
+                <span className="font-medium text-black">Test {agentDetails.name}</span>
+            </button>
             </div>
 
             {/* Main Content */}
@@ -533,7 +533,7 @@ function TestAgentContent() {
                                             </div>
                                         )}
                                         {!error && isStartingConversation && (
-                                            <div className="mb-4 text-sm text-[#717182]">
+                                            <div className="mb-4 text-sm text-[#717182] text-black">
                                                 Initializing conversation...
                                             </div>
                                         )}
@@ -558,11 +558,11 @@ function TestAgentContent() {
                                                     <div
                                                         className={`px-5 py-3 rounded-[10px] font-medium text-sm opacity-70 ${message.sender === 'user'
                                                             ? 'bg-[#007BFF1A] border border-[#8266D4]'
-                                                            : 'bg-[#FAF8F8] text-black'
-                                                            }`}
+                                                        : 'bg-[#FAF8F8] text-black'
+                                                        }`}
                                                     >
-                                                        <p className="mb-3 leading-tight">{message.content}</p>
-                                                        <span className="text-xs opacity-70 block">{message.timestamp}</span>
+                                                        <p className="mb-3 leading-tight text-black">{message.content}</p>
+                                                        <span className="text-xs opacity-70 block text-black">{message.timestamp}</span>
                                                     </div>
 
                                                 </div>
@@ -658,7 +658,7 @@ function TestAgentContent() {
                                                     height={19}
                                                 />
                                             </div>
-                                            <h2 className="text-lg mb-7 text-[#0A0A0A]">Testing: {agentDetails.name}</h2>
+                                            <h2 className="text-lg mb-7 text-[#0A0A0A] text-black">Testing: {agentDetails.name}</h2>
                                             <button
                                                 onClick={handleStartCall}
                                                 disabled={!conversationId}
@@ -703,8 +703,8 @@ function TestAgentContent() {
                                                                     : 'bg-[#FAF8F8] text-black'
                                                                     }`}
                                                             >
-                                                                <p className="mb-2 leading-tight">{message.content}</p>
-                                                                <span className="text-xs opacity-70 block">{message.timestamp}</span>
+                                                                <p className="mb-2 leading-tight text-black">{message.content}</p>
+                                                                <span className="text-xs opacity-70 block text-black">{message.timestamp}</span>
                                                             </div>
                                                         </div>
 
@@ -727,8 +727,8 @@ function TestAgentContent() {
                                                     <div className="flex gap-3 mb-6 justify-end">
                                                         <div className="flex flex-col items-end max-w-[40%]">
                                                             <div className="px-5 py-3 rounded-[10px] font-medium text-sm bg-[#007BFF1A] border border-[#8266D4] opacity-50">
-                                                                <p className="mb-2 leading-tight italic">{liveTranscript}</p>
-                                                                <span className="text-xs opacity-70 block">Speaking...</span>
+                                                                <p className="mb-2 leading-tight italic text-black">{liveTranscript}</p>
+                                                                <span className="text-xs opacity-70 block text-black">Speaking...</span>
                                                             </div>
                                                         </div>
                                                         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
@@ -744,7 +744,7 @@ function TestAgentContent() {
                                                 )}
                                                 
                                                 {isProcessingAudio && (
-                                                    <div className="text-center text-sm text-[#717182] mb-4">
+                                                    <div className="text-center text-sm text-[#717182] mb-4 text-black">
                                                         Processing your message...
                                                     </div>
                                                 )}
@@ -763,8 +763,8 @@ function TestAgentContent() {
                                                         />
                                                     </div>
                                                     <div className="text-center">
-                                                        <h2 className="text-base font-medium text-[#0A0A0A] mb-1">{agentDetails.name}</h2>
-                                                        <p className="text-sm text-[#717182]">{formatDuration(callDuration)}</p>
+                                                        <h2 className="text-base font-medium text-[#0A0A0A] mb-1 text-black">{agentDetails.name}</h2>
+                                                        <p className="text-sm text-[#717182] text-black">{formatDuration(callDuration)}</p>
                                                     </div>
                                                     
                                                     <div className="flex items-center gap-4">
@@ -804,7 +804,7 @@ function TestAgentContent() {
                                                         </button>
                                                     </div>
                                                     
-                                                    <p className="text-xs text-[#717182]">
+                                                    <p className="text-xs text-[#717182] text-black">
                                                         {isRecording ? '🔴 Recording... Click mic to stop and send' : 'Click microphone to speak'}
                                                     </p>
                                                 </div>
@@ -821,13 +821,13 @@ function TestAgentContent() {
 
                 {/* Agent Details Panel */}
                 <div className="w-[20%] max-w-[400px] overflow-auto bg-white p-6 border-l border-[#0000001A]">
-                    <h2 className="text-lg font-medium mb-6">Agent Details</h2>
+                    <h2 className="text-lg font-medium mb-6 text-black">Agent Details</h2>
 
                     <div className="space-y-6">
                         {/* Status */}
                         <div>
                             <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Status</label>
-                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm">
+                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm text-black">
                                 {agentDetails.status}
                             </div>
                         </div>
@@ -835,7 +835,7 @@ function TestAgentContent() {
                         {/* Type */}
                         <div>
                             <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Type</label>
-                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm">
+                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm text-black">
                                 {agentDetails.type}
                             </div>
                         </div>
@@ -843,7 +843,7 @@ function TestAgentContent() {
                         {/* Description */}
                         <div>
                             <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Description</label>
-                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm break-words">
+                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm break-words text-black">
                                 {agentDetails.description}
                             </div>
                         </div>
@@ -851,7 +851,7 @@ function TestAgentContent() {
                         {/* Last Updated */}
                         <div>
                             <label className="block text-[#1E1E1E] text-sm font-medium mb-2">Last Updated</label>
-                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm">
+                            <div className="w-full px-4 py-4 bg-[#EBEBEB] rounded-[10px] text-sm text-black">
                                 {agentDetails.lastUpdated}
                             </div>
                         </div>
@@ -876,7 +876,7 @@ export default function TestAgent() {
             <div className="h-screen bg-[#F9FAFB] flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-[#8266D4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-[#717182]">Loading agent...</p>
+                    <p className="text-[#717182] text-black">Loading agent...</p>
                 </div>
             </div>
         }>
