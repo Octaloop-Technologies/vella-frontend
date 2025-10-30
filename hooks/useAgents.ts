@@ -33,7 +33,7 @@ export function useAgents(initialParams: AgentsParams = {}): UseAgentsResult {
         limit,
         ...params,
       });
-      
+      console.log("Fetched agents response:", response);
       const transformedAgents = transformApiAgentsToTable(response.agents);
       setAgents(transformedAgents);
       setTotal(response.total);

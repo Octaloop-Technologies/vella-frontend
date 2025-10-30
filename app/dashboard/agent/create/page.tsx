@@ -1,42 +1,82 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import AgentCreationLayout from '@/components/agent/AgentCreationLayout';
-import StepNavigation from '@/components/agent/StepNavigation';
-import { AgentCreationProvider, useAgentCreation } from '@/contexts/AgentCreationContext';
-import { Step3Channels, Step3WidgetSettings, Step4PhoneNumber, Step5ReviewPublish } from '@/components/agent/AgentSteps';
-import Input from '@/components/shared/Input';
-import Card from '@/components/shared/Card';
-import Image from 'next/image';
-import { useAgentTypes, useLanguages, useGenders, useAccentsByGender, usePersonasByAccent, useVoiceDetails } from '@/hooks/useConfig';
-import { useToast } from '@/contexts/ToastContext';
+import React, { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import AgentCreationLayout from "@/components/agent/AgentCreationLayout";
+import StepNavigation from "@/components/agent/StepNavigation";
+import {
+  AgentCreationProvider,
+  useAgentCreation,
+} from "@/contexts/AgentCreationContext";
+import {
+  Step3Channels,
+  Step3WidgetSettings,
+  Step4PhoneNumber,
+  Step5ReviewPublish,
+} from "@/components/agent/AgentSteps";
+import Input from "@/components/shared/Input";
+import Card from "@/components/shared/Card";
+import Image from "next/image";
+import {
+  useAgentTypes,
+  useLanguages,
+  useGenders,
+  useAccentsByGender,
+  usePersonasByAccent,
+  useVoiceDetails,
+} from "@/hooks/useConfig";
+import { useToast } from "@/contexts/ToastContext";
 
 // Step Components
 function Step1() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const agentType = searchParams.get('type') || 'inbound';
+  const agentType = searchParams.get("type") || "inbound";
   const { agentData, updateAgentData } = useAgentCreation();
   const { addToast } = useToast();
 
   // AI description generator state
   const [showGenPanel, setShowGenPanel] = useState(false);
-  const [genRequest, setGenRequest] = useState('');
+  const [genRequest, setGenRequest] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-
+  
   // Configuration hooks
-  const { agentTypes, loading: agentTypesLoading, error: agentTypesError } = useAgentTypes();
-  const { languages, loading: languagesLoading, error: languagesError } = useLanguages();
-  const { genders, loading: gendersLoading, error: gendersError } = useGenders();
-  const { accents, loading: accentsLoading, error: accentsError } = useAccentsByGender(agentData.gender);
-  const { personas, loading: personasLoading, error: personasError } = usePersonasByAccent(agentData.accent, agentData.gender);
-  const { voiceDetails, loading: voiceLoading } = useVoiceDetails(agentData.voiceId);
+  const {
+    agentTypes,
+    loading: agentTypesLoading,
+    error: agentTypesError,
+  } = useAgentTypes();
+  const {
+    languages,
+    loading: languagesLoading,
+    error: languagesError,
+  } = useLanguages();
+  const {
+    genders,
+    loading: gendersLoading,
+    error: gendersError,
+  } = useGenders();
+  const {
+    accents,
+    loading: accentsLoading,
+    error: accentsError,
+  } = useAccentsByGender(agentData.gender);
+  const {
+    personas,
+    loading: personasLoading,
+    error: personasError,
+  } = usePersonasByAccent(agentData.accent, agentData.gender);
+  const { voiceDetails, loading: voiceLoading } = useVoiceDetails(
+    agentData.voiceId
+  );
 
   // Auto-set tune from voice details
   React.useEffect(() => {
-    if (voiceDetails?.success && voiceDetails.voice.labels.descriptive && 
-        agentData.tune !== voiceDetails.voice.labels.descriptive) {
+    if (
+      voiceDetails?.success &&
+      voiceDetails.voice.labels.descriptive &&
+      agentData.tune !== voiceDetails.voice.labels.descriptive
+    ) {
       updateAgentData({ tune: voiceDetails.voice.labels.descriptive });
     }
   }, [voiceDetails, agentData.tune, updateAgentData]);
@@ -44,22 +84,25 @@ function Step1() {
   const handleNext = () => {
     // Validate required fields
     const requiredFields = [
-      { field: agentData.agentName, name: 'Agent Name' },
-      { field: agentData.agentTypeDropdown, name: 'Agent Type' },
-      { field: agentData.description, name: 'Description' },
-      { field: agentData.language, name: 'Language' },
-      { field: agentData.gender, name: 'Gender' },
-      { field: agentData.accent, name: 'Accent' },
-      { field: agentData.persona, name: 'Persona' },
+      { field: agentData.agentName, name: "Agent Name" },
+      { field: agentData.agentTypeDropdown || agentType, name: "Agent Type" },
+      { field: agentData.channelType, name: "Channel Type" },
+      { field: agentData.description, name: "Description" },
+      { field: agentData.language, name: "Language" },
+      { field: agentData.gender, name: "Gender" },
+      { field: agentData.accent, name: "Accent" },
+      { field: agentData.persona, name: "Persona" },
     ];
 
-    const missingFields = requiredFields.filter(({ field }) => !field || field.trim() === '');
+    const missingFields = requiredFields.filter(
+      ({ field }) => !field || field.trim() === ""
+    );
 
     if (missingFields.length > 0) {
-      const fieldNames = missingFields.map(({ name }) => name).join(', ');
+      const fieldNames = missingFields.map(({ name }) => name).join(", ");
       addToast({
         message: `Please fill in the following required fields: ${fieldNames}`,
-        type: 'error'
+        type: "error",
       });
       return;
     }
@@ -68,14 +111,16 @@ function Step1() {
   };
 
   const handlePrevious = () => {
-    router.push('/dashboard/agent');
+    router.push("/dashboard/agent");
   };
 
   return (
-    <div className='p-6 overflow-auto h-[80vh] '>
+    <div className="p-6 overflow-auto h-[80vh] ">
       {/* Header */}
       <div className="mb-8 ">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Basic Details</h1>
+        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">
+          Basic Details
+        </h1>
         <p className="text-[#717182] text-base">
           Provide the basic information for your agent
         </p>
@@ -98,23 +143,22 @@ function Step1() {
           {/* Agent Type Dropdown */}
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Agent Type
+              Channel Type
             </label>
             <div className="relative">
               <select
-                value={agentData.agentTypeDropdown}
-                onChange={(e) => updateAgentData({ agentTypeDropdown: e.target.value })}
+                value={agentData.channelType || ""}
+                onChange={(e) =>
+                  updateAgentData({ channelType: e.target.value })
+                }
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-                disabled={agentTypesLoading}
+                required
               >
-                <option value="">
-                  {agentTypesLoading ? 'Loading agent types...' : 'Select Agent Type'}
-                </option>
-                {agentTypes && Object.entries(agentTypes).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {config.name}
-                  </option>
-                ))}
+                <option value="">Select Channel Type</option>
+                <option value="phone_only">Phone</option>
+                <option value="chat_only">Chat</option>
+                <option value="omnichannel">Omnichannel</option>
+                {/* Add more channel types if needed */}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -128,9 +172,6 @@ function Step1() {
                 </svg>
               </div>
             </div>
-            {agentTypesError && (
-              <p className="text-red-500 text-xs mt-1">{agentTypesError}</p>
-            )}
           </div>
         </div>
 
@@ -144,13 +185,19 @@ function Step1() {
               type="button"
               onClick={() => {
                 // Prefill a reasonable user_request based on current inputs
-                const seed = agentData.description || `I am creating an agent named ${agentData.agentName || 'Sales Assistant'}. Please generate a concise professional agent description suitable for ${agentData.agentTypeDropdown || agentType} use.`;
+                const seed =
+                  agentData.description ||
+                  `I am creating an agent named ${
+                    agentData.agentName || "Sales Assistant"
+                  }. Please generate a concise professional agent description suitable for ${
+                    agentData.agentTypeDropdown || agentType
+                  } use.`;
                 setGenRequest(seed);
                 setShowGenPanel((s) => !s);
               }}
               className="text-sm text-[#8266D4] hover:underline"
             >
-              {showGenPanel ? 'Close AI' : 'Generate with AI'}
+              {showGenPanel ? "Close AI" : "Generate with AI"}
             </button>
           </div>
 
@@ -164,7 +211,9 @@ function Step1() {
 
           {showGenPanel && (
             <div className="mt-3 p-3 border border-[#E5E7EB] rounded-lg bg-white">
-              <label className="block text-xs font-medium text-[#1E1E1E] mb-2">Seed / Prompt for AI</label>
+              <label className="block text-xs font-medium text-[#1E1E1E] mb-2">
+                Seed / Prompt for AI
+              </label>
               <textarea
                 value={genRequest}
                 onChange={(e) => setGenRequest(e.target.value)}
@@ -177,42 +226,65 @@ function Step1() {
                 <button
                   onClick={async () => {
                     if (!genRequest.trim()) {
-                      addToast({ message: 'Please enter a prompt seed for the AI', type: 'error' });
+                      addToast({
+                        message: "Please enter a prompt seed for the AI",
+                        type: "error",
+                      });
                       return;
                     }
 
                     try {
                       setIsGenerating(true);
                       const body = new URLSearchParams();
-                      body.append('user_request', genRequest);
-                      body.append('agent_type', agentData.agentTypeDropdown || agentType || '');
-                      body.append('industry', '');
-                      body.append('tone', '');
+                      body.append("user_request", genRequest);
+                      body.append(
+                        "agent_type",
+                        agentData.agentTypeDropdown || agentType || ""
+                      );
+                      body.append("industry", "");
+                      body.append("tone", "");
 
-                      const res = await fetch('https://ai-voice-agent-backend.octaloop.dev/agents/generate-prompt', {
-                        method: 'POST',
-                        headers: {
-                          accept: 'application/json',
-                          'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: body.toString()
-                      });
+                      const res = await fetch(
+                        "https://ai-voice-agent-backend.octaloop.dev/agents/generate-prompt",
+                        {
+                          method: "POST",
+                          headers: {
+                            accept: "application/json",
+                            "Content-Type": "application/x-www-form-urlencoded",
+                          },
+                          body: body.toString(),
+                        }
+                      );
 
                       if (!res.ok) {
-                        const txt = await res.text().catch(() => '');
-                        throw new Error(`Failed to generate: ${res.status} ${txt}`);
+                        const txt = await res.text().catch(() => "");
+                        throw new Error(
+                          `Failed to generate: ${res.status} ${txt}`
+                        );
                       }
 
                       const data = await res.json();
                       if (data?.generated_prompt) {
                         updateAgentData({ description: data.generated_prompt });
-                        addToast({ message: 'Description generated successfully', type: 'success' });
+                        addToast({
+                          message: "Description generated successfully",
+                          type: "success",
+                        });
                         setShowGenPanel(false);
                       } else {
-                        addToast({ message: data?.message || 'No prompt returned', type: 'error' });
+                        addToast({
+                          message: data?.message || "No prompt returned",
+                          type: "error",
+                        });
                       }
                     } catch (err) {
-                      addToast({ message: err instanceof Error ? err.message : 'Generation failed', type: 'error' });
+                      addToast({
+                        message:
+                          err instanceof Error
+                            ? err.message
+                            : "Generation failed",
+                        type: "error",
+                      });
                     } finally {
                       setIsGenerating(false);
                     }
@@ -220,7 +292,7 @@ function Step1() {
                   disabled={isGenerating}
                   className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-md disabled:opacity-50"
                 >
-                  {isGenerating ? 'Generating…' : 'Generate'}
+                  {isGenerating ? "Generating…" : "Generate"}
                 </button>
 
                 <button
@@ -235,7 +307,7 @@ function Step1() {
         </div>
 
         {/* Language */}
-        <div className='grid grid-cols-2 gap-6'>
+        <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
               Language
@@ -248,7 +320,9 @@ function Step1() {
                 disabled={languagesLoading}
               >
                 <option value="">
-                  {languagesLoading ? 'Loading languages...' : 'Select Language'}
+                  {languagesLoading
+                    ? "Loading languages..."
+                    : "Select Language"}
                 </option>
                 {languages.map((language) => (
                   <option key={language.code} value={language.code}>
@@ -281,19 +355,19 @@ function Step1() {
               <select
                 value={agentData.gender}
                 onChange={(e) => {
-                  updateAgentData({ 
+                  updateAgentData({
                     gender: e.target.value,
-                    accent: '',
-                    persona: '',
-                    voiceId: '',
-                    tune: ''
+                    accent: "",
+                    persona: "",
+                    voiceId: "",
+                    tune: "",
                   });
                 }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={gendersLoading}
               >
                 <option value="">
-                  {gendersLoading ? 'Loading genders...' : 'Select Gender'}
+                  {gendersLoading ? "Loading genders..." : "Select Gender"}
                 </option>
                 {genders.map((gender) => (
                   <option key={gender.code} value={gender.code}>
@@ -320,7 +394,7 @@ function Step1() {
         </div>
 
         {/* Accent and Persona in one row */}
-        <div className='grid grid-cols-2 gap-6'>
+        <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
               Accent
@@ -329,23 +403,22 @@ function Step1() {
               <select
                 value={agentData.accent}
                 onChange={(e) => {
-                  updateAgentData({ 
+                  updateAgentData({
                     accent: e.target.value,
-                    persona: '',
-                    voiceId: '',
-                    tune: ''
+                    persona: "",
+                    voiceId: "",
+                    tune: "",
                   });
                 }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={accentsLoading || !agentData.gender}
               >
                 <option value="">
-                  {!agentData.gender 
-                    ? 'Select gender first' 
-                    : accentsLoading 
-                    ? 'Loading accents...' 
-                    : 'Select Accent'
-                  }
+                  {!agentData.gender
+                    ? "Select gender first"
+                    : accentsLoading
+                    ? "Loading accents..."
+                    : "Select Accent"}
                 </option>
                 {accents.map((accent) => (
                   <option key={accent.code} value={accent.code}>
@@ -380,23 +453,26 @@ function Step1() {
                 onChange={(e) => {
                   updateAgentData({ persona: e.target.value });
                   // Find the selected persona and set the voice_id
-                  const selectedPersona = personas.find(p => p.code === e.target.value);
+                  const selectedPersona = personas.find(
+                    (p) => p.code === e.target.value
+                  );
                   if (selectedPersona) {
                     updateAgentData({ voiceId: selectedPersona.voice_id });
                   }
                 }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-                disabled={personasLoading || !agentData.gender || !agentData.accent}
+                disabled={
+                  personasLoading || !agentData.gender || !agentData.accent
+                }
               >
                 <option value="">
-                  {!agentData.gender 
-                    ? 'Select gender first' 
+                  {!agentData.gender
+                    ? "Select gender first"
                     : !agentData.accent
-                    ? 'Select accent first'
-                    : personasLoading 
-                    ? 'Loading personas...' 
-                    : 'Select Persona'
-                  }
+                    ? "Select accent first"
+                    : personasLoading
+                    ? "Loading personas..."
+                    : "Select Persona"}
                 </option>
                 {personas.map((persona, index) => (
                   <option key={`${persona.code}-${index}`} value={persona.code}>
@@ -433,34 +509,55 @@ function Step1() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-[#1E1E1E]">Voice Name:</span>
-                  <p className="text-[#717182] mt-1">{voiceDetails.voice.name}</p>
+                  <span className="font-medium text-[#1E1E1E]">
+                    Voice Name:
+                  </span>
+                  <p className="text-[#717182] mt-1">
+                    {voiceDetails.voice.name}
+                  </p>
                 </div>
                 <div>
-                  <span className="font-medium text-[#1E1E1E]">Tune (Tone):</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.descriptive}</p>
+                  <span className="font-medium text-[#1E1E1E]">
+                    Tune (Tone):
+                  </span>
+                  <p className="text-[#717182] mt-1 capitalize">
+                    {voiceDetails.voice.labels.descriptive}
+                  </p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Accent:</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.accent}</p>
+                  <p className="text-[#717182] mt-1 capitalize">
+                    {voiceDetails.voice.labels.accent}
+                  </p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Age:</span>
-                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.age}</p>
+                  <p className="text-[#717182] mt-1 capitalize">
+                    {voiceDetails.voice.labels.age}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <span className="font-medium text-[#1E1E1E] text-sm">Description:</span>
-                <p className="text-[#717182] text-sm mt-1">{voiceDetails.voice.description}</p>
+                <span className="font-medium text-[#1E1E1E] text-sm">
+                  Description:
+                </span>
+                <p className="text-[#717182] text-sm mt-1">
+                  {voiceDetails.voice.description}
+                </p>
               </div>
-              
+
               {voiceDetails.voice.preview_url && (
                 <div>
-                  <span className="font-medium text-[#1E1E1E] text-sm">Voice Sample:</span>
+                  <span className="font-medium text-[#1E1E1E] text-sm">
+                    Voice Sample:
+                  </span>
                   <div className="mt-2 p-4 bg-[#F7F7F7] rounded-[10px]">
                     <audio controls className="w-full">
-                      <source src={voiceDetails.voice.preview_url} type="audio/mpeg" />
+                      <source
+                        src={voiceDetails.voice.preview_url}
+                        type="audio/mpeg"
+                      />
                       Your browser does not support the audio element.
                     </audio>
                   </div>
@@ -474,7 +571,11 @@ function Step1() {
       )}
 
       {/* Navigation Buttons */}
-      <StepNavigation onPrevious={handlePrevious} onNext={handleNext} previousLabel='Back' />
+      <StepNavigation
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        previousLabel="Back"
+      />
     </div>
   );
 }
@@ -483,38 +584,55 @@ function Step1() {
 function Step2() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const agentType = searchParams.get('type') || 'inbound';
+  const agentType = searchParams.get("type") || "inbound";
   const { agentData, updateAgentData } = useAgentCreation();
 
   const documents = [
-    { id: 'product-faq', name: 'Product FAQ', lastUpdated: 'Last updated 2 days ago' },
-    { id: 'sales-playbook', name: 'Sales Playbook', lastUpdated: 'Last updated 2 days ago' },
-    { id: 'support-guidelines', name: 'Support Guidelines', lastUpdated: 'Last updated 2 days ago' },
+    {
+      id: "product-faq",
+      name: "Product FAQ",
+      lastUpdated: "Last updated 2 days ago",
+    },
+    {
+      id: "sales-playbook",
+      name: "Sales Playbook",
+      lastUpdated: "Last updated 2 days ago",
+    },
+    {
+      id: "support-guidelines",
+      name: "Support Guidelines",
+      lastUpdated: "Last updated 2 days ago",
+    },
   ];
 
   const toggleDocument = (docId: string) => {
     const current = agentData.selectedDocuments || [];
     if (current.includes(docId)) {
-      updateAgentData({ selectedDocuments: current.filter(id => id !== docId) });
+      updateAgentData({
+        selectedDocuments: current.filter((id) => id !== docId),
+      });
     } else {
       updateAgentData({ selectedDocuments: [...current, docId] });
     }
   };
 
-  const nextStep = agentType === 'widget' ? 3 : 3; // For widget, next is 3 (widget settings), else 3 (channels)
+  const nextStep = agentType === "widget" ? 3 : 3; // For widget, next is 3 (widget settings), else 3 (channels)
 
   return (
-    <div className='p-6'>
+    <div className="p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Knowledge Base</h1>
+        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">
+          Knowledge Base
+        </h1>
         <p className="text-[#717182] text-base">
           Select documents to power your agent's knowledge
         </p>
       </div>
 
       <div className="py-5 px-3.5 text-sm text-[#2B231E] font-medium opacity-50 mb-6 bg-[#EBEBEB] border border-[#EBEBEB] rounded-lg">
-        Choose which documents from your knowledge base this agent should have access to.
+        Choose which documents from your knowledge base this agent should have
+        access to.
       </div>
 
       <div className="space-y-4">
@@ -530,9 +648,11 @@ function Step2() {
                 width={24}
                 height={24}
               />
-              <div className='space-y-1'>
+              <div className="space-y-1">
                 <h3 className="font-medium text-sm">{doc.name}</h3>
-                <p className="text-xs text-[#2B231E] opacity-50">{doc.lastUpdated}</p>
+                <p className="text-xs text-[#2B231E] opacity-50">
+                  {doc.lastUpdated}
+                </p>
               </div>
             </div>
 
@@ -550,8 +670,14 @@ function Step2() {
       </div>
 
       <StepNavigation
-        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=1`)}
-        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${nextStep}`)}
+        onPrevious={() =>
+          router.push(`/dashboard/agent/create?type=${agentType}&step=1`)
+        }
+        onNext={() =>
+          router.push(
+            `/dashboard/agent/create?type=${agentType}&step=${nextStep}`
+          )
+        }
       />
     </div>
   );
@@ -559,15 +685,15 @@ function Step2() {
 
 function CreateAgentContent() {
   const searchParams = useSearchParams();
-  const agentType = searchParams.get('type') || 'inbound';
-  const step = parseInt(searchParams.get('step') || '1');
+  const agentType = searchParams.get("type") || "inbound";
+  const step = parseInt(searchParams.get("step") || "1");
 
-  console.log('CreateAgentContent - agentType:', agentType, 'step:', step); // Debug log
+  console.log("CreateAgentContent - agentType:", agentType, "step:", step); // Debug log
 
   const renderStep = () => {
-    console.log('Rendering step:', step, 'for agentType:', agentType); // Debug log
-    
-    if (agentType === 'widget') {
+    console.log("Rendering step:", step, "for agentType:", agentType); // Debug log
+
+    if (agentType === "widget") {
       switch (step) {
         case 1:
           return <Step1 />;
@@ -578,7 +704,7 @@ function CreateAgentContent() {
         case 4:
           return <Step5ReviewPublish />;
         default:
-          console.log('Widget - defaulting to Step1, step was:', step);
+          console.log("Widget - defaulting to Step1, step was:", step);
           return <Step1 />;
       }
     } else {
@@ -595,7 +721,10 @@ function CreateAgentContent() {
         case 5:
           return <Step5ReviewPublish />;
         default:
-          console.log('Inbound/Outbound - defaulting to Step1, step was:', step);
+          console.log(
+            "Inbound/Outbound - defaulting to Step1, step was:",
+            step
+          );
           return <Step1 />;
       }
     }
@@ -611,7 +740,13 @@ function CreateAgentContent() {
 export default function CreateAgentPage() {
   return (
     <AgentCreationProvider>
-      <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-screen">
+            Loading...
+          </div>
+        }
+      >
         <CreateAgentContent />
       </Suspense>
     </AgentCreationProvider>

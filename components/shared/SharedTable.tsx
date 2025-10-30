@@ -1,23 +1,36 @@
-import React from 'react';
-import { BadgeProps, ProgressBarProps, IconProps, TableType, TableProps, ColumnConfig } from '@/types/table';
-import { AgentIcon } from '@/components/icons';
-import Card from '@/components/shared/Card';
-import CopyIcon from '@/components/icons/CopyIcon';
-import EyeIcon from '@/components/icons/EyeIcon';
-import FileEditIcon from '@/components/icons/FileEditIcon';
-import PauseIcon from '@/components/icons/PauseIcon';
-import PlayIcon from '@/components/icons/PlayIcon';
-import TrashIcon from '@/components/icons/TrashIcon';
-import DownloadIcon from '@/components/icons/DownloadIcon';
-import Badge from '@/components/shared/Badge';
-import { Dropdown, DropdownItem, DotsIcon } from '@/components/shared/Dropdown';
-import Image from 'next/image';
+import React from "react";
+import {
+  BadgeProps,
+  ProgressBarProps,
+  IconProps,
+  TableType,
+  TableProps,
+  ColumnConfig,
+} from "@/types/table";
+import { AgentIcon } from "@/components/icons";
+import Card from "@/components/shared/Card";
+import CopyIcon from "@/components/icons/CopyIcon";
+import EyeIcon from "@/components/icons/EyeIcon";
+import FileEditIcon from "@/components/icons/FileEditIcon";
+import PauseIcon from "@/components/icons/PauseIcon";
+import PlayIcon from "@/components/icons/PlayIcon";
+import TrashIcon from "@/components/icons/TrashIcon";
+import DownloadIcon from "@/components/icons/DownloadIcon";
+import Badge from "@/components/shared/Badge";
+import { Dropdown, DropdownItem, DotsIcon } from "@/components/shared/Dropdown";
+import Image from "next/image";
 
 // Progress Bar Component
-const ProgressBar: React.FC<ProgressBarProps> = ({ percentage, className = '' }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  percentage,
+  className = "",
+}) => {
   return (
     <div className="w-full bg-[#F3F4F6] rounded-[10px] h-3 overflow-hidden">
-      <div className="bg-gradient-to-b from-[#8266D4] to-[#41288A] h-full rounded-full transition-all duration-300" style={{ width: `${percentage}%` }} />
+      <div
+        className="bg-gradient-to-b from-[#8266D4] to-[#41288A] h-full rounded-full transition-all duration-300"
+        style={{ width: `${percentage}%` }}
+      />
     </div>
   );
 };
@@ -28,46 +41,65 @@ const StarIcon: React.FC = () => (
   </svg>
 );
 
-
 // Column Configuration based on table type
-const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): ColumnConfig<T>[] => {
+const getColumnConfig = <T extends Record<string, unknown>>(
+  type: TableType
+): ColumnConfig<T>[] => {
   switch (type) {
-    case 'workflows':
+    case "workflows":
       return [
         {
-          key: 'name',
-          header: 'Workflow Name',
+          key: "name",
+          header: "Workflow Name",
           render: (row: Record<string, unknown>) => (
             <span className="text-sm font-medium">{String(row.name)}</span>
-          )
+          ),
         },
         {
-          key: 'linkedAgent',
-          header: 'Linked Agent',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.linkedAgent)}</span>
+          key: "linkedAgent",
+          header: "Linked Agent",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.linkedAgent)}</span>
+          ),
         },
         {
-          key: 'status',
-          header: 'Status',
-          render: (row: Record<string, unknown>) => <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
+          key: "status",
+          header: "Status",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.statusVariant) as BadgeProps["variant"]}>
+              {String(row.status)}
+            </Badge>
+          ),
         },
         {
-          key: 'nodes',
-          header: 'Nodes',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.nodes)}</span>
+          key: "nodes",
+          header: "Nodes",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.nodes)}</span>
+          ),
         },
         {
-          key: 'lastEdited',
-          header: 'Last Edited',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.lastEdited)}</span>
+          key: "lastEdited",
+          header: "Last Edited",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.lastEdited)}</span>
+          ),
         },
         {
-          key: 'actions',
-          header: 'Actions',
+          key: "actions",
+          header: "Actions",
           render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
-              <DropdownItem icon={<FileEditIcon />} label="Edit Workflow" onClick={row.onEdit as () => void} />
-              <DropdownItem icon={<EyeIcon />} label="View Details" onClick={row.onViewDetails as () => void} />
+              <DropdownItem
+                icon={<FileEditIcon />}
+                label="Edit Workflow"
+                onClick={row.onEdit as () => void}
+              />
+              <DropdownItem
+                icon={<EyeIcon />}
+                label="View Details"
+                onClick={row.onViewDetails as () => void}
+              />
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Workflow"
@@ -75,90 +107,120 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
                 onClick={row.onDelete as () => void}
               />
             </Dropdown>
-          )
-        }
+          ),
+        },
       ];
-    case 'topAgents':
+    case "topAgents":
       return [
         {
-          key: 'agent',
-          header: '',
-          width: '60%',
+          key: "agent",
+          header: "",
+          width: "60%",
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-3">
               <AgentIcon gradient={{ from: "#8266D4", to: "#41288A" }} />
               <div>
-                <div className="text-sm font-semibold text-black mb-1.5">{String(row.name)}</div>
-                <div className="text-xs text-black">{String(row.conversations)}</div>
+                <div className="text-sm font-semibold text-black mb-1.5">
+                  {String(row.name)}
+                </div>
+                <div className="text-xs text-black">
+                  {String(row.conversations)}
+                </div>
               </div>
             </div>
-          )
+          ),
         },
         {
-          key: 'progress',
-          header: '',
-          width: '20%',
-          render: (row: Record<string, unknown>) => <ProgressBar percentage={Number(row.progress)} />
-        },
-        {
-          key: 'success',
-          header: '',
-          width: '10%',
+          key: "progress",
+          header: "",
+          width: "20%",
           render: (row: Record<string, unknown>) => (
-            <div className="text-xs font-medium text-black">{String(row.success)}</div>
-          )
+            <ProgressBar percentage={Number(row.progress)} />
+          ),
         },
         {
-          key: 'status',
-          header: '',
-          width: '10%',
+          key: "success",
+          header: "",
+          width: "10%",
           render: (row: Record<string, unknown>) => (
-            <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
-          )
-        }
+            <div className="text-xs font-medium text-black">
+              {String(row.success)}
+            </div>
+          ),
+        },
+        {
+          key: "status",
+          header: "",
+          width: "10%",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.statusVariant) as BadgeProps["variant"]}>
+              {String(row.status)}
+            </Badge>
+          ),
+        },
       ];
-    case 'agents':
+    case "agents":
       return [
         {
-          key: 'name',
-          header: 'Agent Name',
+          key: "name",
+          header: "Agent Name",
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-3">
-              <div className='h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center'>
-                <AgentIcon className='h-3 w-3 text-white' />
+              <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center">
+                <AgentIcon className="h-3 w-3 text-white" />
               </div>
-              <span className="text-sm font-medium text-[#1F2937]">{String(row.name)}</span>
+              <span className="text-sm font-medium text-[#1F2937]">
+                {String(row.name)}
+              </span>
             </div>
-          )
+          ),
         },
         {
-          key: 'type',
-          header: 'Type',
-          render: (row: Record<string, unknown>) => <Badge variant={String(row.typeVariant) as BadgeProps['variant']}>{String(row.type)}</Badge>
+          key: "agent_type",
+          header: "Type",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.typeVariant) as BadgeProps["variant"]}>
+              {String(row.type)}
+            </Badge>
+          ),
         },
         {
-          key: 'status',
-          header: 'Status',
-          render: (row: Record<string, unknown>) => <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
+          key: "status",
+          header: "Status",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.statusVariant) as BadgeProps["variant"]}>
+              {String(row.status)}
+            </Badge>
+          ),
         },
         {
-          key: 'conversations',
-          header: 'Conversations',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.conversations)}</span>
+          key: "conversations",
+          header: "Conversations",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs text-black">
+              {String(row.conversations)}
+            </span>
+          ),
         },
         {
-          key: 'successRate',
-          header: 'Success Rate',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.successRate)}</span>
+          key: "successRate",
+          header: "Success Rate",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs text-black">
+              {String(row.successRate)}
+            </span>
+          ),
         },
         {
-          key: 'lastActive',
-          header: 'Last Active',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastActive)}</span>
+          key: "lastActive",
+          header: "Last Active",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs text-black">{String(row.lastActive)}</span>
+          ),
         },
         {
-          key: 'actions',
-          header: 'Actions',
+          key: "actions",
+          header: "Actions",
           render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
               <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
@@ -169,7 +231,29 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
                 onClick={row.onViewDetails as () => void}
               />
               <DropdownItem icon={<PauseIcon />} label="Deactivate Agent" />
-              <DropdownItem icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />} label="Test Agent" onClick={row.onTestAgent as () => void} />
+              <DropdownItem
+                icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />}
+                label="Test Agent"
+                onClick={row.onTestAgent as () => void}
+              />
+              <DropdownItem
+                icon={
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                  </svg>
+                }
+                label="Preview Widget"
+                onClick={row.onPreviewWidget as () => void}
+              />
+
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Agent"
@@ -177,112 +261,147 @@ const getColumnConfig = <T extends Record<string, unknown>>(type: TableType): Co
                 onClick={row.onDelete as () => void}
               />
             </Dropdown>
-          )
-        }
+          ),
+        },
       ];
-    case 'conversations':
+    case "conversations":
       return [
         {
-          key: 'customer',
-          header: 'Customer',
+          key: "customer",
+          header: "Customer",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5">{String(row.customerName)}</div>
+              <div className="text-sm font-medium mb-0.5">
+                {String(row.customerName)}
+              </div>
               <div className="text-xs">{String(row.customerEmail)}</div>
             </div>
-          )
+          ),
         },
         {
-          key: 'agent',
-          header: 'Agent',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.agent)}</span>
+          key: "agent",
+          header: "Agent",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.agent)}</span>
+          ),
         },
         {
-          key: 'channel',
-          header: 'Channel',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.channel)}</span>
+          key: "channel",
+          header: "Channel",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.channel)}</span>
+          ),
         },
         {
-          key: 'duration',
-          header: 'Duration',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.duration)}</span>
+          key: "duration",
+          header: "Duration",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.duration)}</span>
+          ),
         },
         {
-          key: 'status',
-          header: 'Status',
-          render: (row: Record<string, unknown>) => <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
+          key: "status",
+          header: "Status",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.statusVariant) as BadgeProps["variant"]}>
+              {String(row.status)}
+            </Badge>
+          ),
         },
         {
-          key: 'satisfaction',
-          header: 'Satisfaction',
+          key: "satisfaction",
+          header: "Satisfaction",
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-1">
-                <StarIcon />
+              <StarIcon />
               <span className="text-sm font-medium">{String(row.rating)}</span>
             </div>
-          )
+          ),
         },
         {
-          key: 'date',
-          header: 'Date',
+          key: "date",
+          header: "Date",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5">{String(row.date)}</div>
+              <div className="text-sm font-medium mb-0.5">
+                {String(row.date)}
+              </div>
               <div className="text-xs">{String(row.time)}</div>
             </div>
-          )
+          ),
         },
         {
-          key: 'actions',
-          header: 'Actions',
+          key: "actions",
+          header: "Actions",
           render: (row: Record<string, unknown>) => (
-            <button 
+            <button
               onClick={row.onViewDetails as () => void}
               className="bg-[#007BFF1A] p-3 rounded-[10px] cursor-pointer"
             >
-              <Image src="/svgs/eye.svg" alt="View Details" width={24} height={24} />
+              <Image
+                src="/svgs/eye.svg"
+                alt="View Details"
+                width={24}
+                height={24}
+              />
             </button>
-          )
-        }
+          ),
+        },
       ];
-    case 'documents':
+    case "documents":
       return [
         {
-          key: 'name',
-          header: 'Document Name',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium">{String(row.name)}</span>
+          key: "name",
+          header: "Document Name",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.name)}</span>
+          ),
         },
         {
-          key: 'type',
-          header: 'Type',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.type)}</span>
+          key: "type",
+          header: "Type",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.type)}</span>
+          ),
         },
         {
-          key: 'status',
-          header: 'Status',
-          render: (row: Record<string, unknown>) => <Badge variant={String(row.statusVariant) as BadgeProps['variant']}>{String(row.status)}</Badge>
+          key: "status",
+          header: "Status",
+          render: (row: Record<string, unknown>) => (
+            <Badge variant={String(row.statusVariant) as BadgeProps["variant"]}>
+              {String(row.status)}
+            </Badge>
+          ),
         },
         {
-          key: 'size',
-          header: 'Size',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.size)}</span>
+          key: "size",
+          header: "Size",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.size)}</span>
+          ),
         },
         {
-          key: 'lastUpdated',
-          header: 'Last Updated',
-          render: (row: Record<string, unknown>) => <span className="text-xs">{String(row.lastUpdated)}</span>
+          key: "lastUpdated",
+          header: "Last Updated",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.lastUpdated)}</span>
+          ),
         },
         {
-          key: 'actions',
-          header: 'Actions',
+          key: "actions",
+          header: "Actions",
           render: () => (
             <Dropdown trigger={<DotsIcon />}>
               <DropdownItem icon={<EyeIcon />} label="View Details" />
               <DropdownItem icon={<DownloadIcon />} label="Download" />
-              <DropdownItem icon={<TrashIcon />} label="Delete Document" className="text-[#DC2626]" />
+              <DropdownItem
+                icon={<TrashIcon />}
+                label="Delete Document"
+                className="text-[#DC2626]"
+              />
             </Dropdown>
-          )
-        }
+          ),
+        },
       ];
     default:
       return [];
@@ -297,31 +416,45 @@ export default function SharedTable<T extends Record<string, unknown>>({
   searchPlaceholder = "Search...",
   title,
   viewToggle = false,
-  className = ''
+  className = "",
 }: TableProps<T>): React.ReactElement {
-  const [searchTerm, setSearchTerm] = React.useState<string>('');
-  const [view, setView] = React.useState<'list' | 'grid'>('list');
+  const [searchTerm, setSearchTerm] = React.useState<string>("");
+  const [view, setView] = React.useState<"list" | "grid">("list");
   const columns = getColumnConfig(type);
   const filteredData = React.useMemo(() => {
     if (!searchTerm) return data;
-    return data.filter(row =>
-      Object.values(row).some(value =>
+    return data.filter((row) =>
+      Object.values(row).some((value) =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
   }, [data, searchTerm]);
-
+  console.log("data", data);
+  console.log("filteredData", filteredData);
+  console.log("searchTerm", searchTerm);
   return (
     <Card className={`${className}`}>
       {(title || showSearch || viewToggle) && (
         <div className="p-6">
           <div className="flex items-center justify-between">
-            {title && <h2 className="text-lg font-medium text-black">{title}</h2>}
+            {title && (
+              <h2 className="text-lg font-medium text-black">{title}</h2>
+            )}
             <div className="flex items-center gap-4">
               {showSearch && (
                 <div className="relative">
-                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9CA3AF]" fill="none" viewBox="0 0 20 20">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 19l-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                  <svg
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9CA3AF]"
+                    fill="none"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 19l-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"
+                    />
                   </svg>
                   <input
                     type="text"
@@ -334,17 +467,74 @@ export default function SharedTable<T extends Record<string, unknown>>({
               )}
               {viewToggle && (
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setView('list')} className={`p-2 rounded-lg border ${view === 'list' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`} >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill={view === 'list' ? '#8B5CF6' : '#9CA3AF'}>
-                      <path d="M3 4h14M3 10h14M3 16h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <button
+                    onClick={() => setView("list")}
+                    className={`p-2 rounded-lg border ${
+                      view === "list"
+                        ? "border-[#8B5CF6] bg-[#F5F3FF]"
+                        : "border-[#E5E7EB] bg-white"
+                    }`}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill={view === "list" ? "#8B5CF6" : "#9CA3AF"}
+                    >
+                      <path
+                        d="M3 4h14M3 10h14M3 16h14"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
-                  <button onClick={() => setView('grid')} className={`p-2 rounded-lg border ${view === 'grid' ? 'border-[#8B5CF6] bg-[#F5F3FF]' : 'border-[#E5E7EB] bg-white'}`} >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill={view === 'grid' ? '#8B5CF6' : '#9CA3AF'}>
-                      <rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" />
-                      <rect x="11" y="3" width="6" height="6" rx="1" fill="currentColor" />
-                      <rect x="3" y="11" width="6" height="6" rx="1" fill="currentColor" />
-                      <rect x="11" y="11" width="6" height="6" rx="1" fill="currentColor" />
+                  <button
+                    onClick={() => setView("grid")}
+                    className={`p-2 rounded-lg border ${
+                      view === "grid"
+                        ? "border-[#8B5CF6] bg-[#F5F3FF]"
+                        : "border-[#E5E7EB] bg-white"
+                    }`}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill={view === "grid" ? "#8B5CF6" : "#9CA3AF"}
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="6"
+                        height="6"
+                        rx="1"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="11"
+                        y="3"
+                        width="6"
+                        height="6"
+                        rx="1"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="3"
+                        y="11"
+                        width="6"
+                        height="6"
+                        rx="1"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="11"
+                        y="11"
+                        width="6"
+                        height="6"
+                        rx="1"
+                        fill="currentColor"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -355,11 +545,19 @@ export default function SharedTable<T extends Record<string, unknown>>({
       )}
       <div className="overflow-x-auto">
         <table className="w-full">
-          {type !== 'topAgents' && (
+          {type !== "topAgents" && (
             <thead>
               <tr>
                 {columns.map((column, index) => (
-                  <th key={index} className={`px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap ${type === 'conversations' ? 'border-b border-[#0000001A]' : ''}`} style={{ width: column.width }} >
+                  <th
+                    key={index}
+                    className={`px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap ${
+                      type === "conversations"
+                        ? "border-b border-[#0000001A]"
+                        : ""
+                    }`}
+                    style={{ width: column.width }}
+                  >
                     {column.header}
                   </th>
                 ))}
@@ -368,10 +566,19 @@ export default function SharedTable<T extends Record<string, unknown>>({
           )}
           <tbody>
             {filteredData.map((row, rowIndex) => (
-              <tr key={rowIndex} className="border-b border-[#0000001A] last:border-b-0 hover:bg-[#F9FAFB] transition-colors" >
+              <tr
+                key={rowIndex}
+                className="border-b border-[#0000001A] last:border-b-0 hover:bg-[#F9FAFB] transition-colors"
+              >
                 {columns.map((column, colIndex) => (
-                  <td key={colIndex} className="px-6 py-4" style={column.width ? { width: column.width } : undefined} >
-                    {column.render ? column.render(row) : String(row[column.key])}
+                  <td
+                    key={colIndex}
+                    className="px-6 py-4"
+                    style={column.width ? { width: column.width } : undefined}
+                  >
+                    {column.render
+                      ? column.render(row)
+                      : String(row[column.key])}
                   </td>
                 ))}
               </tr>

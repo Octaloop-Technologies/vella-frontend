@@ -6,12 +6,12 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
   // Format agent type for display
   const formatAgentType = (type: string): string => {
     switch (type) {
-      case 'omnichannel':
-        return 'Omnichannel';
-      case 'chat_only':
-        return 'Chat Only';
-      case 'phone_only':
-        return 'Phone Only';
+      case 'inbound':
+        return 'Inbound';
+      case 'outbound':
+        return 'Outbound';
+      case 'widget':
+        return 'Widget';
       default:
         return 'Unknown';
     }
@@ -58,7 +58,7 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
     id: apiAgent.id,
     name: apiAgent.name,
     type: formatAgentType(apiAgent.agent_type),
-    typeVariant: getTypeVariant(apiAgent.agent_type),
+    typeVariant: getTypeVariant(apiAgent.channel_type),
     status: apiAgent.status.charAt(0).toUpperCase() + apiAgent.status.slice(1),
     statusVariant: getStatusVariant(apiAgent.status),
     conversations: apiAgent.conversations.toString(),
