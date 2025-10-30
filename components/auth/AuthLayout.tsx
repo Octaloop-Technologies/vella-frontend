@@ -7,7 +7,7 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
-    <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center bg-[#F7F7F7]">
       {/* Large purple gradient circle - bottom left */}
       <div className="absolute -bottom-[10px] -left-[220px] w-[440px] h-[440px] rounded-full bg-gradient-to-b from-[#997CEB] to-[#41288A] opacity-90"></div>
 

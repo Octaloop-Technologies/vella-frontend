@@ -25,7 +25,7 @@ const LoginPage = () => {
         {/* Title and subtitle */}
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Welcome Back</h1>
-          <p className="text-sm">Sign in to your account to continue.</p>
+          <p className="text-sm text-black opacity-70">Sign in to your account to continue.</p>
         </div>
 
         {/* Form */}

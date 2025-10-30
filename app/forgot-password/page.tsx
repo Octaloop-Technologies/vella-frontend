@@ -20,7 +20,7 @@ const ForgotPasswordPage = () => {
                 {/* Title and subtitle */}
                 <div className="text-center">
                     <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Forgot Your Password?</h1>
-                    <p className="text-sm">Don't worry, we'll send you a reset link to your email.</p>
+                    <p className="text-sm text-black opacity-70">Don't worry, we'll send you a reset link to your email.</p>
                 </div>
 
                 {/* Form */}
