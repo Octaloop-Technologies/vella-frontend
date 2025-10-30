@@ -84,6 +84,18 @@ export default function Agent() {
     router.push(`/dashboard/agent/test?${params.toString()}`);
   };
 
+  const handlePreviewWidget = (agent: AgentsTable) => {
+    // Pass agent data as URL parameters for widget preview
+    const params = new URLSearchParams({
+      id: agent.id || '',
+      name: agent.name || '',
+      type: agent.type || '',
+      status: agent.status || '',
+      description: agent.description || ''
+    });
+    router.push(`/dashboard/agent/preview-widget?${params.toString()}`);
+  };
+
   const handleConfirmDelete = async () => {
     if (!agentToDelete?.id) {
       console.error('No agent ID to delete');
@@ -107,7 +119,8 @@ export default function Agent() {
     ...agent,
     onViewDetails: () => handleViewDetails(agent),
     onDelete: () => handleDeleteAgent(agent),
-    onTestAgent: () => handleTestAgent(agent)
+    onTestAgent: () => handleTestAgent(agent),
+    onPreviewWidget: () => handlePreviewWidget(agent)
   }));
 
   return (
@@ -263,6 +276,15 @@ export default function Agent() {
                         { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
                         { icon: <PauseIcon />, label: 'Deactivate Agent' },
                         { icon: <AgentIcon className="w-4 h-4 text-[#1F2937]"  />, label: 'Test Agent', onClick: () => handleTestAgent(agent) },
+                        ...(agent.type === 'widget' ? [{
+                          icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="9" cy="9" r="2"/>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                          </svg>,
+                          label: 'Preview Widget', 
+                          onClick: () => handlePreviewWidget(agent) 
+                        }] : []),
                         { icon: <TrashIcon />, label: 'Delete Agent', className: 'text-[#DC2626]', onClick: () => handleDeleteAgent(agent) }
                       ]}
                     />

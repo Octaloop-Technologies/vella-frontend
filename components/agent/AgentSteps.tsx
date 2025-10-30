@@ -338,7 +338,8 @@ export function Step5ReviewPublish() {
       const createAgentData: CreateAgentRequest = {
         name: agentData.agentName || '',
         description: agentData.description || '',
-        agent_type: agentData.agentTypeDropdown as 'phone_only' | 'chat_only' | 'omnichannel',
+        agent_type: agentType as 'inbound' | 'outbound' | 'widget',
+        channel_type: agentData.channelType  as 'phone_only' | 'chat_only' | 'omnichannel',
         language: agentData.language || '',
         gender: agentData.gender as 'Male' | 'Female',
         persona: agentData.persona || '',

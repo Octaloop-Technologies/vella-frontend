@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { apiService } from "./api";
 
 // Configuration API Types
 export interface AgentTypeConfig {
@@ -76,9 +76,10 @@ export interface Tune {
 export interface CreateAgentRequest {
   name: string;
   description: string;
-  agent_type: 'phone_only' | 'chat_only' | 'omnichannel';
+  agent_type: "inbound" | "outbound" | "widget";
+  channel_type: "phone_only" | "chat_only" | "omnichannel";
   language: string;
-  gender: 'Male' | 'Female';
+  gender: "Male" | "Female";
   persona: string;
   tune: string;
   voice_id: string;
@@ -95,9 +96,10 @@ export interface CreateAgentResponse {
   id: string;
   name: string;
   description: string;
-  agent_type: 'phone_only' | 'chat_only' | 'omnichannel';
+  agent_type: "inbound" | "outbound" | "widget";
+  channel_type: "phone_only" | "chat_only" | "omnichannel";
   language: string;
-  gender: 'Male' | 'Female';
+  gender: "Male" | "Female";
   persona: string;
   tune: string;
   voice_id: string;
@@ -146,35 +148,38 @@ class ConfigService {
     try {
       const response = await fetch(`/api/config/${endpoint}`, {
         headers: {
-          'accept': 'application/json',
+          accept: "application/json",
         },
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `API Error: ${response.status} - ${response.statusText}`);
+        throw new Error(
+          errorData.message ||
+            `API Error: ${response.status} - ${response.statusText}`
+        );
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Config API Request failed:', error);
+      console.error("Config API Request failed:", error);
       throw error;
     }
   }
 
   // Get agent types configuration
   async getAgentTypes(): Promise<AgentTypesResponse> {
-    return this.makeRequest<AgentTypesResponse>('agent-types');
+    return this.makeRequest<AgentTypesResponse>("agent-types");
   }
 
   // Get available languages
   async getLanguages(): Promise<Language[]> {
-    return this.makeRequest<Language[]>('languages');
+    return this.makeRequest<Language[]>("languages");
   }
 
   // Get available genders
   async getGenders(): Promise<Gender[]> {
-    return this.makeRequest<Gender[]>('genders');
+    return this.makeRequest<Gender[]>("genders");
   }
 
   // Get personas by gender
@@ -188,13 +193,18 @@ class ConfigService {
   }
 
   // Get personas by accent and gender
-  async getPersonasByAccent(accent: string, gender: string): Promise<Persona[]> {
-    return this.makeRequest<Persona[]>(`personas/by-accent/${accent}?gender=${gender}`);
+  async getPersonasByAccent(
+    accent: string,
+    gender: string
+  ): Promise<Persona[]> {
+    return this.makeRequest<Persona[]>(
+      `personas/by-accent/${accent}?gender=${gender}`
+    );
   }
 
   // Get available tunes
   async getTunes(): Promise<Tune[]> {
-    return this.makeRequest<Tune[]>('tunes');
+    return this.makeRequest<Tune[]>("tunes");
   }
 
   // Get voice details by voice ID
@@ -203,25 +213,30 @@ class ConfigService {
   }
 
   // Create new agent
-  async createAgent(agentData: CreateAgentRequest): Promise<CreateAgentResponse> {
+  async createAgent(
+    agentData: CreateAgentRequest
+  ): Promise<CreateAgentResponse> {
     try {
-      const response = await fetch('/api/agents', {
-        method: 'POST',
+      const response = await fetch("/api/agents", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
+          "Content-Type": "application/json",
+          accept: "application/json",
         },
         body: JSON.stringify(agentData),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `API Error: ${response.status} - ${response.statusText}`);
+        throw new Error(
+          errorData.message ||
+            `API Error: ${response.status} - ${response.statusText}`
+        );
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Create Agent API Request failed:', error);
+      console.error("Create Agent API Request failed:", error);
       throw error;
     }
   }

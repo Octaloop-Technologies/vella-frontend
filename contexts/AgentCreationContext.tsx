@@ -6,6 +6,7 @@ interface AgentCreationData {
   // Step 1
   agentName: string;
   agentTypeDropdown: string;
+  channelType: string; // <-- Add this line
   description: string;
   language: string;
   gender: string;
@@ -38,6 +39,7 @@ interface AgentCreationContextType {
 const defaultAgentData: AgentCreationData = {
   agentName: '',
   agentTypeDropdown: '',
+  channelType: '',
   description: '',
   language: '',
   gender: '',

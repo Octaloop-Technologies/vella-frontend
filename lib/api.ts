@@ -5,7 +5,9 @@ export interface ApiAgent {
   id: string;
   name: string;
   description: string;
-  agent_type: 'omnichannel' | 'chat_only' | 'phone_only';
+  agent_type: "inbound" | "outbound" | "widget";
+  channel_type: 'omnichannel' | 'chat_only' | 'phone_only';
+
   language: string;
   gender: 'Male' | 'Female';
   persona: string;
