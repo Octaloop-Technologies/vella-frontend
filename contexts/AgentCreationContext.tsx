@@ -9,6 +9,7 @@ interface AgentCreationData {
   description: string;
   language: string;
   gender: string;
+  accent: string;
   persona: string;
   tune: string;
   voiceId: string;
@@ -40,6 +41,7 @@ const defaultAgentData: AgentCreationData = {
   description: '',
   language: '',
   gender: '',
+  accent: '',
   persona: '',
   tune: '',
   voiceId: '',
