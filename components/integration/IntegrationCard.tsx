@@ -38,9 +38,9 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                     <div className="flex items-center space-x-3">
                         {icon}
                         <div className='flex flex-col'>
-                            <h3 className="font-medium text-lg mb-1">{title}</h3>
+                            <h3 className="font-medium text-lg mb-1 text-black">{title}</h3>
 
-                            <p className="text-xs opacity-70">{description}</p>
+                            <p className="text-xs opacity-70 text-black">{description}</p>
 
                         </div>
                     </div>
@@ -59,12 +59,12 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
             <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-xs opacity-70">Connected</span>
-                    <span className="text-xs">{connectedDate}</span>
+                    <span className="text-xs opacity-70 text-black">Connected</span>
+                    <span className="text-xs text-black">{connectedDate}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-xs opacity-70">Last Sync</span>
-                    <span className="text-xs">{lastSync}</span>
+                    <span className="text-xs opacity-70 text-black">Last Sync</span>
+                    <span className="text-xs text-black">{lastSync}</span>
                 </div>
             </div>
 
@@ -73,13 +73,13 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                     {footerTags.slice(0, 3).map((tag, index) => (
                         <span
                             key={index}
-                            className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full"
+                            className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full text-black"
                         >
                             {tag}
                         </span>
                     ))}
                     {footerTags.length > 3 && (
-                        <span className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full">
+                        <span className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full text-black">
                             +{footerTags.length - 3}
                         </span>
                     )}
@@ -90,7 +90,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                     <div className='flex gap-3 mt-6'>
                     <button
                         onClick={onConfigure}
-                        className="w-full px-4 py-2 border border-[#8266D4] font-medium rounded-md"
+                        className="w-full px-4 py-2 border border-[#8266D4] font-medium rounded-md text-black"
                     >
                         <Image src="/svgs/settings.svg" alt="Configure" width={24} height={24} className='inline-block mr-2'/>
                         Configure

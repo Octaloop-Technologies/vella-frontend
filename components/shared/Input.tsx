@@ -30,7 +30,7 @@ const Input: React.FC<InputProps> = ({ containerClassName, className, label, pla
                 value={value}
                 onChange={onChange}
                 onKeyDown={onKeyDown}
-                className={`${className} w-full ${icon ? 'pl-11 pr-4' : 'px-4'} py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm`}
+                className={`${className} w-full ${icon ? 'pl-11 pr-4' : 'px-4'} py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-black`}
             />
         </div>
     );

@@ -40,7 +40,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
           <div className="flex items-center space-x-3">
             {icon}
             <div>
-              <h3 className="font-semibold text-lg">{title}</h3>
+              <h3 className="font-semibold text-lg text-black">{title}</h3>
               {badges.length > 0 && (
                 <div className="flex items-center space-x-2 mt-1">
                   {badges.map((badge, index) => (
@@ -75,8 +75,8 @@ const ItemCard: React.FC<ItemCardProps> = ({
       <div className="space-y-3">
         {stats.map((stat, index) => (
           <div key={index} className="flex items-center justify-between text-sm">
-            <span className="text-xs opacity-70">{stat.label}</span>
-            <span className="text-xs">{stat.value}</span>
+            <span className="text-xs opacity-70 text-black">{stat.label}</span>
+            <span className="text-xs text-black">{stat.value}</span>
           </div>
         ))}
       </div>
@@ -84,7 +84,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
       {footerTags.length > 0 && (
         <div className="flex gap-2 mt-4">
           {footerTags.map((tag, index) => (
-            <span key={index} className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full">
+            <span key={index} className="text-xs px-2.5 py-1 bg-[#FFFFFF1A] border border-[#EBEBEB] rounded-full text-black">
               {tag}
             </span>
           ))}

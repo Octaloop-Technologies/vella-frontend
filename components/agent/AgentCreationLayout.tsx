@@ -103,8 +103,8 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         {/* Stepper Sidebar */}
         <div className="w-80 flex-shrink-0 border-r border-[#0000001A] p-4">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-1">Create New Agent</h2>
-            <p className="text-sm capitalize">{agentType} Agent</p>
+            <h2 className="text-lg font-semibold mb-1 text-black">Create New Agent</h2>
+            <p className="text-sm capitalize text-black">{agentType} Agent</p>
           </div>
 
           <div className="space-y-3">

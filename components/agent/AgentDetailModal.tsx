@@ -64,8 +64,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
            {
               assistantStats.map((stat) => (
                 <div key={stat.label}>
-                  <div className="text-xs opacity-70 mb-2">{stat.label}</div>
-                  <div className="font-medium">{stat.value}</div>
+                  <div className="text-xs opacity-70 mb-2 text-black">{stat.label}</div>
+                  <div className="font-medium text-black">{stat.value}</div>
                 </div>
               ))
            }
@@ -74,12 +74,12 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
         {/* Linked Knowledge Base */}
         <Card className="mb-8 p-5 border border-[#EBEBEB]">
-          <h3 className="text-base font-medium mb-4">Linked Knowledge Base</h3>
+          <h3 className="text-base font-medium mb-4 text-black">Linked Knowledge Base</h3>
           <div className="space-y-3">
             {linkedKnowledgeBase.map((item) => (
               <div key={item.id} className="flex items-center">
                 <Image src="/svgs/tick.svg" alt="Tick" width={24} height={20} className="mr-3" />
-                <span className="text-sm font-medium">{item.name}</span>
+                <span className="text-sm font-medium text-black">{item.name}</span>
               </div>
             ))}
           </div>
@@ -87,12 +87,12 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
         {/* Active Integrations */}
         <Card className='p-5 border border-[#EBEBEB]'>
-          <h3 className="text-base font-medium mb-4">Active Integrations</h3>
+          <h3 className="text-base font-medium mb-4 text-black">Active Integrations</h3>
           <div className="space-y-3">
             {activeIntegrations.map((item) => (
               <div key={item.id} className="flex items-center">
                 <Image src="/svgs/tick.svg" alt="Tick" width={24} height={20} className="mr-3" />
-                <span className="text-sm font-medium">{item.name}</span>
+                <span className="text-sm font-medium text-black">{item.name}</span>
               </div>
             ))}
           </div>

@@ -56,8 +56,8 @@ const CustomNode = ({ data, selected }: any) => {
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm">{data.label}</div>
-          <div className="text-xs opacity-70 leading-tight">{data.description}</div>
+          <div className="text-sm text-black">{data.label}</div>
+          <div className="text-xs opacity-70 leading-tight text-black">{data.description}</div>
         </div>
       </div>
       {/* Connection handles indicator */}
@@ -285,7 +285,7 @@ export default function WorkflowBuilder() {
             className="flex items-center gap-3 transition-colors"
           >
             <Image src="/svgs/back.svg" alt="Back" width={16} height={16} className='mb-1' />
-            <span className="font-medium">Back</span>
+            <span className="font-medium text-black">Back</span>
           </button>
 
           <input
@@ -299,17 +299,17 @@ export default function WorkflowBuilder() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-xs">
             <Image src="/svgs/clock2.svg" alt="Saved" width={12} height={12} />
-            <span>Saved {savedTime}</span>
+            <span className="text-black">Saved {savedTime}</span>
           </div>
 
           <button className="px-3 py-1.5 bg-white border border-[#D1D5DC] rounded-lg font-medium flex items-center gap-2">
             <Image src="/svgs/play.svg" alt="Run Test" width={12} height={12} />
-            <span>Run Test</span>
+            <span className="text-black">Run Test</span>
           </button>
 
           <button className="px-3 py-1.5 bg-white border border-[#D1D5DC] rounded-lg font-medium flex items-center gap-2">
             <Image src="/svgs/save.svg" alt="Save Draft" width={16} height={16} />
-            <span>Save Draft</span>
+            <span className="text-black">Save Draft</span>
           </button>
 
           <button className="px-3 py-1.5 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg font-medium">
@@ -323,7 +323,7 @@ export default function WorkflowBuilder() {
         {/* Left Sidebar - Components */}
         <div className="w-[280px] bg-white border-r border-[#E5E7EB] overflow-y-auto">
           <div className="p-4">
-            <h3 className="text-lg font-medium mb-4">Components</h3>
+            <h3 className="text-lg font-medium mb-4 text-black">Components</h3>
             <div className="space-y-2">
               {components.map((component, index) => (
                 <div
@@ -336,8 +336,8 @@ export default function WorkflowBuilder() {
                     {component.icon}
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm">{component.title}</div>
-                    <div className="text-xs opacity-70">{component.description}</div>
+                    <div className="text-sm text-black">{component.title}</div>
+                    <div className="text-xs opacity-70 text-black">{component.description}</div>
                   </div>
                 </div>
               ))}
@@ -354,8 +354,8 @@ export default function WorkflowBuilder() {
                   <div className="w-12 h-12 bg-gradient-to-b from-[#8266D4] to-[#41288A] rounded-full flex items-center justify-center mb-4">
                     <Image src="/svgs/lightning.svg" alt="Workflow" width={24} height={24} />
                   </div>
-                  <h2 className="text-sm font-semibold mb-2">Build Your Workflow</h2>
-                  <p className="text-xs opacity-70 max-w-md leading-loose">
+                  <h2 className="text-sm font-semibold mb-2 text-black">Build Your Workflow</h2>
+                  <p className="text-xs opacity-70 max-w-md leading-loose text-black">
                     Drag components from the left panel onto the canvas. Click on nodes to configure their properties.
                   </p>
                 </div>
@@ -406,15 +406,15 @@ export default function WorkflowBuilder() {
         {/* Right Sidebar - Properties */}
         <div className="w-[340px] bg-white border-l border-[#E5E7EB] overflow-y-auto">
           <div className="p-4 h-full flex flex-col">
-            <h3 className="text-lg font-medium mb-4">Properties</h3>
+            <h3 className="text-lg font-medium mb-4 text-black">Properties</h3>
             {!selectedNode ? (
               <div className="flex items-center justify-center flex-1">
                 <div className="text-center">
                   <div className="w-12 h-12 border border-[#8266D4] rounded-[10px] flex items-center justify-center mx-auto mb-4">
                     <Image src="/svgs/eye.svg" alt="Node" width={24} height={24} />
                   </div>
-                  <h3 className="text-sm font-medium mb-2">No node selected</h3>
-                  <p className="text-xs">
+                  <h3 className="text-sm font-medium mb-2 text-black">No node selected</h3>
+                  <p className="text-xs text-black">
                     Click on a node to view and edit its properties
                   </p>
                 </div>
@@ -428,8 +428,8 @@ export default function WorkflowBuilder() {
                       {selectedNode.data.icon}
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium">{selectedNode.data.label}</h3>
-                      <p className="text-xs opacity-70">{selectedNode.data.description}</p>
+                      <h3 className="text-sm font-medium text-black">{selectedNode.data.label}</h3>
+                      <p className="text-xs opacity-70 text-black">{selectedNode.data.description}</p>
                     </div>
                   </div>
                   <button
@@ -457,7 +457,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.from || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'from', e.target.value)}
-                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none "
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                               placeholder="noreply@company.com"
                             />
                           </div>
@@ -468,7 +468,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.to || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'to', e.target.value)}
-                              className="w-full px-3 py-2 border bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                              className="w-full px-3 py-2 border bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                               placeholder="recipient@example.com or {{variable}}"
                             />
                             <p className="text-xs text-[#6B7280] mt-1">Use variables like {'{{email}}'} from previous steps</p>
@@ -480,7 +480,7 @@ export default function WorkflowBuilder() {
                               type="text"
                               value={selectedNode.data.properties.subject || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
-                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                               placeholder="Email subject line"
                             />
                           </div>
@@ -491,7 +491,7 @@ export default function WorkflowBuilder() {
                               value={selectedNode.data.properties.body || ''}
                               onChange={(e) => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
                               rows={6}
-                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
+                              className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black resize-none"
                               placeholder="Email content..."
                             />
                           </div>
@@ -530,7 +530,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.recipient || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'recipient', e.target.value)}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                             placeholder="{{variable}}"
                           />
                         </div>
@@ -540,7 +540,7 @@ export default function WorkflowBuilder() {
                             value={selectedNode.data.properties.content || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'content', e.target.value)}
                             rows={6}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black resize-none"
                             placeholder="Message content..."
                           />
                         </div>
@@ -558,7 +558,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.phoneNumber || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'phoneNumber', e.target.value)}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                             placeholder="{{variable}}"
                           />
                         </div>
@@ -568,7 +568,7 @@ export default function WorkflowBuilder() {
                             value={selectedNode.data.properties.message || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'message', e.target.value)}
                             rows={6}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none   resize-none"
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black resize-none"
                             placeholder="Voice message..."
                           />
                         </div>
@@ -586,7 +586,7 @@ export default function WorkflowBuilder() {
                             type="text"
                             value={selectedNode.data.properties.url || ''}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'url', e.target.value)}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                             placeholder="https://api.example.com/endpoint"
                           />
                         </div>
@@ -595,7 +595,7 @@ export default function WorkflowBuilder() {
                           <select
                             value={selectedNode.data.properties.method || 'POST'}
                             onChange={(e) => updateNodeProperty(selectedNode.id, 'method', e.target.value)}
-                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none  "
+                            className="w-full px-3 py-2 bg-[#EBEBEB] rounded-lg text-sm focus:outline-none text-black"
                           >
                             <option value="GET">GET</option>
                             <option value="POST">POST</option>
@@ -615,7 +615,7 @@ export default function WorkflowBuilder() {
                       </button>
                       <button
                         onClick={() => setSelectedNode(null)}
-                        className="w-full px-4 py-2 border border-[#8266D4] bg-white text-[#1F2937] rounded-lg font-medium"
+                        className="w-full px-4 py-2 border border-[#8266D4] bg-white text-[#1F2937] rounded-lg font-medium text-black"
                       >
                         Cancel
                       </button>

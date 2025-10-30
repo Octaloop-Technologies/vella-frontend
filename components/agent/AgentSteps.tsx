@@ -47,7 +47,7 @@ export function Step3Channels() {
       <Card className="p-5 space-y-8 mb-8">
         {/* Social Channels */}
         <div>
-          <h3 className="text-lg font-medium mb-4">Social Channels</h3>
+          <h3 className="text-lg font-medium mb-4 text-black">Social Channels</h3>
           <div className="space-y-1">
             {socialChannels.map((channel) => (
               <div key={channel.id} className="flex items-center justify-between p-2 border-b last:border-0 border-[#E5E7EB]">
@@ -58,7 +58,7 @@ export function Step3Channels() {
                     width={20}
                     height={20}
                   />
-                  <span className="font-medium text-sm">{channel.name}</span>
+                  <span className="font-medium text-sm text-black">{channel.name}</span>
                 </div>
                 <button
                   className="px-6 py-2 rounded-[8px] border border-[#8266D4] text-[#8266D4] font-medium flex items-center space-x-2 shadow-card"
@@ -69,7 +69,7 @@ export function Step3Channels() {
                     width={16}
                     height={16}
                   />
-                  <span>Connect</span>
+                  <span className="text-black">Connect</span>
                 </button>
               </div>
             ))}
@@ -80,7 +80,7 @@ export function Step3Channels() {
       <Card className="p-5 space-y-8 mb-8">
         {/* CRM Integrations */}
         <div>
-          <h3 className="text-lg font-medium mb-4">CRM Integrations</h3>
+          <h3 className="text-lg font-medium mb-4 text-black">CRM Integrations</h3>
           <div className="space-y-1">
             {crmIntegrations.map((integration) => (
               <div key={integration.id} className="flex items-center justify-between p-2 border-b last:border-0 border-[#E5E7EB]">
@@ -91,7 +91,7 @@ export function Step3Channels() {
                     width={16}
                     height={24}
                   />
-                  <span className="font-medium text-sm">{integration.name}</span>
+                  <span className="font-medium text-sm text-black">{integration.name}</span>
                 </div>
                 <button
                   className="px-6 py-2 rounded-[8px] border border-[#8266D4] text-[#8266D4] font-medium flex items-center space-x-2 shadow-card"
@@ -102,7 +102,7 @@ export function Step3Channels() {
                     width={16}
                     height={16}
                   />
-                  <span>Connect</span>
+                  <span className="text-black">Connect</span>
                 </button>
               </div>
             ))}
@@ -158,7 +158,7 @@ export function Step4PhoneNumber() {
       {agentData.phoneNumber && (
         <Card className="p-5 mt-8">
           <div className="space-y-4">
-            <h1 className="text-lg font-medium mb-6">Selected Number</h1>
+            <h1 className="text-lg font-medium mb-6 text-black">Selected Number</h1>
             <div className="flex items-center space-x-3">
               <Image
                 src="/svgs/phone.svg"
@@ -166,7 +166,7 @@ export function Step4PhoneNumber() {
                 width={18}
                 height={18}
               />
-              <span className="font-medium text-sm">{agentData.phoneNumber}</span>
+              <span className="font-medium text-sm text-black">{agentData.phoneNumber}</span>
             </div>
           </div>
         </Card>
@@ -231,15 +231,15 @@ export function Step3WidgetSettings() {
       <div className='grid grid-cols-2 gap-6 mb-6'>
         <Card className={`p-4 flex flex-col gap-1 cursor-pointer ${selectedWidgetType === 'chat' ? 'border border-[#41288A] bg-[#007BFF1A]' : 'border border-[#E5E7EB]'}`} onClick={() => setSelectedWidgetType('chat')}>
           <Image src="/svgs/message.svg" alt="Chat Icon" width={24} height={24} className="object-contain mb-2" />
-          <h3 className='text-base font-medium'>Chat Bubble</h3>
-          <p className='text-xs font-medium'>
+          <h3 className='text-base font-medium text-black'>Chat Bubble</h3>
+          <p className='text-xs font-medium text-black'>
             Text based chat widget
           </p>
         </Card>
         <Card className={`p-4 flex flex-col gap-1 cursor-pointer ${selectedWidgetType === 'voice' ? 'border border-[#41288A] bg-[#007BFF1A]' : 'border border-[#E5E7EB]'}`} onClick={() => setSelectedWidgetType('voice')}>
           <Image src="/svgs/phone.svg" alt="Call Icon" width={24} height={24} className="object-contain mb-2" />
-          <h3 className='text-base font-medium'>Voice Call Button</h3>
-          <p className='text-xs font-medium'>
+          <h3 className='text-base font-medium text-black'>Voice Call Button</h3>
+          <p className='text-xs font-medium text-black'>
             Voice calling widget
           </p>
         </Card>
@@ -291,7 +291,7 @@ export function Step3WidgetSettings() {
             ) : (
               <button className={`absolute bottom-4 ${previewPositionStyle} px-6 py-3 rounded-full bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white font-medium flex items-center justify-center space-x-2`}>
                 <Image src="/svgs/phone2.svg" alt="Phone Icon" width={16} height={16} />
-                <span>{agentData.voiceButtonText || 'Call Us'}</span>
+                <span className="text-white">{agentData.voiceButtonText || 'Call Us'}</span>
               </button>
             )}
           </div>
@@ -301,7 +301,7 @@ export function Step3WidgetSettings() {
         <div>
           <h3 className="text-[#1E1E1E] text-sm font-medium mb-2">Embed Code</h3>
           <div className="relative bg-[#EBEBEB] rounded-lg p-4 text-base font-medium text-[#1E1E1E]">
-            <pre className="whitespace-pre-wrap">{embedCode}</pre>
+            <pre className="whitespace-pre-wrap text-black">{embedCode}</pre>
             <button
               onClick={handleCopy}
               className="absolute top-4 right-4 px-7 py-2 rounded-[10px] bg-[#41288A1A] text-[#8266D4] border border-[#8266D4] font-medium shadow-card cursor-pointer"
@@ -392,30 +392,30 @@ export function Step5ReviewPublish() {
       <div className="bg-white rounded-[10px] border border-[#EBEBEB] p-5 space-y-6">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Agent Name</label>
-            <p className="text-xs mt-1">{agentData.agentName || '-'}</p>
+            <label className="text-sm font-medium text-black">Agent Name</label>
+            <p className="text-xs mt-1 text-black">{agentData.agentName || '-'}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Type</label>
-            <p className="text-xs mt-1 capitalize">{agentType || '-'}</p>
+            <label className="text-sm font-medium text-black">Type</label>
+            <p className="text-xs mt-1 capitalize text-black">{agentType || '-'}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Description</label>
-            <p className="text-xs mt-1">{agentData.description || '-'}</p>
+            <label className="text-sm font-medium text-black">Description</label>
+            <p className="text-xs mt-1 text-black">{agentData.description || '-'}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Knowledge Base</label>
-            <p className="text-xs mt-1">
+            <label className="text-sm font-medium text-black">Knowledge Base</label>
+            <p className="text-xs mt-1 text-black">
               {(agentData.selectedDocuments || []).length} Documents selected
             </p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Integrations</label>
-            <p className="text-xs mt-1">
+            <label className="text-sm font-medium text-black">Integrations</label>
+            <p className="text-xs mt-1 text-black">
               {(agentData.selectedIntegrations || []).length} CRM integration selected
             </p>
           </div>

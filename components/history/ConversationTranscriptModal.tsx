@@ -52,19 +52,19 @@ const ConversationTranscriptModal: React.FC<ConversationTranscriptModalProps> = 
         <div className="bg-[#EBEBEB] rounded-[10px] p-6 mb-8">
           <div className="flex justify-between gap-6 text-sm">
             <div>
-              <div className="text-xs opacity-70 mb-3">Customer</div>
-              <div className="font-medium">{conversation.customerName}</div>
+              <div className="text-xs opacity-70 mb-3 text-black">Customer</div>
+              <div className="font-medium text-black">{conversation.customerName}</div>
             </div>
             <div>
-              <div className="text-xs opacity-70 mb-3">Agent</div>
-              <div className="font-semibold mb-4">{conversation.agent}</div>
+              <div className="text-xs opacity-70 mb-3 text-black">Agent</div>
+              <div className="font-semibold mb-4 text-black">{conversation.agent}</div>
               <Badge variant="connected">
               Connected
             </Badge>
             </div>
             <div>
-              <div className="text-xs opacity-70 mb-3">Duration</div>
-              <div className="font-semibold mb-4">{conversation.duration}</div>
+              <div className="text-xs opacity-70 mb-3 text-black">Duration</div>
+              <div className="font-semibold mb-4 text-black">{conversation.duration}</div>
               <Badge variant="abandoned">
               Abandoned
             </Badge>
@@ -97,8 +97,8 @@ const ConversationTranscriptModal: React.FC<ConversationTranscriptModalProps> = 
                       : 'bg-[#FAF8F8] text-black'
                     }`}
                 >
-                  <p className="mb-2 leading-tight">{message.text}</p>
-                  <span className="text-xs opacity-70">{message.time}</span>
+                  <p className="mb-2 leading-tight text-black">{message.text}</p>
+                  <span className="text-xs opacity-70 text-black">{message.time}</span>
                 </div>
 
               </div>
@@ -120,18 +120,18 @@ const ConversationTranscriptModal: React.FC<ConversationTranscriptModalProps> = 
 
         {/* Summary */}
         <div className="mb-6 mt-6">
-          <h3 className="text-base font-medium mb-2">Summary</h3>
-          <p className="text-sm font-medium opacity-70">{summary}</p>
+          <h3 className="text-base font-medium mb-2 text-black">Summary</h3>
+          <p className="text-sm font-medium opacity-70 text-black">{summary}</p>
         </div>
 
         {/* Tags */}
         <div className="mb-8">
-          <h3 className="text-base font-semibold text-[#1F2937] mb-3">Tags</h3>
+          <h3 className="text-base font-semibold text-[#1F2937] mb-3 text-black">Tags</h3>
           <div className="flex gap-2">
             {tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-4 py-2 bg-[#FFFFFF1A] text-[#1F2937] border border-[#EBEBEB] rounded-full text-xs"
+                className="px-4 py-2 bg-[#FFFFFF1A] text-[#1F2937] border border-[#EBEBEB] rounded-full text-xs text-black"
               >
                 {tag}
               </span>

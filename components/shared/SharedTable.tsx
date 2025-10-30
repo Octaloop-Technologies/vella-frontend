@@ -52,15 +52,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Workflow Name",
           render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.name)}</span>
-          ),
+            <span className="text-sm font-medium text-black">{String(row.name)}</span>
+          )
         },
         {
-          key: "linkedAgent",
-          header: "Linked Agent",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.linkedAgent)}</span>
-          ),
+          key: 'linkedAgent',
+          header: 'Linked Agent',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.linkedAgent)}</span>
         },
         {
           key: "status",
@@ -72,18 +70,14 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: "nodes",
-          header: "Nodes",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.nodes)}</span>
-          ),
+          key: 'nodes',
+          header: 'Nodes',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.nodes)}</span>
         },
         {
-          key: "lastEdited",
-          header: "Last Edited",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.lastEdited)}</span>
-          ),
+          key: 'lastEdited',
+          header: 'Last Edited',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastEdited)}</span>
         },
         {
           key: "actions",
@@ -271,33 +265,25 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Customer",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5">
-                {String(row.customerName)}
-              </div>
-              <div className="text-xs">{String(row.customerEmail)}</div>
+              <div className="text-sm font-medium mb-0.5 text-black">{String(row.customerName)}</div>
+              <div className="text-xs text-black">{String(row.customerEmail)}</div>
             </div>
           ),
         },
         {
-          key: "agent",
-          header: "Agent",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.agent)}</span>
-          ),
+          key: 'agent',
+          header: 'Agent',
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.agent)}</span>
         },
         {
-          key: "channel",
-          header: "Channel",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.channel)}</span>
-          ),
+          key: 'channel',
+          header: 'Channel',
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.channel)}</span>
         },
         {
-          key: "duration",
-          header: "Duration",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.duration)}</span>
-          ),
+          key: 'duration',
+          header: 'Duration',
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.duration)}</span>
         },
         {
           key: "status",
@@ -313,8 +299,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Satisfaction",
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-1">
-              <StarIcon />
-              <span className="text-sm font-medium">{String(row.rating)}</span>
+                <StarIcon />
+              <span className="text-sm font-medium text-black">{String(row.rating)}</span>
             </div>
           ),
         },
@@ -323,10 +309,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Date",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5">
-                {String(row.date)}
-              </div>
-              <div className="text-xs">{String(row.time)}</div>
+              <div className="text-sm font-medium mb-0.5 text-black">{String(row.date)}</div>
+              <div className="text-xs text-black">{String(row.time)}</div>
             </div>
           ),
         },
@@ -351,18 +335,14 @@ const getColumnConfig = <T extends Record<string, unknown>>(
     case "documents":
       return [
         {
-          key: "name",
-          header: "Document Name",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.name)}</span>
-          ),
+          key: 'name',
+          header: 'Document Name',
+          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.name)}</span>
         },
         {
-          key: "type",
-          header: "Type",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.type)}</span>
-          ),
+          key: 'type',
+          header: 'Type',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.type)}</span>
         },
         {
           key: "status",
@@ -374,18 +354,14 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: "size",
-          header: "Size",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.size)}</span>
-          ),
+          key: 'size',
+          header: 'Size',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.size)}</span>
         },
         {
-          key: "lastUpdated",
-          header: "Last Updated",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.lastUpdated)}</span>
-          ),
+          key: 'lastUpdated',
+          header: 'Last Updated',
+          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastUpdated)}</span>
         },
         {
           key: "actions",

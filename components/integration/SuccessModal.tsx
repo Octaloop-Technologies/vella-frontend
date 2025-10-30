@@ -26,25 +26,25 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
         </div>
 
         {/* Title */}
-        <h2 className="text-lg font-medium mb-1">Successfully Connected!</h2>
+        <h2 className="text-lg font-medium mb-1 text-black">Successfully Connected!</h2>
         
         {/* Description */}
-        <p className="text-xs opacity-70 mb-6">
+        <p className="text-xs opacity-70 mb-6 text-black">
           {integrationName} is now connected to your account. Your agents can now use this integration.
         </p>
 
         {/* Next Steps */}
         <div className="bg-[#EBEBEB] rounded-lg p-4 mb-6 text-left">
-          <p className="font-medium mb-2">Next Steps:</p>
+          <p className="font-medium mb-2 text-black">Next Steps:</p>
           <ul className="space-y-2 text-xs opacity-70">
             <li className="flex items-start">
-              <span>Configure integration settings</span>
+              <span className="text-black">Configure integration settings</span>
             </li>
             <li className="flex items-start">
-              <span>Assign to specific agents</span>
+              <span className="text-black">Assign to specific agents</span>
             </li>
             <li className="flex items-start">
-              <span>Test the connection</span>
+              <span className="text-black">Test the connection</span>
             </li>
           </ul>
         </div>

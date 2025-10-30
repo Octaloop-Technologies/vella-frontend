@@ -25,7 +25,7 @@ const LoginPage = () => {
         {/* Title and subtitle */}
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Welcome Back</h1>
-          <p className="text-sm">Sign in to your account to continue.</p>
+          <p className="text-sm text-black opacity-70">Sign in to your account to continue.</p>
         </div>
 
         {/* Form */}
@@ -70,8 +70,8 @@ const LoginPage = () => {
 
         {/* Sign up link */}
         <div className="text-center text-sm">
-          <span className="text-sm">Doesn't have an account? </span>
-          <Link href="/signup" className="font-bold hover:text-[#8266D4] transition-colors underline">
+          <span className="text-sm text-black">Doesn't have an account? </span>
+          <Link href="/signup" className="text-black font-bold hover:text-[#8266D4] transition-colors underline">
             Sign Up
           </Link>
         </div>

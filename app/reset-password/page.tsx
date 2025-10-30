@@ -23,7 +23,7 @@ const ResetPasswordPage = () => {
         {/* Title and subtitle */}
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-[#1E1E1E] mb-2">Reset Your Password</h1>
-          <p className="text-sm">Enter a new password to secure your account.</p>
+          <p className="text-sm text-black opacity-70">Enter a new password to secure your account.</p>
         </div>
 
         {/* Form */}
