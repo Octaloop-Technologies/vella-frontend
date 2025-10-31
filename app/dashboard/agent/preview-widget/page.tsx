@@ -184,6 +184,16 @@ function WidgetPreviewContent() {
             color: #666;
             padding: 1rem;
         }
+        .debug-panel {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -211,6 +221,11 @@ function WidgetPreviewContent() {
             Type: ${agentType}<br>
             Status: ${agentStatus}
         </div>
+
+        <div class="debug-panel">
+            <strong>Debug Console:</strong><br>
+            <div id="debug-output"></div>
+        </div>
     </div>
 
     <div class="footer">
@@ -219,6 +234,33 @@ function WidgetPreviewContent() {
 
     <!-- Vella AI Widget -->
     <script>
+        // Override console.log to show in debug panel
+        const originalLog = console.log;
+        const originalError = console.error;
+        const debugOutput = document.getElementById('debug-output');
+        
+        function addToDebug(message, type = 'log') {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.style.color = type === 'error' ? 'red' : type === 'warn' ? 'orange' : 'black';
+            div.textContent = '[' + time + '] ' + message;
+            debugOutput.appendChild(div);
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+            originalLog(message);
+        }
+        
+        console.log = function(...args) {
+            addToDebug(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            addToDebug(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            addToDebug(args.join(' '), 'warn');
+        };
+
         (function() {
             console.log('🚀 Starting widget initialization...');
             
@@ -231,14 +273,14 @@ function WidgetPreviewContent() {
                 title: '${agentName}'
             };
             
-            console.log('📝 Widget config:', vellaConfig);
+            console.log('📝 Widget config:', JSON.stringify(vellaConfig));
             
             // Update status
             document.getElementById('status').textContent = 'Loading widget script...';
             
             // Widget loader script
             const script = document.createElement('script');
-            script.src = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/widget/script';
+            script.src = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/widget/script?t=' + Date.now();
             
             script.onload = function() {
                 console.log('✅ Widget script loaded successfully');
@@ -246,9 +288,14 @@ function WidgetPreviewContent() {
                 
                 if (window.VellaWidget) {
                     console.log('🎯 Initializing widget...');
-                    window.VellaWidget.init(vellaConfig);
-                    document.getElementById('status').innerHTML = '✅ <strong style="color: green;">Widget loaded successfully!</strong> Look for the chat button.';
-                    console.log('🎉 Widget initialized!');
+                    try {
+                        window.VellaWidget.init(vellaConfig);
+                        document.getElementById('status').innerHTML = '✅ <strong style="color: green;">Widget loaded successfully!</strong> Look for the chat button.';
+                        console.log('🎉 Widget initialized!');
+                    } catch (error) {
+                        console.error('❌ Widget initialization failed:', error);
+                        document.getElementById('status').innerHTML = '❌ <strong style="color: red;">Widget initialization failed</strong>';
+                    }
                 } else {
                     console.error('❌ VellaWidget not found on window');
                     document.getElementById('status').innerHTML = '❌ <strong style="color: red;">Widget failed to initialize</strong>';
@@ -598,7 +645,7 @@ function WidgetPreviewContent() {
                             className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                             style={{ backgroundColor: customColor }}
                           >
-                            Send
+                            send massage
                           </button>
                         </div>
                       </div>

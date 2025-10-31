@@ -12,6 +12,7 @@ export async function GET() {
 
 (function() {
   'use strict';
+  console.log('🚀 Vella Widget Script: Script loaded and executing...');
 
   // Widget configuration will be passed from the embed code
   let config = {};
@@ -25,6 +26,7 @@ export async function GET() {
   // Main widget initialization
   window.VellaWidget = {
     init: function(userConfig) {
+      console.log('🎯 Vella Widget: init() called with config:', userConfig);
       config = {
         agentId: userConfig.agentId || '',
         theme: userConfig.theme || 'light',
@@ -40,12 +42,14 @@ export async function GET() {
           process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
         }'
       };
+      console.log('📝 Vella Widget: Final config set:', config);
 
       this.createWidget();
-      this.bindEvents();
+      // bindEvents is now called in createWidgetContainer after DOM is ready
     },
 
     createWidget: function() {
+      console.log('🏗️ Vella Widget: createWidget() called');
       // Create trigger button
       this.createTriggerButton();
       
@@ -54,15 +58,18 @@ export async function GET() {
     },
 
     createTriggerButton: function() {
+      console.log('🔘 Vella Widget: createTriggerButton() called');
       triggerButton = document.createElement('button');
       triggerButton.id = 'vella-widget-trigger';
       triggerButton.innerHTML = '💬';
       triggerButton.style.cssText = this.getTriggerButtonStyles();
       
       document.body.appendChild(triggerButton);
+      console.log('✅ Vella Widget: Trigger button created and added to DOM');
     },
 
     createWidgetContainer: function() {
+      console.log('📦 Vella Widget: createWidgetContainer() called');
       widgetContainer = document.createElement('div');
       widgetContainer.id = 'vella-widget';
       widgetContainer.style.cssText = this.getWidgetContainerStyles();
@@ -70,6 +77,13 @@ export async function GET() {
       
       widgetContainer.innerHTML = this.getWidgetHTML();
       document.body.appendChild(widgetContainer);
+      console.log('✅ Vella Widget: Widget container created and added to DOM');
+
+      // Bind events after DOM is created
+      setTimeout(() => {
+        console.log('⏰ Vella Widget: setTimeout triggered, calling bindEvents()');
+        this.bindEvents();
+      }, 100);
     },
 
     getTriggerButtonStyles: function() {
@@ -144,7 +158,8 @@ export async function GET() {
     },
 
     getWidgetHTML: function() {
-      return \`
+      console.log('📄 Vella Widget: getWidgetHTML() called');
+      const html = \`
         <div style="height: 100%; display: flex; flex-direction: column; margin-bottom: 100px;">
           <!-- Header -->
           <div id="vella-header" style="
@@ -232,42 +247,84 @@ export async function GET() {
                 cursor: pointer;
                 font-size: 14px;
                 font-weight: 500;
-              ">Send</button>
+              " onclick="window.VellaWidget.sendMessage()">send massage</button>
             </div>
           </div>
         </div>
       \`;
+      console.log('✅ Vella Widget: HTML generated, button text should be "send massage"');
+      return html;
     },
 
 
 // ...existing code...
 bindEvents: function() {
-  // Toggle widget
-  triggerButton.addEventListener('click', this.toggleWidget.bind(this));
-
-  // Close widget
-  const closeBtn = widgetContainer.querySelector('#vella-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', this.closeWidget.bind(this));
+  console.log('🔗 Vella Widget: bindEvents() called - looking for elements...');
+  console.log('widgetContainer exists:', !!widgetContainer);
+  if (widgetContainer) {
+    console.log('widgetContainer children:', widgetContainer.children.length);
   }
-
-  // Send message
-  const sendBtn = widgetContainer.querySelector('#vella-send');
-  if (sendBtn) {
-    sendBtn.addEventListener('click', this.sendMessage.bind(this));
+  
+  // Remove existing event listeners to prevent duplicates
+  const existingSendBtn = widgetContainer.querySelector('#vella-send');
+  const existingInput = widgetContainer.querySelector('#vella-input');
+  
+  if (existingSendBtn) {
+    console.log('🧹 Vella Widget: Removing existing send button event listener');
+    existingSendBtn.removeEventListener('click', this.sendMessage.bind(this));
   }
-
-  // Enter key to send
-  const input = widgetContainer.querySelector('#vella-input');
-  if (input) {
-    input.addEventListener('keypress', (e) => {
+  if (existingInput) {
+    console.log('🧹 Vella Widget: Removing existing input keypress event listener');
+    existingInput.removeEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this.sendMessage();
       }
     });
   }
+
+  // Toggle widget
+  triggerButton.addEventListener('click', this.toggleWidget.bind(this));
+  console.log('✅ Vella Widget: Trigger button event bound');
+
+  // Close widget
+  const closeBtn = widgetContainer.querySelector('#vella-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', this.closeWidget.bind(this));
+    console.log('✅ Vella Widget: Close button event bound');
+  } else {
+    console.log('❌ Vella Widget: Close button not found');
+  }
+
+  // Send message
+  const sendBtn = widgetContainer.querySelector('#vella-send');
+  if (sendBtn) {
+    console.log('✅ Vella Widget: Send button found, text content:', sendBtn.textContent);
+    sendBtn.addEventListener('click', () => {
+      console.log('🖱️ Vella Widget: Send button clicked (event listener)');
+      this.sendMessage();
+    });
+    console.log('✅ Vella Widget: Send button event bound');
+  } else {
+    console.log('❌ Vella Widget: Send button NOT found in widget container');
+  }
+
+  // Enter key to send
+  const input = widgetContainer.querySelector('#vella-input');
+  if (input) {
+    console.log('✅ Vella Widget: Input field found');
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        console.log('⌨️ Vella Widget: Enter key pressed (event listener)');
+        this.sendMessage();
+      }
+    });
+    console.log('✅ Vella Widget: Input keypress event bound');
+  } else {
+    console.log('❌ Vella Widget: Input field NOT found in widget container');
+  }
 },
     toggleWidget: function() {
+      console.log('🔄 Vella Widget: toggleWidget() called, current isOpen:', isOpen);
       if (isOpen) {
         this.closeWidget();
       } else {
@@ -276,76 +333,129 @@ bindEvents: function() {
     },
 
     openWidget: function() {
+      console.log('📂 Vella Widget: openWidget() called');
       isOpen = true;
       widgetContainer.style.display = 'block';
       triggerButton.innerHTML = '×';
+      console.log('✅ Vella Widget: Widget opened, display set to block');
       
       // Start conversation if not already started
       if (!conversationId) {
+        console.log('💬 Vella Widget: No conversation ID, starting new conversation');
         this.startConversation();
+      } else {
+        console.log('💬 Vella Widget: Conversation already exists, ID:', conversationId);
       }
+
+      // Re-bind events in case DOM was re-rendered
+      setTimeout(() => {
+        console.log('⏰ Vella Widget: openWidget setTimeout triggered, re-binding events');
+        this.bindEvents();
+      }, 100);
     },
 
     closeWidget: function() {
+      console.log('📁 Vella Widget: closeWidget() called');
       isOpen = false;
       widgetContainer.style.display = 'none';
       triggerButton.innerHTML = '💬';
+      console.log('✅ Vella Widget: Widget closed, display set to none');
     },
 
     startConversation: async function() {
+      console.log('🚀 Vella Widget: startConversation() called for agentId:', config.agentId);
+      console.log('🔍 Vella Widget: Current conversationId before start:', conversationId);
       try {
-        const response = await fetch(\`\${config.widgetBaseUrl}/api/widget/conversations/start/\${config.agentId}?channel=widget\`, {
+        const url = \`\${config.widgetBaseUrl}/api/widget/conversations/start/\${config.agentId}?channel=widget\`;
+        console.log('🌐 Vella Widget: Fetching conversation start URL:', url);
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           }
         });
+        console.log('📡 Vella Widget: Conversation start response:', response.ok, response.status);
+        console.log('📡 Vella Widget: Response headers:', [...response.headers.entries()]);
 
         if (response.ok) {
           const data = await response.json();
-          conversationId = data.conversation_id;
+          console.log('📄 Vella Widget: Conversation start data:', data);
+          console.log('🔍 Vella Widget: data.conversation:', data.conversation);
+          console.log('🔍 Vella Widget: data.conversation.conversation_id:', data.conversation?.conversation_id);
+          
+          if (data.conversation?.conversation_id) {
+            conversationId = data.conversation.conversation_id;
+            console.log('✅ Vella Widget: Conversation started, ID set to:', conversationId);
+          } else {
+            console.log('❌ Vella Widget: No conversation.conversation_id in response data');
+          }
           
           // If there's a greeting message, display it
-          if (data.message) {
-            this.addMessage(data.message, 'agent');
+          if (data.conversation?.greeting) {
+            console.log('💬 Vella Widget: Adding greeting message:', data.conversation.greeting);
+            this.addMessage(data.conversation.greeting, 'agent');
+          } else {
+            console.log('⚠️ Vella Widget: No greeting message in response');
           }
+        } else {
+          console.log('❌ Vella Widget: Failed to start conversation, response not ok');
+          const errorText = await response.text();
+          console.log('❌ Vella Widget: Error response text:', errorText);
         }
       } catch (error) {
-        console.error('Failed to start conversation:', error);
+        console.error('❌ Vella Widget: Failed to start conversation:', error);
         this.addMessage('Sorry, I\\'m having trouble connecting right now. Please try again later.', 'agent');
       }
+      console.log('🔍 Vella Widget: Final conversationId after startConversation:', conversationId);
     },
 
     sendMessage: async function() {
+      console.log('📤 Vella Widget: sendMessage() called - START');
       const input = document.getElementById('vella-input');
-      const message = input.value.trim();
+      console.log('📝 Vella Widget: Input element found:', !!input);
+      const message = input ? input.value.trim() : '';
+      console.log('💬 Vella Widget: Message to send:', message, 'Conversation ID:', conversationId);
       
-      if (!message || !conversationId) return;
+      if (!message || !conversationId) {
+        console.log('⚠️ Vella Widget: Returning early - no message or conversationId');
+        return;
+      }
 
+      console.log('✅ Vella Widget: Proceeding to send message...');
       // Add user message to chat
       this.addMessage(message, 'user');
+      // Clear input after adding message
       input.value = '';
 
       // Show typing indicator
       this.showTypingIndicator();
 
       try {
-        const response = await fetch(\`\${config.widgetBaseUrl}/api/widget/conversations/\${conversationId}/message?message=\${encodeURIComponent(message)}\`, {
+        const url = \`\${config.widgetBaseUrl}/api/widget/conversations/\${conversationId}/message?message=\${encodeURIComponent(message)}\`;
+        console.log('🌐 Vella Widget: Sending message to URL:', url);
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           }
         });
-
+        console.log('📡 Vella Widget: Message send response:', response.ok, response.status);
         this.hideTypingIndicator();
 
         if (response.ok) {
           const data = await response.json();
-          this.addMessage(data.message || 'I received your message.', 'agent');
+          console.log('📄 Vella Widget: Message response data:', data);
+          console.log('🔍 Vella Widget: data.response:', data.response);
+          console.log('🔍 Vella Widget: data.response.agent_response:', data.response?.agent_response);
+          console.log('🔍 Vella Widget: data.response.agent_response type:', typeof data.response?.agent_response);
+          console.log('🔍 Vella Widget: data.response.agent_response length:', data.response?.agent_response ? data.response.agent_response.length : 'N/A');
+          this.addMessage(data.response?.agent_response || 'I received your message.', 'agent');
         } else {
+          console.log('❌ Vella Widget: Message send failed, response not ok');
           throw new Error('Failed to send message');
         }
       } catch (error) {
+        console.log('❌ Vella Widget: Error in sendMessage:', error);
         this.hideTypingIndicator();
         console.error('Failed to send message:', error);
         this.addMessage('Sorry, I couldn\\'t process your message. Please try again.', 'agent');
@@ -353,7 +463,9 @@ bindEvents: function() {
     },
 
     addMessage: function(text, sender) {
+      console.log('💬 Vella Widget: addMessage() called with text:', text, 'sender:', sender);
       const messagesContainer = document.getElementById('vella-messages');
+      console.log('📦 Vella Widget: Messages container found:', !!messagesContainer);
       const messageDiv = document.createElement('div');
       
       const isAgent = sender === 'agent';
@@ -374,9 +486,11 @@ bindEvents: function() {
       
       // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      console.log('✅ Vella Widget: Message added to chat');
     },
 
     showTypingIndicator: function() {
+      console.log('⌨️ Vella Widget: showTypingIndicator() called');
       const messagesContainer = document.getElementById('vella-messages');
       const typingDiv = document.createElement('div');
       typingDiv.id = 'vella-typing';
@@ -393,20 +507,30 @@ bindEvents: function() {
       typingDiv.textContent = 'Typing...';
       messagesContainer.appendChild(typingDiv);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      console.log('✅ Vella Widget: Typing indicator shown');
     },
 
     hideTypingIndicator: function() {
+      console.log('⌨️ Vella Widget: hideTypingIndicator() called');
       const typingDiv = document.getElementById('vella-typing');
       if (typingDiv) {
         typingDiv.remove();
+        console.log('✅ Vella Widget: Typing indicator removed');
+      } else {
+        console.log('⚠️ Vella Widget: Typing indicator not found to remove');
       }
     }
   };
 
   // Auto-initialize if config is already available
   if (window.vellaConfig) {
+    console.log('🔄 Vella Widget: Auto-initializing with existing config:', window.vellaConfig);
     window.VellaWidget.init(window.vellaConfig);
+  } else {
+    console.log('⏳ Vella Widget: No existing config found, waiting for manual initialization');
   }
+  
+  console.log('🎉 Vella Widget: Script execution completed, VellaWidget object created');
 })();`;
 
   return new Response(widgetScript, {
