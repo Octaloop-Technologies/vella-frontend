@@ -169,6 +169,7 @@ export function usePersonasByAccent(accent?: string, gender?: string) {
         setLoading(true);
         setError(null);
         const data = await configService.getPersonasByAccent(accent, gender);
+        console.log('Fetched personas by accent:', data);
         setPersonas(data);
       } catch (err) {
         console.error('Failed to fetch personas by accent:', err);

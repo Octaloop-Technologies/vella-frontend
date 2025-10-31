@@ -29,7 +29,7 @@
       </button>
 
       {isOpen && (
-        <div className="mt-2 bg-white border border-[#E5E7EB] rounded-lg shadow-lg">
+        <div className="mt-2 bg-white absolute w-full border border-[#E5E7EB] rounded-lg shadow-lg">
           <div className="py-1">
             {options.map((option) => (
               <button

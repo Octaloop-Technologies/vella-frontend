@@ -151,7 +151,7 @@ class ConfigService {
           accept: "application/json",
         },
       });
-
+      console.log(`Config API Request to /api/config/${endpoint} responded with status:`, response.status);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -197,9 +197,15 @@ class ConfigService {
     accent: string,
     gender: string
   ): Promise<Persona[]> {
-    return this.makeRequest<Persona[]>(
+    const data = await this.makeRequest<Persona[]>(
       `personas/by-accent/${accent}?gender=${gender}`
     );
+    console.log(`Filtering personas for accent: ${accent}, gender: ${gender}`);
+    console.log('Raw API response:', data);
+    // Filter on frontend since backend doesn't properly filter by gender
+    const filtered = data.filter(persona => persona.metadata.gender.toLowerCase() === gender.toLowerCase());
+    console.log('Filtered result:', filtered);
+    return filtered;
   }
 
   // Get available tunes

@@ -22,6 +22,8 @@ export async function GET() {
   let conversationId = null;
   let widgetContainer = null;
   let triggerButton = null;
+  let isRecording = false;
+  let recognition = null;
 
   // Main widget initialization
   window.VellaWidget = {
@@ -124,6 +126,7 @@ export async function GET() {
         border: 1px solid #e5e7eb;
         transition: all 0.3s ease;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow: hidden;
       \`;
     },
 
@@ -160,10 +163,17 @@ export async function GET() {
     getWidgetHTML: function() {
       console.log('📄 Vella Widget: getWidgetHTML() called');
       const html = \`
+        <style>
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        </style>
         <div style="height: 100%; display: flex; flex-direction: column; margin-bottom: 100px;">
           <!-- Header -->
           <div id="vella-header" style="
             padding: 16px;
+            padding-right: 50px;
             background: \${config.primaryColor};
             color: white;
             border-radius: 12px 12px 0 0;
@@ -171,6 +181,8 @@ export async function GET() {
             align-items: center;
             justify-content: space-between;
             flex: 0 0 auto;
+            position: relative;
+            overflow: hidden;
           ">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="
@@ -189,13 +201,22 @@ export async function GET() {
               </div>
             </div>
             <button id="vella-close" style="
+              position: absolute;
+              top: 8px;
+              right: 12px;
               background: none;
               border: none;
               color: white;
               cursor: pointer;
-              padding: 4px;
-              border-radius: 4px;
-              font-size: 18px;
+              padding: 6px;
+              border-radius: 50%;
+              font-size: 16px;
+              z-index: 10;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
             ">×</button>
           </div>
 
@@ -223,14 +244,29 @@ export async function GET() {
             border-top: 1px solid #e5e7eb;
             background: white;
             border-radius: 0 0 12px 12px;
+            position: relative;
+            z-index: 5;
           ">
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="vella-mic" style="
+                padding: 8px;
+                background: #f3f4f6;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 36px;
+                transition: background-color 0.2s;
+              " title="Voice input">🎤</button>
               <input 
                 id="vella-input" 
                 type="text" 
                 placeholder="Type your message..."
                 style="
-                  flex: 0 0 auto;
+                  flex: 1;
                   padding: 8px 12px;
                   border: 1px solid #d1d5db;
                   border-radius: 6px;
@@ -247,12 +283,12 @@ export async function GET() {
                 cursor: pointer;
                 font-size: 14px;
                 font-weight: 500;
-              " onclick="window.VellaWidget.sendMessage()">send massage</button>
+              " onclick="window.VellaWidget.sendMessage()">Send</button>
             </div>
           </div>
         </div>
       \`;
-      console.log('✅ Vella Widget: HTML generated, button text should be "send massage"');
+      console.log('✅ Vella Widget: HTML generated, includes voice input functionality');
       return html;
     },
 
@@ -265,62 +301,63 @@ bindEvents: function() {
     console.log('widgetContainer children:', widgetContainer.children.length);
   }
   
-  // Remove existing event listeners to prevent duplicates
-  const existingSendBtn = widgetContainer.querySelector('#vella-send');
-  const existingInput = widgetContainer.querySelector('#vella-input');
-  
-  if (existingSendBtn) {
-    console.log('🧹 Vella Widget: Removing existing send button event listener');
-    existingSendBtn.removeEventListener('click', this.sendMessage.bind(this));
-  }
-  if (existingInput) {
-    console.log('🧹 Vella Widget: Removing existing input keypress event listener');
-    existingInput.removeEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        this.sendMessage();
-      }
-    });
+  // Bind interactive controls. Use assignment (onclick/ons) to overwrite previous handlers
+  // and avoid duplicate listeners caused by multiple bindEvents() calls.
+  const self = this;
+
+  // Toggle widget (overwrite any previous handler)
+  if (triggerButton) {
+    triggerButton.onclick = self.toggleWidget.bind(self);
+    console.log('✅ Vella Widget: Trigger button onclick bound');
   }
 
-  // Toggle widget
-  triggerButton.addEventListener('click', this.toggleWidget.bind(this));
-  console.log('✅ Vella Widget: Trigger button event bound');
-
-  // Close widget
+  // Close widget (overwrite)
   const closeBtn = widgetContainer.querySelector('#vella-close');
   if (closeBtn) {
-    closeBtn.addEventListener('click', this.closeWidget.bind(this));
-    console.log('✅ Vella Widget: Close button event bound');
+    closeBtn.onclick = self.closeWidget.bind(self);
+    console.log('✅ Vella Widget: Close button onclick bound');
   } else {
     console.log('❌ Vella Widget: Close button not found');
   }
 
-  // Send message
+  // Send message (overwrite)
   const sendBtn = widgetContainer.querySelector('#vella-send');
   if (sendBtn) {
-    console.log('✅ Vella Widget: Send button found, text content:', sendBtn.textContent);
-    sendBtn.addEventListener('click', () => {
-      console.log('🖱️ Vella Widget: Send button clicked (event listener)');
-      this.sendMessage();
-    });
-    console.log('✅ Vella Widget: Send button event bound');
+    sendBtn.onclick = function (e) {
+      e && e.preventDefault && e.preventDefault();
+      console.log('🖱️ Vella Widget: Send button clicked (onclick)');
+      self.sendMessage();
+    };
+    console.log('✅ Vella Widget: Send button onclick bound');
   } else {
     console.log('❌ Vella Widget: Send button NOT found in widget container');
   }
 
-  // Enter key to send
+  // Enter key to send (overwrite)
   const input = widgetContainer.querySelector('#vella-input');
   if (input) {
-    console.log('✅ Vella Widget: Input field found');
-    input.addEventListener('keypress', (e) => {
+    input.onkeypress = function (e) {
       if (e.key === 'Enter') {
-        console.log('⌨️ Vella Widget: Enter key pressed (event listener)');
-        this.sendMessage();
+        e.preventDefault();
+        console.log('⌨️ Vella Widget: Enter key pressed (onkeypress)');
+        self.sendMessage();
       }
-    });
-    console.log('✅ Vella Widget: Input keypress event bound');
+    };
+    console.log('✅ Vella Widget: Input onkeypress bound');
   } else {
     console.log('❌ Vella Widget: Input field NOT found in widget container');
+  }
+
+  // Microphone button (overwrite)
+  const micBtn = widgetContainer.querySelector('#vella-mic');
+  if (micBtn) {
+    micBtn.onclick = function () {
+      console.log('🎤 Vella Widget: Microphone button clicked (onclick)');
+      self.toggleVoiceRecording();
+    };
+    console.log('✅ Vella Widget: Microphone button onclick bound');
+  } else {
+    console.log('❌ Vella Widget: Microphone button NOT found in widget container');
   }
 },
     toggleWidget: function() {
@@ -336,7 +373,7 @@ bindEvents: function() {
       console.log('📂 Vella Widget: openWidget() called');
       isOpen = true;
       widgetContainer.style.display = 'block';
-      triggerButton.innerHTML = '×';
+      triggerButton.style.display = 'none'; // Hide trigger button when widget is open
       console.log('✅ Vella Widget: Widget opened, display set to block');
       
       // Start conversation if not already started
@@ -358,7 +395,14 @@ bindEvents: function() {
       console.log('📁 Vella Widget: closeWidget() called');
       isOpen = false;
       widgetContainer.style.display = 'none';
+      triggerButton.style.display = 'block'; // Show trigger button when widget is closed
       triggerButton.innerHTML = '💬';
+      
+      // Stop voice recording if active
+      if (isRecording) {
+        this.stopVoiceRecording();
+      }
+      
       console.log('✅ Vella Widget: Widget closed, display set to none');
     },
 
@@ -518,6 +562,178 @@ bindEvents: function() {
         console.log('✅ Vella Widget: Typing indicator removed');
       } else {
         console.log('⚠️ Vella Widget: Typing indicator not found to remove');
+      }
+    },
+
+    toggleVoiceRecording: function() {
+      console.log('🎤 Vella Widget: toggleVoiceRecording() called, current isRecording:', isRecording);
+      if (isRecording) {
+        this.stopVoiceRecording();
+      } else {
+        this.startVoiceRecording();
+      }
+    },
+
+    startVoiceRecording: function() {
+      console.log('🎤 Vella Widget: startVoiceRecording() called');
+      
+      // Check if speech recognition is supported
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        console.log('❌ Vella Widget: Speech recognition not supported');
+        this.addMessage('Voice input is not supported in this browser.', 'agent');
+        return;
+      }
+
+      // Prevent starting if already recording
+      if (isRecording) {
+        console.log('⚠️ Vella Widget: Already recording, ignoring start request');
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        // Set recording state immediately
+        isRecording = true;
+        this.updateMicButton(true);
+
+        recognition.onstart = () => {
+          console.log('🎤 Vella Widget: Speech recognition started');
+          const input = document.getElementById('vella-input');
+          if (input) {
+            input.placeholder = 'Listening... Speak now';
+          }
+        };
+
+        recognition.onresult = (event) => {
+          console.log('🎤 Vella Widget: Speech recognition result received');
+          
+          interimTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          const input = document.getElementById('vella-input');
+          if (input) {
+            input.value = finalTranscript + interimTranscript;
+            input.placeholder = 'Listening... Speak now';
+          }
+          
+          console.log('🎤 Vella Widget: Final transcript:', finalTranscript);
+          console.log('🎤 Vella Widget: Interim transcript:', interimTranscript);
+        };
+
+        recognition.onerror = (event) => {
+          console.error('🎤 Vella Widget: Speech recognition error:', event.error);
+          
+          // Don't show error for aborted (user clicked stop) or no-speech
+          if (event.error !== 'aborted' && event.error !== 'no-speech') {
+            this.stopVoiceRecording();
+            if (event.error === 'not-allowed') {
+              this.addMessage('Microphone access denied. Please allow microphone access and try again.', 'agent');
+            } else {
+              this.addMessage('Voice input failed. Please try again or type your message.', 'agent');
+            }
+          } else {
+            // For aborted or no-speech, just stop recording without error message
+            this.stopVoiceRecording();
+          }
+        };
+
+        recognition.onend = () => {
+          console.log('🎤 Vella Widget: Speech recognition ended');
+          
+          // If we have a final transcript, send the message
+          const finalMessage = finalTranscript.trim();
+          if (finalMessage) {
+            const input = document.getElementById('vella-input');
+            if (input) {
+              input.value = finalMessage;
+              input.placeholder = 'Type your message...';
+              // Auto-send the message after a short delay
+              setTimeout(() => {
+                this.sendMessage();
+              }, 500);
+            }
+          }
+          
+          this.stopVoiceRecording();
+        };
+
+        recognition.start();
+        console.log('✅ Vella Widget: Speech recognition started successfully');
+        
+        // Auto-stop after 10 seconds if no speech
+        setTimeout(() => {
+          if (isRecording) {
+            console.log('🎤 Vella Widget: Auto-stopping recording after timeout');
+            this.stopVoiceRecording();
+          }
+        }, 10000);
+        
+      } catch (error) {
+        console.error('❌ Vella Widget: Failed to start speech recognition:', error);
+        this.stopVoiceRecording();
+        this.addMessage('Voice input failed. Please try again or type your message.', 'agent');
+      }
+    },
+
+    stopVoiceRecording: function() {
+      console.log('🎤 Vella Widget: stopVoiceRecording() called');
+      
+      if (!isRecording) {
+        console.log('⚠️ Vella Widget: Not currently recording, ignoring stop request');
+        return;
+      }
+      
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.log('⚠️ Vella Widget: Error stopping recognition:', error);
+        }
+        recognition = null;
+      }
+      
+      isRecording = false;
+      this.updateMicButton(false);
+      
+      const input = document.getElementById('vella-input');
+      if (input && input.placeholder === 'Listening... Speak now') {
+        input.placeholder = 'Type your message...';
+      }
+      console.log('✅ Vella Widget: Voice recording stopped');
+    },
+
+    updateMicButton: function(recording) {
+      const micBtn = document.getElementById('vella-mic');
+      if (micBtn) {
+        if (recording) {
+          micBtn.innerHTML = '🔴';
+          micBtn.style.background = '#fee2e2';
+          micBtn.style.borderColor = '#fca5a5';
+          micBtn.style.animation = 'pulse 1s infinite';
+          micBtn.title = 'Click to stop recording';
+        } else {
+          micBtn.innerHTML = '🎤';
+          micBtn.style.background = '#f3f4f6';
+          micBtn.style.borderColor = '#d1d5db';
+          micBtn.style.animation = 'none';
+          micBtn.title = 'Voice input';
+        }
       }
     }
   };

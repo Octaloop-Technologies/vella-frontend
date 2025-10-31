@@ -169,7 +169,7 @@ export default function Agent() {
                 setIsOpen={setIsDropdownOpen}
                 value={filterStatus}
                 setValue={setFilterStatus}
-                options={['All Agents', 'Active', 'Draft', 'Disabled']}
+                options={['All Agents', 'active', 'inactive', 'draft']}
               />
             </div>
           </Card>

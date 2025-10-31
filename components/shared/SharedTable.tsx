@@ -230,7 +230,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
                 label="Test Agent"
                 onClick={row.onTestAgent as () => void}
               />
-              <DropdownItem
+              {row.type === 'Widget' && (
+                       <DropdownItem
                 icon={
                   <svg
                     className="w-4 h-4"
@@ -247,6 +248,9 @@ const getColumnConfig = <T extends Record<string, unknown>>(
                 label="Preview Widget"
                 onClick={row.onPreviewWidget as () => void}
               />
+              )
+              }
+       
 
               <DropdownItem
                 icon={<TrashIcon />}

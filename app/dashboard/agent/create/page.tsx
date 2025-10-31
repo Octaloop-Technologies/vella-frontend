@@ -133,17 +133,24 @@ function Step1() {
           {/* Agent Name */}
           <div>
             <Input
-              label="Agent Name"
+              label="Agent Name *"
               value={agentData.agentName}
-              onChange={(e) => updateAgentData({ agentName: e.target.value })}
+              onChange={(e) => {
+                if (e.target.value.length <= 20) {
+                  updateAgentData({ agentName: e.target.value });
+                }
+              }}
               placeholder="Type..."
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {agentData.agentName?.length || 0}/20 characters
+            </p>
           </div>
 
           {/* Agent Type Dropdown */}
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Channel Type
+              Channel Type *
             </label>
             <div className="relative">
               <select
@@ -179,7 +186,7 @@ function Step1() {
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Description
+              Description *
             </label>
             <button
               type="button"
@@ -204,10 +211,17 @@ function Step1() {
           <textarea
             placeholder="Type..."
             value={agentData.description}
-            onChange={(e) => updateAgentData({ description: e.target.value })}
+            onChange={(e) => {
+              if (e.target.value.length <= 500) {
+                updateAgentData({ description: e.target.value });
+              }
+            }}
             rows={4}
             className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            {agentData.description?.length || 0}/500 characters
+          </p>
 
           {showGenPanel && (
             <div className="mt-3 p-3 border border-[#E5E7EB] rounded-lg bg-white">
@@ -310,7 +324,7 @@ function Step1() {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Language
+              Language *
             </label>
             <div className="relative">
               <select
@@ -349,7 +363,7 @@ function Step1() {
 
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Gender
+              Gender *
             </label>
             <div className="relative">
               <select
@@ -397,8 +411,11 @@ function Step1() {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Accent
+              Accent *
             </label>
+            {!agentData.gender && (
+              <p className="text-red-500 text-xs mb-2">Please select gender first *</p>
+            )}
             <div className="relative">
               <select
                 value={agentData.accent}
@@ -411,11 +428,11 @@ function Step1() {
                   });
                 }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
-                disabled={accentsLoading || !agentData.gender}
+                disabled={accentsLoading}
               >
                 <option value="">
                   {!agentData.gender
-                    ? "Select gender first"
+                    ? "No options available"
                     : accentsLoading
                     ? "Loading accents..."
                     : "Select Accent"}
@@ -445,8 +462,11 @@ function Step1() {
 
           <div>
             <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              Persona
+              Persona *
             </label>
+            {!agentData.gender && (
+              <p className="text-red-500 text-xs mb-2">Please select gender first *</p>
+            )}
             <div className="relative">
               <select
                 value={agentData.persona}
@@ -462,12 +482,12 @@ function Step1() {
                 }}
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={
-                  personasLoading || !agentData.gender || !agentData.accent
+                  personasLoading || !agentData.accent
                 }
               >
                 <option value="">
                   {!agentData.gender
-                    ? "Select gender first"
+                    ? "No options available"
                     : !agentData.accent
                     ? "Select accent first"
                     : personasLoading
@@ -681,9 +701,9 @@ function CreateAgentContent() {
           return <Step1 />;
         case 2:
           return <Step2 />;
+        // case 3:
+        //   return <Step3WidgetSettings />;
         case 3:
-          return <Step3WidgetSettings />;
-        case 4:
           return <Step5ReviewPublish />;
         default:
           console.log("Widget - defaulting to Step1, step was:", step);
