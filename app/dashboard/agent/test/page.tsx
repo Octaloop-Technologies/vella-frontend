@@ -609,17 +609,18 @@ function TestAgentContent() {
                                     <div className="px-4 py-6 border-t border-[#E5E7EB]">
                                         <div className="flex items-center gap-3">
                                             <Input
-                                                placeholder="Type your message"
+                                                placeholder={isSendingMessage ? "Sending message..." : "Type your message"}
                                                 value={messageInput}
-                                                onChange={(e) => setMessageInput(e.target.value)}
+                                                onChange={(e) => !isSendingMessage && setMessageInput(e.target.value)}
                                                 onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                    if (e.key === 'Enter' && !e.shiftKey && !isSendingMessage) {
                                                         e.preventDefault();
                                                         handleSendMessage();
                                                     }
                                                 }}
+                                                disabled={isSendingMessage}
                                                 containerClassName='w-full'
-                                                className='py-4'
+                                                className={`py-4 ${isSendingMessage ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             />
 
                                             <button

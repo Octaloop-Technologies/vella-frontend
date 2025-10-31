@@ -40,19 +40,19 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         isActive: currentStep === 2,
         isCompleted: currentStep > 2,
       },
+      // {
+      //   number: 3,
+      //   title: 'Widget Settings',
+      //   subtitle: 'Customize widget appearance',
+      //   isActive: currentStep === 3,
+      //   isCompleted: currentStep > 3,
+      // },
       {
         number: 3,
-        title: 'Widget Settings',
-        subtitle: 'Customize widget appearance',
-        isActive: currentStep === 3,
-        isCompleted: currentStep > 3,
-      },
-      {
-        number: 4,
         title: 'Review & Publish',
         subtitle: 'Review and publish agent',
-        isActive: currentStep === 4,
-        isCompleted: currentStep > 4,
+        isActive: currentStep === 3,
+        isCompleted: currentStep > 3,
       },
     ];
   } else {

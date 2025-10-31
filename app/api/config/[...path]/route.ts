@@ -11,8 +11,13 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { path } = await params;
+  
     const configPath = path.join('/');
-    const url = `${BASE_URL}/config/${configPath}`;
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
+    const url = queryString 
+      ? `${BASE_URL}/config/${configPath}?${queryString}`
+      : `${BASE_URL}/config/${configPath}`;
     
     console.log('Fetching configuration from:', url);
     
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const data = await response.json();
-    console.log('Config API response for', configPath, ':', data);
+    console.log('Config API response for', configPath, );
     
     return NextResponse.json(data);
   } catch (error) {

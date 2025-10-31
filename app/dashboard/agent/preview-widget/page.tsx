@@ -91,29 +91,9 @@ function WidgetPreviewContent() {
   const currentSize = sizes.find(s => s.id === selectedSize);
 
   // Generate embed code
-  const embedCode = `<!-- Vella AI Widget -->
-<script>
-  (function() {
-    const vellaConfig = {
-      agentId: '${agentId}',
-      theme: '${selectedTheme}',
-      position: '${selectedPosition}',
-      size: '${selectedSize}',
-      primaryColor: '${customColor}',
-      title: '${agentName}'
-    };
-    
-    // Widget loader script - now served from your Next.js app
-    const script = document.createElement('script');
-    script.src = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/widget/script';
-    script.onload = function() {
-      window.VellaWidget.init(vellaConfig);
-    };
-    document.head.appendChild(script);
-  })();
-</script>
+  const embedCode = `
 
-<!-- Alternative: Self-hosted with dynamic config -->
+
 <script>
   (function() {
     // Fetch agent configuration first
