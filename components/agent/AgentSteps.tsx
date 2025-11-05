@@ -123,6 +123,43 @@ export function Step4PhoneNumber() {
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'inbound';
   const { agentData, updateAgentData } = useAgentCreation();
+  const [phoneNumbers, setPhoneNumbers] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Fetch inbound phone numbers
+  React.useEffect(() => {
+    const fetchPhoneNumbers = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching phone numbers from API...');
+        const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/numbers/inbound', {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch phone numbers');
+        }
+
+        const data = await response.json();
+        console.log('Phone numbers received:', data);
+        if (data.numbers && Array.isArray(data.numbers)) {
+          setPhoneNumbers(data.numbers);
+          console.log('Phone numbers set to state:', data.numbers);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load phone numbers');
+        console.error('Error fetching phone numbers:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPhoneNumbers();
+  }, []);
 
   return (
     <div className='p-6'>
@@ -135,17 +172,25 @@ export function Step4PhoneNumber() {
       </div>
 
         <div>
-          <label className="block text-xs text-[#2B231E] mb-2">Available Phone Numbers</label>
+          <label className="block text-xs text-[#2B231E] mb-2">Available Phone Numbers *</label>
           <div className="relative w-96">
             <select
-              value={agentData.phoneNumber}
-              onChange={(e) => updateAgentData({ phoneNumber: e.target.value })}
+              value={agentData.phoneNumber || ''}
+              onChange={(e) => {
+                console.log('Phone number selected:', e.target.value);
+                updateAgentData({ phoneNumber: e.target.value });
+              }}
               className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
+              disabled={loading}
             >
-              <option value="">Choose a phone no</option>
-              <option value="+92 555 123 4564">+92 555 123 4564</option>
-              <option value="+92 555 123 4565">+92 555 123 4565</option>
-              <option value="+92 555 123 4566">+92 555 123 4566</option>
+              <option value="">
+                {loading ? 'Loading phone numbers...' : `Choose a phone no (${phoneNumbers.length} available)`}
+              </option>
+              {phoneNumbers.map((number) => (
+                <option key={number} value={number}>
+                  {number}
+                </option>
+              ))}
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
               <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -153,6 +198,12 @@ export function Step4PhoneNumber() {
               </svg>
             </div>
           </div>
+          {error && (
+            <p className="text-red-500 text-xs mt-2">{error}</p>
+          )}
+          {!loading && phoneNumbers.length === 0 && (
+            <p className="text-yellow-600 text-xs mt-2">No phone numbers available</p>
+          )}
         </div>
 
       {agentData.phoneNumber && (
@@ -351,7 +402,8 @@ export function Step5ReviewPublish() {
           style: 0,
           use_speaker_boost: true
         },
-        model_id: 'eleven_monolingual_v1'
+        model_id: 'eleven_monolingual_v1',
+        phone_number: agentData.phoneNumber || null
       };
 
       console.log('Sending agent data to API:', createAgentData);
@@ -405,6 +457,13 @@ export function Step5ReviewPublish() {
             <label className="text-sm font-medium text-black">Description</label>
             <p className="text-xs mt-1 text-black">{agentData.description || '-'}</p>
           </div>
+
+          {agentType !== 'widget' && agentData.phoneNumber && (
+            <div>
+              <label className="text-sm font-medium text-black">Phone Number</label>
+              <p className="text-xs mt-1 text-black">{agentData.phoneNumber}</p>
+            </div>
+          )}
 
           <div>
             <label className="text-sm font-medium text-black">Knowledge Base</label>

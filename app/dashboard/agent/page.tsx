@@ -13,6 +13,7 @@ import SearchIcon from '@/components/icons/SearchIcon';
 import AgentTypeModal from '@/components/agent/AgentTypeModal';
 import AgentDetailModal from '@/components/agent/AgentDetailModal';
 import DeleteAgentModal from '@/components/agent/DeleteAgentModal';
+import MakeCallModal from '@/components/agent/MakeCallModal';
 import FilterDropdown from '@/components/shared/FilterDropdown';
 import { AgentIcon } from '@/components/icons';
 import ItemCard from '@/components/shared/ItemCard';
@@ -20,6 +21,7 @@ import CopyIcon from '@/components/icons/CopyIcon';
 import EyeIcon from '@/components/icons/EyeIcon';
 import FileEditIcon from '@/components/icons/FileEditIcon';
 import PauseIcon from '@/components/icons/PauseIcon';
+import PlayIcon from '@/components/icons/PlayIcon';
 import TrashIcon from '@/components/icons/TrashIcon';
 import { useAgents } from '@/hooks/useAgents';
 
@@ -32,8 +34,11 @@ export default function Agent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isMakeCallModalOpen, setIsMakeCallModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<AgentsTable | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<AgentsTable | null>(null);
+  const [agentToCall, setAgentToCall] = useState<AgentsTable | null>(null);
+  const [isActivating, setIsActivating] = useState(false);
 
   // Use the agents hook to fetch real data
   const { 
@@ -96,6 +101,80 @@ export default function Agent() {
     router.push(`/dashboard/agent/preview-widget?${params.toString()}`);
   };
 
+  const handleMakeCall = (agent: AgentsTable) => {
+    setAgentToCall(agent);
+    setIsMakeCallModalOpen(true);
+  };
+
+  const handleActivateAgent = async (agent: AgentsTable) => {
+    if (!agent.id || isActivating) return;
+
+    try {
+      setIsActivating(true);
+      const body = new URLSearchParams();
+      body.append('agent_id', agent.id);
+
+      const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/activate-agent', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to activate agent');
+      }
+
+      const data = await response.json();
+      console.log('Agent activated successfully:', data);
+      
+      // Refetch the agents table
+      await refreshAgents();
+    } catch (error) {
+      console.error('Failed to activate agent:', error);
+      // You can add toast notification here
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
+  const handleDeactivateAgent = async (agent: AgentsTable) => {
+    if (!agent.id || isActivating) return;
+
+    try {
+      setIsActivating(true);
+      const body = new URLSearchParams();
+      body.append('agent_id', agent.id);
+      body.append('set_status_to_draft', 'true');
+
+      const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/deactivate-agent', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to deactivate agent');
+      }
+
+      const data = await response.json();
+      console.log('Agent deactivated successfully:', data);
+      
+      // Refetch the agents table
+      await refreshAgents();
+    } catch (error) {
+      console.error('Failed to deactivate agent:', error);
+      // You can add toast notification here
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!agentToDelete?.id) {
       console.error('No agent ID to delete');
@@ -120,7 +199,10 @@ export default function Agent() {
     onViewDetails: () => handleViewDetails(agent),
     onDelete: () => handleDeleteAgent(agent),
     onTestAgent: () => handleTestAgent(agent),
-    onPreviewWidget: () => handlePreviewWidget(agent)
+    onPreviewWidget: () => handlePreviewWidget(agent),
+    onMakeCall: () => handleMakeCall(agent),
+    onActivate: () => handleActivateAgent(agent),
+    onDeactivate: () => handleDeactivateAgent(agent)
   }));
 
   return (
@@ -274,7 +356,16 @@ export default function Agent() {
                         { icon: <FileEditIcon />, label: 'Edit Agent' },
                         { icon: <CopyIcon />, label: 'Duplicate Agent' },
                         { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
-                        { icon: <PauseIcon />, label: 'Deactivate Agent' },
+                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && agent.status === 'Draft' ? [{
+                          icon: <PlayIcon />,
+                          label: 'Activate Agent',
+                          onClick: () => handleActivateAgent(agent)
+                        }] : []),
+                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && agent.status === 'Active' ? [{
+                          icon: <PauseIcon />,
+                          label: 'Deactivate Agent',
+                          onClick: () => handleDeactivateAgent(agent)
+                        }] : []),
                         { icon: <AgentIcon className="w-4 h-4 text-[#1F2937]"  />, label: 'Test Agent', onClick: () => handleTestAgent(agent) },
                         ...(agent.type === 'widget' ? [{
                           icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -284,6 +375,13 @@ export default function Agent() {
                           </svg>,
                           label: 'Preview Widget', 
                           onClick: () => handlePreviewWidget(agent) 
+                        }] : []),
+                        ...(agent.type === 'outbound' || agent.type === 'Outbound' ? [{
+                          icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                          </svg>,
+                          label: 'Make a Call', 
+                          onClick: () => handleMakeCall(agent) 
                         }] : []),
                         { icon: <TrashIcon />, label: 'Delete Agent', className: 'text-[#DC2626]', onClick: () => handleDeleteAgent(agent) }
                       ]}
@@ -308,6 +406,12 @@ export default function Agent() {
         onClose={() => setIsDeleteModalOpen(false)}
         agentName={agentToDelete?.name}
         onConfirmDelete={handleConfirmDelete}
+      />
+      <MakeCallModal
+        isOpen={isMakeCallModalOpen}
+        onClose={() => setIsMakeCallModalOpen(false)}
+        agentId={agentToCall?.id || ''}
+        agentName={agentToCall?.name || ''}
       />
     </DashboardLayout>
   );

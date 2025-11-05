@@ -20,21 +20,49 @@ interface DropdownProps {
 
 export const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const [position, setPosition] = React.useState({ top: 0, left: 0 });
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleToggle = () => {
     if (!isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       const dropdownWidth = 192; // w-48 = 12rem = 192px
-      let left = rect.right - dropdownWidth;
+      const dropdownMaxHeight = 320; // max height for dropdown
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
 
-      if (left < 0) {
-        left = rect.left;
+      // Calculate horizontal position - position to the left of the button
+      let left = rect.left - dropdownWidth + 24; // Offset to align near the dots
+
+      // If it goes off the left edge, position to the right of button
+      if (left < 8) {
+        left = rect.right + 4;
       }
 
-      const top = rect.bottom + 4; // mt-1 ≈ 4px
+      // If it still goes off the right edge, align to right edge with padding
+      if (left + dropdownWidth > viewportWidth - 8) {
+        left = viewportWidth - dropdownWidth - 8;
+      }
+
+      // Calculate vertical position - align with top of button
+      let top = rect.top;
+
+      // Check if dropdown would go below viewport
+      if (top + dropdownMaxHeight > viewportHeight - 8) {
+        // Adjust to fit in viewport
+        top = viewportHeight - dropdownMaxHeight - 8;
+        
+        // If it goes off top, position at top with padding
+        if (top < 8) {
+          top = 8;
+        }
+      }
 
       setPosition({ top, left });
     }
@@ -64,27 +92,29 @@ export const Dropdown: React.FC<DropdownProps> = ({ children, trigger }) => {
         {trigger}
       </button>
 
-      {isOpen &&
+      {isOpen && isMounted &&
         createPortal(
           <div
             ref={menuRef}
-            className="w-48 bg-white rounded-lg shadow-lg border border-[#41288A80] z-[9999] origin-top-right transition-all duration-200 ease-out"
+            className="w-48 bg-white rounded-lg shadow-xl border border-gray-200 origin-top-right transition-all duration-200 ease-out max-h-80 overflow-y-auto"
             style={{
               position: 'fixed',
               top: `${position.top}px`,
               left: `${position.left}px`,
-              transform: 'scale(1)',
-              opacity: 1,
+              zIndex: 99999,
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
             }}
           >
-            {React.Children.map(children, (child) => {
-              if (React.isValidElement(child)) {
-                return React.cloneElement(child as React.ReactElement<{ closeDropdown?: () => void }>, {
-                  closeDropdown: () => setIsOpen(false),
-                });
-              }
-              return child;
-            })}
+            <div className="py-1">
+              {React.Children.map(children, (child) => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement<{ closeDropdown?: () => void }>, {
+                    closeDropdown: () => setIsOpen(false),
+                  });
+                }
+                return child;
+              })}
+            </div>
           </div>,
           document.body
         )}
@@ -107,10 +137,10 @@ export const DropdownItem: React.FC<{
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-2 px-4 py-2 text-sm text-[#1F2937] w-full text-left first:rounded-t-lg last:rounded-b-lg cursor-pointer hover:bg-[#F3F4F6] ${className}`}
+      className={`flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 w-full text-left cursor-pointer hover:bg-gray-50 transition-colors ${className}`}
     >
-      {icon}
-      {label}
+      <span className="flex-shrink-0">{icon}</span>
+      <span>{label}</span>
     </button>
   );
 };
