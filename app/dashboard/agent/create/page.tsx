@@ -338,11 +338,13 @@ function Step1() {
                     ? "Loading languages..."
                     : "Select Language"}
                 </option>
-                {languages.map((language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.name} ({language.voice_count} voices)
-                  </option>
-                ))}
+                {languages
+                  .filter((language) => language.name.toLowerCase().includes('english'))
+                  .map((language) => (
+                    <option key={language.code} value={language.code}>
+                      {language.name} ({language.voice_count} voices)
+                    </option>
+                  ))}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">

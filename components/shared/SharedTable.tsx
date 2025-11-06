@@ -218,13 +218,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
               <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
-              <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" />
+              {/* <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
               <DropdownItem
                 icon={<EyeIcon />}
                 label="View Details"
                 onClick={row.onViewDetails as () => void}
               />
-              {(row.type === 'Inbound' || row.type === 'inbound') && row.status === 'Draft' && (
+              {(row.type === 'Inbound' || row.type === 'inbound') && (row.status === 'Draft' || row.status === 'Inactive') && (
                 <DropdownItem 
                   icon={<PlayIcon />} 
                   label="Activate Agent"

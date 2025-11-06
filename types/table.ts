@@ -3,7 +3,7 @@
 // Badge Types
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'active' | 'draft' | 'outbound' | 'inbound' | 'completed' | 'abandoned' | 'published' | 'default' | 'processing' | 'error' | 'connected' | 'notConnected' | 'popular';
+  variant?: 'active' | 'inactive' | 'draft' | 'outbound' | 'inbound' | 'completed' | 'abandoned' | 'published' | 'default' | 'processing' | 'error' | 'connected' | 'notConnected' | 'popular';
   className?: string;
 }
 

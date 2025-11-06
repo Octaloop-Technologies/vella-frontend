@@ -4,6 +4,7 @@ import { error } from 'console';
 const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
   const variants: Record<string, string> = {
     active: 'bg-[#25A83D1A] text-[#25A83D] border border-[#25A83D]',
+    inactive: 'bg-[#6B72801A] text-[#6B7280] border border-[#6B7280]',
     draft: 'bg-[#0000001A] text-black',
     outbound: 'bg-[#007BFF1A] text-[#41288A]',
     inbound: 'bg-[#F624E11A] text-[#F624E1]',

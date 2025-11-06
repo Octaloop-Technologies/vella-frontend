@@ -147,7 +147,7 @@ export default function Agent() {
       setIsActivating(true);
       const body = new URLSearchParams();
       body.append('agent_id', agent.id);
-      body.append('set_status_to_draft', 'true');
+      body.append('set_status_to_inactive', 'true');
 
       const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/deactivate-agent', {
         method: 'POST',
