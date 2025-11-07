@@ -3,6 +3,7 @@ export interface SidebarItemConfig {
   label: string;
   href: string;
 }
+// new 
 
 export const SIDEBAR_ITEMS_CONFIG: SidebarItemConfig[] = [
   {
