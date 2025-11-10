@@ -69,21 +69,26 @@ const HeroSection: React.FC = () => {
                 </div>
 
                 {/* Right Content - Bird Illustration with Waveform */}
-                <div className="relative flex items-end justify-center w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-full mt-8 lg:mt-0">
-                    {/* Waveform Background */}
-                    <Waveform className="absolute -bottom-12 sm:-bottom-16 md:-bottom-24 w-full scale-75 sm:scale-90 md:scale-100" />
+               <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-full mt-8 lg:mt-0 flex justify-center items-end">
+  {/* Inner container controls direction */}
+  <div className="flex flex-row xl:flex-col items-center justify-center w-full h-full relative">
+    {/* Waveform Background */}
+    <Waveform className="right-[-38%] absolute -bottom-12 sm:-bottom-16 md:-bottom-18 w-full scale-75 sm:scale-90 md:scale-100" />
 
-                    {/* Bird Illustration with Float Animation */}
-                    <Image
-                        src="/svgs/bird2.svg"
-                        alt="Bird Illustration"
-                        width={300}
-                        height={300}
-                        className="absolute object-contain top-8 sm:top-12 md:top-16 -right-8 bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px] lg:w-[400px] h-auto"
-                    />
+    {/* Bird Illustration with Float Animation */}
+    <Image
+      src="/svgs/bird2.svg"
+      alt="Bird Illustration"
+      width={300}
+      height={300}
+      className="object-contain bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px] lg:w-[400px] h-auto"
+    />
 
-                    <div className="absolute -top-6 -right-6 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
-                </div>
+    {/* Blue circle */}
+    <div className="absolute -top-6 -right-6 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
+  </div>
+</div>
+
             </div>
         </section>
     );

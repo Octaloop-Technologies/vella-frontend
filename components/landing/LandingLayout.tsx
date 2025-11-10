@@ -102,8 +102,9 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                         {/* Brand Section */}
                         <div className="sm:col-span-2 lg:col-span-1">
                             <div className="flex flex-col gap-3 mb-4">
-                                <Image src="/dashboard/png/logo-white.png" alt="Logo" width={60} height={40} className="object-contain" />
-                                <span className="text-2xl md:text-3xl font-bold text-white">VELA</span>
+                                <Image src="/dashboard/png/logo1.svg" alt="Logo" width={130} height={84} 
+                                className="object-contain" />
+                                {/* <span className="text-2xl md:text-3xl font-bold text-white">VELA</span> */}
                             </div>
                             <p className="text-sm text-white mb-6 leading-relaxed max-w-xs">
                                 Your AI-Powered Voice Automation Engine — Light, Fast, And Designed To Scale.

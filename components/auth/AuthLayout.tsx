@@ -23,11 +23,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           {/* Logo */}
           <div className="flex justify-center mb-7">
             <Image
-              src="/dashboard/png/logo.png"
+              src="/dashboard/png/logo1.svg"
               alt="Logo"
-              width={70}
-              height={70}
-              className="object-contain"
+              width={141}
+              height={84}
+              className="object-cover"
             />
           </div>
           

@@ -15,7 +15,7 @@ const Sidebar: React.FC = () => {
       {/* Logo Section */}
       <div className="p-6">
         <div className="flex items-center justify-center space-x-2">
-         <Image src="/dashboard/png/logo-white.png" alt="Vella Logo" width={60} height={60} />
+         <Image src="/dashboard/png/logo1.svg" alt="Vella Logo" width={141} height={84} />
         </div>
       </div>
 
