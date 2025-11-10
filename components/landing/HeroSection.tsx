@@ -73,7 +73,8 @@ const HeroSection: React.FC = () => {
   {/* Inner container controls direction */}
   <div className="flex flex-row xl:flex-col items-center justify-center w-full h-full relative">
     {/* Waveform Background */}
-    <Waveform className="right-[-38%] absolute -bottom-12 sm:-bottom-16 md:-bottom-18 w-full scale-75 sm:scale-90 md:scale-100" />
+    <Waveform className="2xl:right-[-44%] xl:right-[-37%] lg:right-[-1%] md:right-[-35%] sm:right-[-30%] absolute -bottom-31 sm:-bottom-16 md:-bottom-0 lg:-bottom-0 w-full
+     scale-75 sm:scale-90 md:scale-70 2xl:scale-100" />
 
     {/* Bird Illustration with Float Animation */}
     <Image
@@ -81,11 +82,12 @@ const HeroSection: React.FC = () => {
       alt="Bird Illustration"
       width={300}
       height={300}
-      className="object-contain bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px] lg:w-[400px] h-auto"
+      className="object-contain bird-float z-10 w-[180px] sm:w-[220px] md:w-[260px]
+       lg:w-[380px] h-auto "
     />
 
     {/* Blue circle */}
-    <div className="absolute -top-6 -right-6 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
+    <div className="absolute -top-6 -right-1 sm:-right-6 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-[#CDEFF0] rounded-full opacity-35"></div>
   </div>
 </div>
 

@@ -102,7 +102,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                         {/* Brand Section */}
                         <div className="sm:col-span-2 lg:col-span-1">
                             <div className="flex flex-col gap-3 mb-4">
-                                <Image src="/dashboard/png/logo1.svg" alt="Logo" width={130} height={84} 
+                                <Image src="/svgs/logo2.svg" alt="Logo" width={130} height={84} 
                                 className="object-contain" />
                                 {/* <span className="text-2xl md:text-3xl font-bold text-white">VELA</span> */}
                             </div>
