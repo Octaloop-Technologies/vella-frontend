@@ -14,6 +14,7 @@ import AgentTypeModal from '@/components/agent/AgentTypeModal';
 import AgentDetailModal from '@/components/agent/AgentDetailModal';
 import DeleteAgentModal from '@/components/agent/DeleteAgentModal';
 import MakeCallModal from '@/components/agent/MakeCallModal';
+import ActivationSuccessModal from '@/components/agent/ActivationSuccessModal';
 import FilterDropdown from '@/components/shared/FilterDropdown';
 import { AgentIcon } from '@/components/icons';
 import ItemCard from '@/components/shared/ItemCard';
@@ -39,6 +40,8 @@ export default function Agent() {
   const [agentToDelete, setAgentToDelete] = useState<AgentsTable | null>(null);
   const [agentToCall, setAgentToCall] = useState<AgentsTable | null>(null);
   const [isActivating, setIsActivating] = useState(false);
+  const [isActivationSuccessModalOpen, setIsActivationSuccessModalOpen] = useState(false);
+  const [activationData, setActivationData] = useState<any>(null);
 
   // Use the agents hook to fetch real data
   const { 
@@ -132,6 +135,10 @@ export default function Agent() {
 
       const data = await response.json();
       console.log('Agent activated successfully:', data);
+      
+      // Store activation data and show success modal
+      setActivationData(data);
+      setIsActivationSuccessModalOpen(true);
       
       // Refetch the agents table
       await refreshAgents();
@@ -415,6 +422,14 @@ export default function Agent() {
         onClose={() => setIsMakeCallModalOpen(false)}
         agentId={agentToCall?.id || ''}
         agentName={agentToCall?.name || ''}
+      />
+      <ActivationSuccessModal
+        isOpen={isActivationSuccessModalOpen}
+        onClose={() => {
+          setIsActivationSuccessModalOpen(false);
+          setActivationData(null);
+        }}
+        activationData={activationData}
       />
     </DashboardLayout>
   );

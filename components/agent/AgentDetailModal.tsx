@@ -13,90 +13,108 @@ interface AgentDetailModalProps {
 const AgentDetailModal: React.FC<AgentDetailModalProps> = ({ 
   isOpen, 
   onClose, 
-  agent = {
-    name: 'Sales Assistant',
-    type: 'Outbound',
-    typeVariant: 'outbound',
-    status: 'Active',
-    statusVariant: 'active',
-    conversations: '342',
-    successRate: '89%',
-    lastActive: '2 minutes ago'
-  }
+  agent
 }) => {
+  if (!agent) return null;
+
   const assistantStats = [
     {
       label: "Type",
-      value: agent.type
+      value: agent.type || 'N/A'
     },
     {
       label: "Status",
-      value: agent.status
+      value: agent.status || 'N/A'
     },
     {
       label: "Conversations",
-      value: agent.conversations
+      value: agent.conversations || '0'
     },
     {
       label: "Success Rate",
-      value: agent.successRate
+      value: agent.successRate || '0%'
     }
-  ]
-
-  const linkedKnowledgeBase = [
-    { id: 1, name: 'Product FAQ', checked: true },
-    { id: 2, name: 'Sales Playbook', checked: true },
-    { id: 3, name: 'Support Guidelines', checked: true },
   ];
 
-  const activeIntegrations = [
-    { id: 1, name: 'HubSpot CRM', checked: true },
-    { id: 2, name: 'WhatsApp Business', checked: true },
-    { id: 3, name: 'Slack', checked: true },
+  const agentInfo = [
+    {
+      label: "Agent ID",
+      value: agent.id || 'N/A'
+    },
+    {
+      label: "Gender",
+      value: agent.gender ? String(agent.gender).charAt(0).toUpperCase() + String(agent.gender).slice(1) : 'N/A'
+    },
+    {
+      label: "Language",
+      value: agent.language ? String(agent.language).toUpperCase() : 'N/A'
+    },
+    {
+      label: "Persona",
+      value: agent.persona ? String(agent.persona).replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) : 'N/A'
+    },
+    {
+      label: "Phone Number",
+      value: agent.phoneNumber ? String(agent.phoneNumber) : 'Not Assigned'
+    },
+    {
+      label: "Last Active",
+      value: agent.lastActive ? String(agent.lastActive) : 'N/A'
+    },
+    {
+      label: "Created At",
+      value: agent.createdAt ? new Date(agent.createdAt).toLocaleString() : 'N/A'
+    },
+    {
+      label: "Updated At",
+      value: agent.updatedAt ? new Date(agent.updatedAt).toLocaleString() : 'N/A'
+    }
   ];
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-3xl" showCloseButton={true} title={agent.name} subtitle='Detailed view of agent configuration and performance'>
-      <div className="p-8">
-        {/* Stats Table */}
-        <div className="bg-[#EBEBEB] rounded-[10px] p-4 mb-8">
+    <BaseModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      maxWidth="max-w-4xl" 
+      showCloseButton={true} 
+      title={agent.name} 
+      subtitle='Detailed view of agent configuration and performance'
+    >
+      <div className="p-8 max-h-[70vh] overflow-y-auto">
+        {/* Stats Grid */}
+        <div className="bg-[#EBEBEB] rounded-[10px] p-4 mb-6">
           <div className="grid grid-cols-4 gap-4 text-sm">
-           {
-              assistantStats.map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-xs opacity-70 mb-2 text-black">{stat.label}</div>
-                  <div className="font-medium text-black">{stat.value}</div>
-                </div>
-              ))
-           }
+           {assistantStats.map((stat) => (
+              <div key={stat.label}>
+                <div className="text-xs opacity-70 mb-2 text-black">{stat.label}</div>
+                <div className="font-medium text-black">{stat.value}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Linked Knowledge Base */}
-        <Card className="mb-8 p-5 border border-[#EBEBEB]">
-          <h3 className="text-base font-medium mb-4 text-black">Linked Knowledge Base</h3>
-          <div className="space-y-3">
-            {linkedKnowledgeBase.map((item) => (
-              <div key={item.id} className="flex items-center">
-                <Image src="/svgs/tick.svg" alt="Tick" width={24} height={20} className="mr-3" />
-                <span className="text-sm font-medium text-black">{item.name}</span>
+        {/* Agent Information */}
+        <Card className="mb-6 p-5 border border-[#EBEBEB]">
+          <h3 className="text-base font-medium mb-4 text-black">Agent Information</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {agentInfo.map((info) => (
+              <div key={info.label} className="space-y-1">
+                <div className="text-xs opacity-70 text-black">{info.label}</div>
+                <div className="text-sm font-medium text-black break-all">{info.value}</div>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Active Integrations */}
-        <Card className='p-5 border border-[#EBEBEB]'>
-          <h3 className="text-base font-medium mb-4 text-black">Active Integrations</h3>
-          <div className="space-y-3">
-            {activeIntegrations.map((item) => (
-              <div key={item.id} className="flex items-center">
-                <Image src="/svgs/tick.svg" alt="Tick" width={24} height={20} className="mr-3" />
-                <span className="text-sm font-medium text-black">{item.name}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+        {/* Description */}
+        {agent.description && (
+          <Card className="mb-6 p-5 border border-[#EBEBEB]">
+            <h3 className="text-base font-medium mb-4 text-black">Agent Description</h3>
+            <div className="text-sm text-black whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+              {agent.description}
+            </div>
+          </Card>
+        )}
       </div>
     </BaseModal>
   );

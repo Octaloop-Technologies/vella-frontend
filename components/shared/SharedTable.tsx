@@ -217,7 +217,7 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Actions",
           render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
-              <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
+              {/* <DropdownItem icon={<FileEditIcon />} label="Edit Agent" /> */}
               {/* <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
               <DropdownItem
                 icon={<EyeIcon />}
@@ -238,11 +238,15 @@ const getColumnConfig = <T extends Record<string, unknown>>(
                   onClick={row.onDeactivate as () => void}
                 />
               )}
-              <DropdownItem
+              {
+                (row.type === 'Inbound' || row.type === 'Outbound') && 
+                   <DropdownItem
                 icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />}
                 label="Test Agent"
                 onClick={row.onTestAgent as () => void}
               />
+              }
+           
               {row.type === 'Widget' && (
                 <DropdownItem
                   icon={

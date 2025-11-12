@@ -44,8 +44,7 @@ export function Step3Channels() {
         Choose which documents from your knowledge base this agent should have access to.
       </div>
 
-      <Card className="p-5 space-y-8 mb-8">
-        {/* Social Channels */}
+      {/* <Card className="p-5 space-y-8 mb-8">
         <div>
           <h3 className="text-lg font-medium mb-4 text-black">Social Channels</h3>
           <div className="space-y-1">
@@ -75,7 +74,7 @@ export function Step3Channels() {
             ))}
           </div>
         </div>
-      </Card>
+      </Card> */}
 
       <Card className="p-5 space-y-8 mb-8">
         {/* CRM Integrations */}

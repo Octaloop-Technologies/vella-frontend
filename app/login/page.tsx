@@ -63,9 +63,11 @@ const LoginPage = () => {
           </div>
 
           {/* Submit button */}
+          <Link href="/dashboard" passHref>
           <Button type="submit" className="mt-6">
             Log In
           </Button>
+          </Link>
         </form>
 
         {/* Sign up link */}

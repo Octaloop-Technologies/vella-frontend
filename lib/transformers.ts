@@ -68,6 +68,7 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
     language: apiAgent.language,
     gender: apiAgent.gender,
     persona: apiAgent.persona,
+    phoneNumber: apiAgent.phone_number,
     createdAt: apiAgent.created_at,
     updatedAt: apiAgent.updated_at,
   };

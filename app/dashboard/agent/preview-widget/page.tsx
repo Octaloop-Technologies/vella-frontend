@@ -11,7 +11,6 @@ function WidgetPreviewContent() {
   const router = useRouter();
   const { addToast } = useToast();
   const [isWidgetOpen, setIsWidgetOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState('light');
   const [selectedPosition, setSelectedPosition] = useState('bottom-right');
   const [selectedSize, setSelectedSize] = useState('medium');
   const [customColor, setCustomColor] = useState('#8266D4');
@@ -73,12 +72,6 @@ function WidgetPreviewContent() {
   };
 
   // Widget configurations
-  const themes = [
-    { id: 'light', name: 'Light', preview: '#FFFFFF' },
-    { id: 'dark', name: 'Dark', preview: '#1F2937' },
-    { id: 'custom', name: 'Custom', preview: customColor }
-  ];
-
   const positions = [
     { id: 'bottom-right', name: 'Bottom Right', class: 'bottom-6 right-6' },
     { id: 'bottom-left', name: 'Bottom Left', class: 'bottom-6 left-6' },
@@ -109,7 +102,6 @@ function WidgetPreviewContent() {
           agentId: '${agentId}',
           title: agentConfig.name || '${agentName}',
           widgetType: '${channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat')}',
-          theme: '${selectedTheme}',
           position: '${selectedPosition}',
           size: '${selectedSize}',
           primaryColor: '${customColor}'
@@ -253,7 +245,6 @@ function WidgetPreviewContent() {
             const vellaConfig = {
                 agentId: '${agentId}',
                 widgetType: '${channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat')}',
-                theme: '${selectedTheme}',
                 position: '${selectedPosition}',
                 size: '${selectedSize}',
                 primaryColor: '${customColor}',
@@ -441,37 +432,22 @@ function WidgetPreviewContent() {
               </Card>
             )}
 
-            {/* Theme Selection */}
+            {/* Primary Color Selection */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Theme</h3>
+              <h3 className="text-lg font-semibold mb-4">Primary Color</h3>
               <div className="space-y-3">
-                {themes.map(theme => (
-                  <label key={theme.id} className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="theme"
-                      value={theme.id}
-                      checked={selectedTheme === theme.id}
-                      onChange={(e) => setSelectedTheme(e.target.value)}
-                      className="text-brand-primary"
-                    />
-                    <div 
-                      className="w-6 h-6 rounded border-2"
-                      style={{ backgroundColor: theme.preview }}
-                    />
-                    <span>{theme.name}</span>
-                  </label>
-                ))}
-                {selectedTheme === 'custom' && (
-                  <div className="ml-9">
-                    <input
-                      type="color"
-                      value={customColor}
-                      onChange={(e) => setCustomColor(e.target.value)}
-                      className="w-16 h-8 rounded border"
-                    />
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={customColor}
+                    onChange={(e) => setCustomColor(e.target.value)}
+                    className="w-16 h-16 rounded border-2 cursor-pointer"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-700">Custom Color</p>
+                    <p className="text-sm text-gray-500">{customColor}</p>
                   </div>
-                )}
+                </div>
               </div>
             </Card>
 
@@ -692,8 +668,8 @@ function WidgetPreviewContent() {
                       ref={widgetRef}
                       className={`fixed ${currentPosition?.class} bg-white rounded-lg shadow-2xl border border-gray-200 z-10 transition-all duration-300`}
                       style={{ 
-                        width: '350px', 
-                        height: '450px',
+                        width: currentSize?.width, 
+                        height: currentSize?.height,
                         marginRight: selectedPosition.includes('right') ? '80px' : 'auto',
                         marginLeft: selectedPosition.includes('left') ? '80px' : 'auto',
                         marginBottom: selectedPosition.includes('bottom') ? '80px' : 'auto',
@@ -728,7 +704,7 @@ function WidgetPreviewContent() {
                       <div className="p-6 h-full flex flex-col items-center justify-center" style={{ height: 'calc(100% - 72px)' }}>
                         <div className="text-center space-y-6">
                           {/* Voice Animation Circle */}
-                          <div className="relative mx-auto">
+                          <div className="relative w-full  flex items-center justify-center">
                             <div 
                               className="w-32 h-32 rounded-full flex items-center justify-center"
                               style={{ backgroundColor: `${customColor}20` }}

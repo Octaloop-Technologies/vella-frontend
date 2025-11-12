@@ -55,8 +55,8 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         isCompleted: currentStep > 3,
       },
     ];
-  } else {
-    // Same for inbound and outbound
+  } else if (agentType === 'inbound') {
+    // Inbound agent steps
     steps = [
       {
         number: 1,
@@ -92,6 +92,38 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
         subtitle: 'Review and publish agent',
         isActive: currentStep === 5,
         isCompleted: currentStep > 5,
+      },
+    ];
+  } else {
+    // Outbound agent steps (no phone number step)
+    steps = [
+      {
+        number: 1,
+        title: 'Basic Details',
+        subtitle: 'Agent name and configuration',
+        isActive: currentStep === 1,
+        isCompleted: currentStep > 1,
+      },
+      {
+        number: 2,
+        title: 'Knowledge Base',
+        subtitle: 'Upload documents and data',
+        isActive: currentStep === 2,
+        isCompleted: currentStep > 2,
+      },
+      {
+        number: 3,
+        title: 'Channels',
+        subtitle: 'Connect integration',
+        isActive: currentStep === 3,
+        isCompleted: currentStep > 3,
+      },
+      {
+        number: 4,
+        title: 'Review & Publish',
+        subtitle: 'Review and publish agent',
+        isActive: currentStep === 4,
+        isCompleted: currentStep > 4,
       },
     ];
   }

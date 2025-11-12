@@ -55,7 +55,7 @@ export interface AgentsTable extends Record<string, unknown> {
   type: string;
   typeVariant: 'chat' | 'phone' | 'omnichannel';
   status: string;
-  statusVariant: 'active' | 'draft' | 'disabled';
+  statusVariant: 'active' | 'draft' | 'disabled' | 'inactive';
   conversations: string;
   successRate: string;
   lastActive: string;
@@ -63,6 +63,7 @@ export interface AgentsTable extends Record<string, unknown> {
   language?: string;
   gender?: string;
   persona?: string;
+  phoneNumber?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

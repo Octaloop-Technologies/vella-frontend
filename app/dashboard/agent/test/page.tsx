@@ -17,17 +17,14 @@ function TestAgentContent() {
     const agentStatus = searchParams.get('status') || 'Active';
     const agentDescription = searchParams.get('description') || 'AI agent for customer interactions';
     
-    const [messageInput, setMessageInput] = useState('');
-    const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
     const [isCallActive, setIsCallActive] = useState(false);
     const [callDuration, setCallDuration] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
     const [resolvedAgentName, setResolvedAgentName] = useState(agentName);
-    const [messages, setMessages] = useState<Message[]>([]);
     const [conversationId, setConversationId] = useState('');
     const [isStartingConversation, setIsStartingConversation] = useState(false);
-    const [isSendingMessage, setIsSendingMessage] = useState(false);
     const [error, setError] = useState('');
+    const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
     
     // Audio recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -38,7 +35,6 @@ function TestAgentContent() {
     const audioChunksRef = useRef<Blob[]>([]);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const recognitionRef = useRef<any>(null);
-    const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
     const callMessagesEndRef = useRef<HTMLDivElement | null>(null);
     const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastTranscriptRef = useRef<string>('');
@@ -68,7 +64,7 @@ function TestAgentContent() {
         setIsStartingConversation(true);
         setError('');
         setConversationId('');
-        setMessages([]);
+        setGreetingMessage(null);
 
         try {
             const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/start/${targetAgentId}?channel=phone`, {
@@ -95,16 +91,14 @@ function TestAgentContent() {
             }
 
             if (conversation.greeting) {
-                const greetingMessage: Message = {
+                const greeting: Message = {
                     id: generateMessageId(),
                     sender: 'agent',
                     content: conversation.greeting,
                     timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                     audioBase64: conversation.greeting_audio || undefined
                 };
-                setMessages([greetingMessage]);
-            } else {
-                setMessages([]);
+                setGreetingMessage(greeting);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unable to start conversation');
@@ -112,64 +106,6 @@ function TestAgentContent() {
             setIsStartingConversation(false);
         }
     }, []);
-
-    // Send text message (used by typing in chat tab)
-    const sendTextMessage = async (text: string) => {
-        if (!conversationId) {
-            return;
-        }
-
-        const userMessage: Message = {
-            id: generateMessageId(),
-            sender: 'user',
-            content: text,
-            timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        };
-
-        setMessages((prev) => [...prev, userMessage]);
-        setIsSendingMessage(true);
-        setError('');
-
-        try {
-            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/${conversationId}/message?message=${encodeURIComponent(text)}`, {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to send message');
-            }
-
-            const data = await response.json();
-            const agentResponse = data?.response?.agent_response;
-
-            if (agentResponse) {
-                const agentMessage: Message = {
-                    id: generateMessageId(),
-                    sender: 'agent',
-                    content: agentResponse,
-                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                };
-                setMessages((prev) => [...prev, agentMessage]);
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unable to send message');
-        } finally {
-            setIsSendingMessage(false);
-        }
-    };
-
-    const handleSendMessage = async () => {
-        const trimmedMessage = messageInput.trim();
-        if (!trimmedMessage || !conversationId) {
-            return;
-        }
-
-        setMessageInput('');
-        await sendTextMessage(trimmedMessage);
-    };
 
     // Convert base64 audio to blob and play it
     const playBase64Audio = (base64Audio: string, onAudioEnd?: () => void) => {
@@ -434,7 +370,6 @@ function TestAgentContent() {
     };
 
     const handleClearChat = () => {
-        setMessages([]);
         setCallMessages([]);
     };
 
@@ -444,19 +379,13 @@ function TestAgentContent() {
         setCallMessages([]);
         setLiveTranscript('');
         
-        // Play greeting audio from first message if available
-        if (messages.length > 0 && messages[0].sender === 'agent' && messages[0].audioBase64) {
+        // Play greeting audio from greeting message if available
+        if (greetingMessage && greetingMessage.audioBase64) {
             // Add greeting to call messages
-            setCallMessages([{
-                id: generateMessageId(),
-                sender: 'agent',
-                content: messages[0].content,
-                timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                audioBase64: messages[0].audioBase64
-            }]);
+            setCallMessages([greetingMessage]);
             
             // Play greeting audio and start recording when done
-            playBase64Audio(messages[0].audioBase64, () => {
+            playBase64Audio(greetingMessage.audioBase64, () => {
                 console.log('Greeting finished, starting recording...');
                 setTimeout(() => {
                     startRecording();
@@ -549,7 +478,6 @@ function TestAgentContent() {
         if (!agentId) {
             setError('Agent information is missing. Navigate here from the Agents list.');
             setConversationId('');
-            setMessages([]);
             return;
         }
 
@@ -586,19 +514,12 @@ function TestAgentContent() {
         };
     }, []);
 
-    // Auto-scroll to latest message in chat
-    useEffect(() => {
-        if (activeTab === 'chat' && chatMessagesEndRef.current) {
-            chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [messages, isSendingMessage, activeTab]);
-
     // Auto-scroll to latest message in call
     useEffect(() => {
-        if (activeTab === 'call' && isCallActive && callMessagesEndRef.current) {
+        if (isCallActive && callMessagesEndRef.current) {
             callMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [callMessages, isProcessingAudio, isRecording, liveTranscript, activeTab, isCallActive]);
+    }, [callMessages, isProcessingAudio, isRecording, liveTranscript, isCallActive]);
 
     return (
         <div className="h-screen bg-[#F9FAFB] flex flex-col">
@@ -616,151 +537,8 @@ function TestAgentContent() {
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
                 <div className='flex-1 flex flex-col'>
-                    <div className="bg-white border-b border-[#E5E7EB] px-5 py-3">
-                        {/* Tab Navigation */}
-                        <div className="flex items-center gap-4 shadow-card rounded-[10px] bg-white p-1 w-fit border border-[#EBEBEB]">
-                            <button
-                                onClick={() => setActiveTab('chat')}
-                                className={`px-8 py-2 rounded-[10px] font-medium transition-all w-56 cursor-pointer ${activeTab === 'chat'
-                                    ? 'bg-[#007BFF1A] text-[#8266D4] border border-[#8266D4]'
-                                    : 'bg-white text-[#6B7280] border border-white'
-                                    }`}
-                            >
-                                Test Chat
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('call')}
-                                className={`px-8 py-2 rounded-[10px] font-medium text-base transition-all w-56 cursor-pointer ${activeTab === 'call'
-                                    ? 'bg-[#007BFF1A] text-[#8266D4] border border-[#8266D4]'
-                                    : 'bg-white text-[#6B7280] border border-white'
-                                    }`}
-                            >
-                                Test Audio
-                            </button>
-                        </div>
-                    </div>
                     <div className='flex flex-1 h-[80vh] overflow-auto'>
-                        {
-                            activeTab === 'chat' ? (
-                                <div className='flex flex-col flex-1'>
-                                    {/* Messages Area */}
-                                    <div className="flex-1 overflow-y-auto px-8 py-6">
-                                        {error && (
-                                            <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                                                <span>{error}</span>
-                                                {agentId && (
-                                                    <button
-                                                        onClick={handleRetryConversation}
-                                                        className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100"
-                                                    >
-                                                        Retry
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                        {!error && isStartingConversation && (
-                                            <div className="mb-4 text-sm text-[#717182] text-black">
-                                                Initializing conversation...
-                                            </div>
-                                        )}
-                                        {messages.map((message) => (
-                                            <div
-                                                key={message.id}
-                                                className={`flex gap-3 mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                                            >
-                                                {message.sender === 'agent' && (
-                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                                        <Image
-                                                            src="/dashboard/png/user-avatar.png"
-                                                            alt="Agent Avatar"
-                                                            width={40}
-                                                            height={40}
-                                                            className="object-cover"
-                                                        />
-                                                    </div>
-                                                )}
-
-                                                <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[40%]`}>
-                                                    <div
-                                                        className={`px-5 py-3 rounded-[10px] font-medium text-sm opacity-70 ${message.sender === 'user'
-                                                            ? 'bg-[#007BFF1A] border border-[#8266D4]'
-                                                        : 'bg-[#FAF8F8] text-black'
-                                                        }`}
-                                                    >
-                                                        <p className="mb-3 leading-tight text-black">{message.content}</p>
-                                                        <span className="text-xs opacity-70 block text-black">{message.timestamp}</span>
-                                                    </div>
-
-                                                </div>
-
-                                                {message.sender === 'user' && (
-                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                                        <Image
-                                                            src="/dashboard/png/user-avatar.png"
-                                                            alt="User"
-                                                            width={40}
-                                                            height={40}
-                                                            className="object-cover"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                        {isSendingMessage && (
-                                            <div className="flex gap-3 mb-6 justify-start">
-                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                                    <Image
-                                                        src="/dashboard/png/user-avatar.png"
-                                                        alt="Agent Avatar"
-                                                        width={40}
-                                                        height={40}
-                                                        className="object-cover"
-                                                    />
-                                                </div>
-                                                <div className="flex flex-col items-start max-w-[40%]">
-                                                    <div className="px-5 py-3 rounded-[10px] font-medium text-sm bg-[#FAF8F8] text-black opacity-70">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                            <div className="w-2 h-2 bg-[#8266D4] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div ref={chatMessagesEndRef} />
-                                    </div>
-
-                                    {/* Message Input */}
-                                    <div className="px-4 py-6 border-t border-[#E5E7EB]">
-                                        <div className="flex items-center gap-3">
-                                            <Input
-                                                placeholder={isSendingMessage ? "Sending message..." : "Type your message"}
-                                                value={messageInput}
-                                                onChange={(e) => !isSendingMessage && setMessageInput(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey && !isSendingMessage) {
-                                                        e.preventDefault();
-                                                        handleSendMessage();
-                                                    }
-                                                }}
-                                                disabled={isSendingMessage}
-                                                containerClassName='w-full'
-                                                className={`py-4 ${isSendingMessage ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            />
-
-                                            <button
-                                                onClick={handleSendMessage}
-                                                disabled={!messageInput.trim() || !conversationId || isSendingMessage}
-                                                className="p-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Image src="/svgs/send.svg" alt="Send" width={24} height={24} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) :
-                                (<div className="flex flex-1 flex-col">
+                        <div className="flex flex-1 flex-col">
                                     {!isCallActive ? (
                                         <div className="flex flex-1 flex-col items-center justify-center">
                                             {error && (
@@ -937,12 +715,8 @@ function TestAgentContent() {
                                             </div>
                                         </>
                                     )}
-                                </div>)
-                        }
-
+                                </div>
                     </div>
-
-
                 </div>
 
                 {/* Agent Details Panel */}

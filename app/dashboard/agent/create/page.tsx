@@ -162,10 +162,15 @@ function Step1() {
                 required
               >
                 <option value="">Select Channel Type</option>
-                <option value="phone_only">Phone</option>
-                <option value="chat_only">Chat</option>
-                <option value="omnichannel">Omnichannel</option>
-                {/* Add more channel types if needed */}
+                {(agentType === "outbound" || agentType === "inbound") ? (
+                  <option value="phone_only">Phone</option>
+                ) : (
+                  <>
+                    <option value="phone_only">Phone</option>
+                    <option value="chat_only">Chat</option>
+                    <option value="omnichannel">Omnichannel</option>
+                  </>
+                )}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
@@ -711,8 +716,8 @@ function CreateAgentContent() {
           console.log("Widget - defaulting to Step1, step was:", step);
           return <Step1 />;
       }
-    } else {
-      // inbound or outbound
+    } else if (agentType === "inbound") {
+      // Inbound agent with phone number step
       switch (step) {
         case 1:
           return <Step1 />;
@@ -725,10 +730,22 @@ function CreateAgentContent() {
         case 5:
           return <Step5ReviewPublish />;
         default:
-          console.log(
-            "Inbound/Outbound - defaulting to Step1, step was:",
-            step
-          );
+          console.log("Inbound - defaulting to Step1, step was:", step);
+          return <Step1 />;
+      }
+    } else {
+      // Outbound agent without phone number step
+      switch (step) {
+        case 1:
+          return <Step1 />;
+        case 2:
+          return <Step2 />;
+        case 3:
+          return <Step3Channels />;
+        case 4:
+          return <Step5ReviewPublish />;
+        default:
+          console.log("Outbound - defaulting to Step1, step was:", step);
           return <Step1 />;
       }
     }
