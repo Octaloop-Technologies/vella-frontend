@@ -40,6 +40,9 @@ function TestAgentContent() {
     const recognitionRef = useRef<any>(null);
     const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
     const callMessagesEndRef = useRef<HTMLDivElement | null>(null);
+    const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const lastTranscriptRef = useRef<string>('');
+    const currentTranscriptRef = useRef<string>(''); // Store current transcript for immediate access
 
     const generateMessageId = () => {
         if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -169,49 +172,69 @@ function TestAgentContent() {
     };
 
     // Convert base64 audio to blob and play it
-    const playBase64Audio = (base64Audio: string) => {
-        try {
-            // Don't play if muted
-            if (isMuted) {
-                return;
-            }
-            
-            // Stop any currently playing audio
-            if (currentAudioRef.current) {
-                currentAudioRef.current.pause();
-                currentAudioRef.current = null;
-            }
+    const playBase64Audio = (base64Audio: string, onAudioEnd?: () => void) => {
+        return new Promise<void>((resolve, reject) => {
+            try {
+                // Don't play if muted
+                if (isMuted) {
+                    console.log('Audio muted, skipping playback');
+                    resolve();
+                    return;
+                }
+                
+                // Stop any currently playing audio
+                if (currentAudioRef.current) {
+                    currentAudioRef.current.pause();
+                    currentAudioRef.current = null;
+                }
 
-            // Decode base64 to binary
-            const binaryString = atob(base64Audio);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+                // Decode base64 to binary
+                const binaryString = atob(base64Audio);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                const blob = new Blob([bytes], { type: 'audio/mpeg' });
+                const audioUrl = URL.createObjectURL(blob);
+                
+                const audio = new Audio(audioUrl);
+                currentAudioRef.current = audio;
+                
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudioRef.current = null;
+                    if (onAudioEnd) {
+                        onAudioEnd();
+                    }
+                    resolve();
+                };
+                
+                audio.onerror = (err) => {
+                    console.error('Audio playback error:', err);
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudioRef.current = null;
+                    reject(err);
+                };
+                
+                console.log('Playing audio...');
+                audio.play().catch(err => {
+                    console.error('Audio playback failed:', err);
+                    reject(err);
+                });
+            } catch (err) {
+                console.error('Failed to play base64 audio:', err);
+                reject(err);
             }
-            
-            const blob = new Blob([bytes], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(blob);
-            
-            const audio = new Audio(audioUrl);
-            currentAudioRef.current = audio;
-            
-            audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-            };
-            
-            audio.play().catch(err => {
-                console.error('Audio playback failed:', err);
-            });
-        } catch (err) {
-            console.error('Failed to play base64 audio:', err);
-        }
+        });
     };
 
     // Start recording audio with live transcription
     const startRecording = async () => {
         try {
             setLiveTranscript('Listening...');
+            lastTranscriptRef.current = '';
+            currentTranscriptRef.current = '';
             
             // Initialize Web Speech API for live transcription
             const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -235,7 +258,28 @@ function TestAgentContent() {
                         }
                     }
 
-                    setLiveTranscript(finalTranscript + interimTranscript || 'Listening...');
+                    const currentTranscript = finalTranscript + interimTranscript;
+                    const trimmedTranscript = currentTranscript.trim();
+                    
+                    // Update both state and ref
+                    setLiveTranscript(currentTranscript || 'Listening...');
+                    currentTranscriptRef.current = trimmedTranscript;
+                    
+                    // Reset silence timer if we detect speech
+                    if (trimmedTranscript && trimmedTranscript !== lastTranscriptRef.current.trim()) {
+                        lastTranscriptRef.current = currentTranscript;
+                        
+                        // Clear existing timer
+                        if (silenceTimerRef.current) {
+                            clearTimeout(silenceTimerRef.current);
+                        }
+                        
+                        // Start new silence timer (2.5 seconds of silence)
+                        silenceTimerRef.current = setTimeout(() => {
+                            console.log('Silence detected, auto-stopping recording');
+                            stopRecording();
+                        }, 2500);
+                    }
                 };
 
                 recognition.onerror = (event: any) => {
@@ -243,6 +287,10 @@ function TestAgentContent() {
                     if (event.error !== 'no-speech') {
                         setError('Speech recognition error: ' + event.error);
                     }
+                };
+
+                recognition.onend = () => {
+                    console.log('Speech recognition ended');
                 };
 
                 recognition.start();
@@ -260,6 +308,12 @@ function TestAgentContent() {
 
     // Stop recording audio and send message
     const stopRecording = async () => {
+        // Clear silence timer
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
+        
         if (recognitionRef.current) {
             recognitionRef.current.stop();
             recognitionRef.current = null;
@@ -267,17 +321,28 @@ function TestAgentContent() {
         
         setIsRecording(false);
         
-        const transcript = liveTranscript.replace('Listening...', '').trim();
+        // Use the ref value instead of state to get the most recent transcript
+        const transcript = currentTranscriptRef.current;
+        
+        console.log('Stopping recording. Transcript:', transcript);
         
         if (!transcript || transcript === '') {
             setLiveTranscript('');
-            setError('No speech detected. Please try again.');
+            console.log('No speech detected in transcript');
+            // Don't show error, just restart recording after a short delay
+            setTimeout(() => {
+                if (isCallActive) {
+                    console.log('Restarting recording after no speech...');
+                    startRecording();
+                }
+            }, 1000);
             return;
         }
 
         // Only for audio call tab
         await sendVoiceMessage(transcript);
         setLiveTranscript('');
+        currentTranscriptRef.current = '';
     };
 
     // Send voice message to backend (for audio call tab)
@@ -300,6 +365,8 @@ function TestAgentContent() {
             };
             setCallMessages((prev) => [...prev, userMessage]);
 
+            console.log('Sending message to API:', text);
+
             // Send to backend
             const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/${conversationId}/message?message=${encodeURIComponent(text)}`, {
                 method: 'POST',
@@ -313,6 +380,8 @@ function TestAgentContent() {
             }
 
             const data = await response.json();
+            console.log('API Response:', data);
+            
             const agentResponse = data?.response?.agent_response;
             const responseAudio = data?.response?.response_audio;
 
@@ -326,14 +395,40 @@ function TestAgentContent() {
                 };
                 setCallMessages((prev) => [...prev, agentMessage]);
                 
-                // Auto-play response audio
+                // Auto-play response audio and restart recording when done
                 if (responseAudio) {
-                    playBase64Audio(responseAudio);
+                    console.log('Playing response audio...');
+                    setIsProcessingAudio(false); // Stop showing processing state
+                    
+                    try {
+                        await playBase64Audio(responseAudio, () => {
+                            console.log('Audio finished playing, starting new recording...');
+                            // Automatically start recording again for next question
+                            setTimeout(() => {
+                                startRecording();
+                            }, 500); // Small delay before starting new recording
+                        });
+                    } catch (err) {
+                        console.error('Audio playback failed:', err);
+                        setError('Audio playback failed');
+                        // Still start recording even if audio fails
+                        setTimeout(() => {
+                            startRecording();
+                        }, 500);
+                    }
+                } else {
+                    console.log('No audio in response');
+                    setIsProcessingAudio(false);
+                    // If no audio, still start recording again
+                    setTimeout(() => {
+                        startRecording();
+                    }, 500);
                 }
+            } else {
+                setIsProcessingAudio(false);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unable to send message');
-        } finally {
             setIsProcessingAudio(false);
         }
     };
@@ -351,8 +446,6 @@ function TestAgentContent() {
         
         // Play greeting audio from first message if available
         if (messages.length > 0 && messages[0].sender === 'agent' && messages[0].audioBase64) {
-            playBase64Audio(messages[0].audioBase64);
-            
             // Add greeting to call messages
             setCallMessages([{
                 id: generateMessageId(),
@@ -361,6 +454,25 @@ function TestAgentContent() {
                 timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 audioBase64: messages[0].audioBase64
             }]);
+            
+            // Play greeting audio and start recording when done
+            playBase64Audio(messages[0].audioBase64, () => {
+                console.log('Greeting finished, starting recording...');
+                setTimeout(() => {
+                    startRecording();
+                }, 500);
+            }).catch(err => {
+                console.error('Failed to play greeting:', err);
+                // Still start recording even if greeting fails
+                setTimeout(() => {
+                    startRecording();
+                }, 500);
+            });
+        } else {
+            // No greeting, start recording immediately
+            setTimeout(() => {
+                startRecording();
+            }, 500);
         }
     };
 
@@ -369,6 +481,12 @@ function TestAgentContent() {
         setCallDuration(0);
         setIsMuted(false);
         setLiveTranscript('');
+        
+        // Clear silence timer
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
         
         // Stop any ongoing recording
         if (recognitionRef.current) {
@@ -456,6 +574,14 @@ function TestAgentContent() {
             if (currentAudioRef.current) {
                 currentAudioRef.current.pause();
                 currentAudioRef.current = null;
+            }
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+                recognitionRef.current = null;
             }
         };
     }, []);
@@ -770,12 +896,11 @@ function TestAgentContent() {
                                                     
                                                     <div className="flex items-center gap-4">
                                                         <button
-                                                            onClick={isRecording ? stopRecording : startRecording}
-                                                            disabled={isProcessingAudio}
-                                                            className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                                            disabled={true}
+                                                            className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all ${
                                                                 isRecording 
-                                                                    ? 'bg-red-500 border-red-500 animate-pulse' 
-                                                                    : 'bg-white border-[#E5E7EB] hover:bg-gray-50'
+                                                                    ? 'bg-red-500 border-red-500 animate-pulse cursor-not-allowed' 
+                                                                    : 'bg-white border-[#E5E7EB] cursor-not-allowed opacity-50'
                                                             }`}
                                                         >
                                                             <Image 
@@ -806,7 +931,7 @@ function TestAgentContent() {
                                                     </div>
                                                     
                                                     <p className="text-xs text-[#717182] text-black">
-                                                        {isRecording ? '🔴 Recording... Click mic to stop and send' : 'Click microphone to speak'}
+                                                        {isRecording ? '🔴 Listening... (auto-send after silence)' : isProcessingAudio ? '⏳ Processing...' : '🎤 Speak to continue conversation'}
                                                     </p>
                                                 </div>
                                             </div>

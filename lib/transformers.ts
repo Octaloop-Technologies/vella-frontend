@@ -18,16 +18,16 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
   };
 
   // Get type variant for styling
-  const getTypeVariant = (type: string): 'inbound' | 'outbound' | 'omnichannel' => {
+  const getTypeVariant = (type: string): 'chat' | 'phone' | 'omnichannel' => {
     switch (type) {
       case 'chat_only':
-        return 'inbound';
+        return 'chat';
       case 'phone_only':
-        return 'outbound';
+        return 'phone';
       case 'omnichannel':
         return 'omnichannel';
       default:
-        return 'inbound';
+        return 'chat';
     }
   };
 

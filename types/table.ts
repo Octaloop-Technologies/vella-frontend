@@ -53,7 +53,7 @@ export interface AgentsTable extends Record<string, unknown> {
   id?: string;
   name: string;
   type: string;
-  typeVariant: 'outbound' | 'inbound' | 'omnichannel';
+  typeVariant: 'chat' | 'phone' | 'omnichannel';
   status: string;
   statusVariant: 'active' | 'draft' | 'disabled';
   conversations: string;

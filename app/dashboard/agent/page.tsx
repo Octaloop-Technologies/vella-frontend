@@ -90,13 +90,16 @@ export default function Agent() {
   };
 
   const handlePreviewWidget = (agent: AgentsTable) => {
+    console.log('Previewing widget for agent:', agent);
     // Pass agent data as URL parameters for widget preview
     const params = new URLSearchParams({
       id: agent.id || '',
       name: agent.name || '',
       type: agent.type || '',
+      typevariant: agent.typeVariant || '',
+      channelType: agent.typeVariant || '',
       status: agent.status || '',
-      description: agent.description || ''
+      description: agent.description || '',
     });
     router.push(`/dashboard/agent/preview-widget?${params.toString()}`);
   };

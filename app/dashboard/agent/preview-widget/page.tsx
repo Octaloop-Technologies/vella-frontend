@@ -16,6 +16,7 @@ function WidgetPreviewContent() {
   const [selectedSize, setSelectedSize] = useState('medium');
   const [customColor, setCustomColor] = useState('#8266D4');
   const [showCode, setShowCode] = useState(false);
+  const [selectedWidgetType, setSelectedWidgetType] = useState<'chat' | 'voice'>('chat');
   const [messages, setMessages] = useState([
     { id: 1, text: `👋 Hi! I'm ${searchParams.get('name') || 'AI Assistant'}. How can I help you today?`, sender: 'agent' }
   ]);
@@ -30,6 +31,10 @@ function WidgetPreviewContent() {
   const agentType = searchParams.get('type') || '';
   const agentStatus = searchParams.get('status') || '';
   const agentDescription = searchParams.get('description') || '';
+  const channelType = searchParams.get('channelType') || '';
+  
+  // Check if it's omnichannel
+  const isOmnichannel = channelType === 'omnichannel';
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -103,6 +108,7 @@ function WidgetPreviewContent() {
         const vellaConfig = {
           agentId: '${agentId}',
           title: agentConfig.name || '${agentName}',
+          widgetType: '${channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat')}',
           theme: '${selectedTheme}',
           position: '${selectedPosition}',
           size: '${selectedSize}',
@@ -246,6 +252,7 @@ function WidgetPreviewContent() {
             
             const vellaConfig = {
                 agentId: '${agentId}',
+                widgetType: '${channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat')}',
                 theme: '${selectedTheme}',
                 position: '${selectedPosition}',
                 size: '${selectedSize}',
@@ -386,6 +393,53 @@ function WidgetPreviewContent() {
                 </div>
               </div>
             </Card>
+
+            {/* Widget Type Selection (for Omnichannel only) */}
+            {isOmnichannel && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Widget Type</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="widgetType"
+                      value="chat"
+                      checked={selectedWidgetType === 'chat'}
+                      onChange={(e) => setSelectedWidgetType(e.target.value as 'chat' | 'voice')}
+                      className="text-brand-primary"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <div>
+                        <div className="font-medium">Chat Widget</div>
+                        <div className="text-xs text-gray-500">Text-based messaging</div>
+                      </div>
+                    </div>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="widgetType"
+                      value="voice"
+                      checked={selectedWidgetType === 'voice'}
+                      onChange={(e) => setSelectedWidgetType(e.target.value as 'chat' | 'voice')}
+                      className="text-brand-primary"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                      <div>
+                        <div className="font-medium">Voice Widget</div>
+                        <div className="text-xs text-gray-500">Voice call interaction</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </Card>
+            )}
 
             {/* Theme Selection */}
             <Card className="p-6">
@@ -541,11 +595,11 @@ function WidgetPreviewContent() {
                     className={`fixed ${currentPosition?.class} w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 transition-transform z-20`}
                     style={{ backgroundColor: customColor }}
                   >
-                    {isWidgetOpen ? '✕' : '💬'}
+                    {isWidgetOpen ? '✕' : (channelType === 'phone' ? '📞' : (selectedWidgetType === 'voice' ? '📞' : '💬'))}
                   </button>
 
-                  {/* Widget Panel */}
-                  {isWidgetOpen && (
+                  {/* Widget Panel - Chat or Voice based on selection */}
+                  {isWidgetOpen && selectedWidgetType === 'chat' && channelType !== 'phone' && (
                     <div
                       ref={widgetRef}
                       className={`fixed ${currentPosition?.class} bg-white rounded-lg shadow-2xl border border-gray-200 z-10 transition-all duration-300`}
@@ -627,6 +681,95 @@ function WidgetPreviewContent() {
                           >
                             send massage
                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Voice Widget Panel */}
+                  {isWidgetOpen && (selectedWidgetType === 'voice' || channelType === 'phone') && (
+                    <div
+                      ref={widgetRef}
+                      className={`fixed ${currentPosition?.class} bg-white rounded-lg shadow-2xl border border-gray-200 z-10 transition-all duration-300`}
+                      style={{ 
+                        width: '350px', 
+                        height: '450px',
+                        marginRight: selectedPosition.includes('right') ? '80px' : 'auto',
+                        marginLeft: selectedPosition.includes('left') ? '80px' : 'auto',
+                        marginBottom: selectedPosition.includes('bottom') ? '80px' : 'auto',
+                        marginTop: selectedPosition.includes('top') ? '80px' : 'auto'
+                      }}
+                    >
+                      {/* Voice Widget Header */}
+                      <div 
+                        className="p-4 border-b flex items-center justify-between text-white rounded-t-lg"
+                        style={{ backgroundColor: customColor }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <span className="text-sm">📞</span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{agentName}</h4>
+                            <p className="text-xs opacity-90">Voice Assistant</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setIsWidgetOpen(false)}
+                          className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Voice Widget Body */}
+                      <div className="p-6 h-full flex flex-col items-center justify-center" style={{ height: 'calc(100% - 72px)' }}>
+                        <div className="text-center space-y-6">
+                          {/* Voice Animation Circle */}
+                          <div className="relative mx-auto">
+                            <div 
+                              className="w-32 h-32 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: `${customColor}20` }}
+                            >
+                              <div 
+                                className="w-24 h-24 rounded-full flex items-center justify-center animate-pulse"
+                                style={{ backgroundColor: `${customColor}40` }}
+                              >
+                                <svg className="w-12 h-12" style={{ color: customColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status Text */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Talk</h3>
+                            <p className="text-sm text-gray-600 mb-6">
+                              Click the microphone to start speaking
+                            </p>
+                          </div>
+
+                          {/* Single Voice Button */}
+                          <div className="flex items-center justify-center">
+                            <button 
+                              className="w-20 h-20 rounded-full text-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg transform hover:scale-105"
+                              style={{ backgroundColor: customColor }}
+                              title="Start Voice Conversation"
+                            >
+                              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Info Text */}
+                          <div className="mt-6 text-xs text-gray-500">
+                            <p>🎙️ Speak clearly into your microphone</p>
+                            <p className="mt-1">🔊 Make sure your speakers are on</p>
+                          </div>
                         </div>
                       </div>
                     </div>
