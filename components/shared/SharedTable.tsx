@@ -159,11 +159,14 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Agent Name",
           render: (row: Record<string, unknown>) => (
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={row.onViewDetails as () => void}
+            >
               <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center">
                 <AgentIcon className="h-3 w-3 text-white" />
               </div>
-              <span className="text-sm font-medium text-[#1F2937]">
+              <span className="text-sm font-medium text-[#1F2937] hover:text-[#8266D4] transition-colors">
                 {String(row.name)}
               </span>
             </div>
@@ -197,13 +200,42 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: "successRate",
-          header: "Success Rate",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs text-black">
-              {String(row.successRate)}
-            </span>
-          ),
+          key: "phoneNumber",
+          header: "Phone Number",
+          render: (row: Record<string, unknown>) => {
+            const phoneNumber = row.phoneNumber as string | null | undefined;
+            
+            if (!phoneNumber || phoneNumber === 'null' || phoneNumber === 'undefined') {
+              return (
+                <span className="text-xs text-gray-400 italic">
+                  Not assigned
+                </span>
+              );
+            }
+            
+            return (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-gradient-to-b from-[#8266D4]/10 to-[#41288A]/10 px-3 py-1.5 rounded-lg border border-[#8266D4]/20">
+                  <svg 
+                    className="w-3.5 h-3.5 text-[#8266D4]" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
+                    />
+                  </svg>
+                  <span className="text-xs font-medium text-[#8266D4]">
+                    {phoneNumber}
+                  </span>
+                </div>
+              </div>
+            );
+          },
         },
         {
           key: "lastActive",
@@ -441,9 +473,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
       )
     );
   }, [data, searchTerm]);
-  console.log("data", data);
-  console.log("filteredData", filteredData);
-  console.log("searchTerm", searchTerm);
+  
   return (
     <Card className={`${className}`}>
       {(title || showSearch || viewToggle) && (
