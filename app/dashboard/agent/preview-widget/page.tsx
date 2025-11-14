@@ -128,6 +128,9 @@ function WidgetPreviewContent() {
   };
 
   const testWidget = () => {
+    // Determine if it's a voice widget
+    const isVoiceWidget = channelType === 'phone' || selectedWidgetType === 'voice';
+    
     // Create a test HTML page with the widget
     const testHtml = `
 <!DOCTYPE html>
@@ -139,28 +142,43 @@ function WidgetPreviewContent() {
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            ${isVoiceWidget ? 'display: flex; flex-direction: column; min-height: 100vh;' : 'max-width: 800px;'}
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            ${isVoiceWidget ? 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' : ''}
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: ${isVoiceWidget ? 'rgba(255,255,255,0.95)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+            color: ${isVoiceWidget ? '#333' : 'white'};
             padding: 2rem;
             border-radius: 10px;
             margin-bottom: 2rem;
+            ${isVoiceWidget ? 'box-shadow: 0 4px 20px rgba(0,0,0,0.1);' : ''}
         }
         .content {
-            background: #f9f9f9;
+            background: ${isVoiceWidget ? 'rgba(255,255,255,0.95)' : '#f9f9f9'};
             padding: 2rem;
             border-radius: 10px;
             margin-bottom: 2rem;
+            ${isVoiceWidget ? 'box-shadow: 0 4px 20px rgba(0,0,0,0.1);' : ''}
+        }
+        .voice-widget-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #voice-widget-mount {
+            width: 100%;
+            max-width: 500px;
         }
         .footer {
             text-align: center;
-            color: #666;
+            color: ${isVoiceWidget ? 'white' : '#666'};
             padding: 1rem;
+            ${isVoiceWidget ? 'background: rgba(255,255,255,0.1); border-radius: 10px;' : ''}
         }
         .debug-panel {
             background: #f0f0f0;
@@ -177,9 +195,15 @@ function WidgetPreviewContent() {
 <body>
     <div class="header">
         <h1>🚀 Widget Test for ${agentName}</h1>
-        <p>This is a live test of your AI widget. Click the chat button in the bottom-right corner!</p>
+        <p>${isVoiceWidget ? 'Your voice assistant will appear below. Speak naturally to interact!' : 'This is a live test of your AI widget. Click the chat button in the bottom-right corner!'}</p>
     </div>
 
+    ${isVoiceWidget ? `
+    <!-- Voice Widget Container (Center of Page) -->
+    <div class="voice-widget-container">
+        <div id="voice-widget-mount"></div>
+    </div>
+    ` : `
     <div class="content">
         <h2>Widget Status</h2>
         <p id="status">Loading widget...</p>
@@ -205,6 +229,7 @@ function WidgetPreviewContent() {
             <div id="debug-output"></div>
         </div>
     </div>
+    `}
 
     <div class="footer">
         <p>Powered by Vella AI Widget System</p>
@@ -212,6 +237,7 @@ function WidgetPreviewContent() {
 
     <!-- Vella AI Widget -->
     <script>
+        ${!isVoiceWidget ? `
         // Override console.log to show in debug panel
         const originalLog = console.log;
         const originalError = console.error;
@@ -238,14 +264,15 @@ function WidgetPreviewContent() {
         console.warn = function(...args) {
             addToDebug(args.join(' '), 'warn');
         };
+        ` : ''}
 
         (function() {
             console.log('🚀 Starting widget initialization...');
             
             const vellaConfig = {
                 agentId: '${agentId}',
-                widgetType: '${channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat')}',
-                position: '${selectedPosition}',
+                widgetType: '${isVoiceWidget ? 'inline-voice' : (channelType === 'phone' ? 'voice' : (isOmnichannel ? selectedWidgetType : 'chat'))}',
+                ${isVoiceWidget ? "containerId: 'voice-widget-mount'," : `position: '${selectedPosition}',`}
                 size: '${selectedSize}',
                 primaryColor: '${customColor}',
                 title: '${agentName}'
@@ -253,8 +280,7 @@ function WidgetPreviewContent() {
             
             console.log('📝 Widget config:', JSON.stringify(vellaConfig));
             
-            // Update status
-            document.getElementById('status').textContent = 'Loading widget script...';
+            ${!isVoiceWidget ? "document.getElementById('status').textContent = 'Loading widget script...';" : ''}
             
             // Widget loader script
             const script = document.createElement('script');
@@ -262,27 +288,27 @@ function WidgetPreviewContent() {
             
             script.onload = function() {
                 console.log('✅ Widget script loaded successfully');
-                document.getElementById('status').textContent = 'Widget script loaded, initializing...';
+                ${!isVoiceWidget ? "document.getElementById('status').textContent = 'Widget script loaded, initializing...';" : ''}
                 
                 if (window.VellaWidget) {
                     console.log('🎯 Initializing widget...');
                     try {
                         window.VellaWidget.init(vellaConfig);
-                        document.getElementById('status').innerHTML = '✅ <strong style="color: green;">Widget loaded successfully!</strong> Look for the chat button.';
+                        ${!isVoiceWidget ? `document.getElementById('status').innerHTML = '✅ <strong style="color: green;">Widget loaded successfully!</strong> Look for the chat button.';` : ''}
                         console.log('🎉 Widget initialized!');
                     } catch (error) {
                         console.error('❌ Widget initialization failed:', error);
-                        document.getElementById('status').innerHTML = '❌ <strong style="color: red;">Widget initialization failed</strong>';
+                        ${!isVoiceWidget ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Widget initialization failed</strong>';" : ''}
                     }
                 } else {
                     console.error('❌ VellaWidget not found on window');
-                    document.getElementById('status').innerHTML = '❌ <strong style="color: red;">Widget failed to initialize</strong>';
+                    ${!isVoiceWidget ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Widget failed to initialize</strong>';" : ''}
                 }
             };
             
             script.onerror = function(error) {
                 console.error('❌ Failed to load widget script:', error);
-                document.getElementById('status').innerHTML = '❌ <strong style="color: red;">Failed to load widget script</strong><br>Make sure your Next.js app is running on localhost:3000';
+                ${!isVoiceWidget ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Failed to load widget script</strong><br>Make sure your Next.js app is running on localhost:3000';" : ''}
             };
             
             console.log('📤 Loading widget script from:', script.src);

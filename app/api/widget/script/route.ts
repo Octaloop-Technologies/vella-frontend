@@ -32,6 +32,19 @@ export async function GET() {
   let lastSpeechTime = null; // tracks when user last spoke
   let voiceState = 'idle'; // 'idle', 'listening', 'processing', 'responding'
   let isVoiceActive = false; // tracks if voice mode is actively listening
+  
+  // WebSocket state
+  let ws = null;
+  let wsReconnectAttempts = 0;
+  let wsMaxReconnectAttempts = 5;
+  let wsReconnectDelay = 1000;
+  let currentResponseText = ''; // accumulate streaming text
+  let audioChunks = []; // accumulate audio chunks
+  
+  // Audio queue for sequential playback
+  let audioQueue = [];
+  let isPlayingQueue = false;
+  let isAudioStreamComplete = false; // Track if server finished sending audio chunks
 
   // Main widget initialization
   window.VellaWidget = {
@@ -39,12 +52,13 @@ export async function GET() {
       console.log('🎯 Vella Widget: init() called with config:', userConfig);
       config = {
         agentId: userConfig.agentId || '',
-        widgetType: userConfig.widgetType || 'chat', // 'chat' or 'voice'
+        widgetType: userConfig.widgetType || 'chat', // 'chat', 'voice', or 'inline-voice'
         theme: userConfig.theme || 'light',
         position: userConfig.position || 'bottom-right',
         size: userConfig.size || 'medium',
         primaryColor: userConfig.primaryColor || '#8266D4',
         title: userConfig.title || 'AI Assistant',
+        containerId: userConfig.containerId || null, // For inline widgets
         apiBaseUrl: '${
           process.env.NEXT_PUBLIC_API_URL ||
           "https://ai-voice-agent-backend.octaloop.dev"
@@ -55,7 +69,12 @@ export async function GET() {
       };
       console.log('📝 Vella Widget: Final config set:', config);
 
-      this.createWidget();
+      // Check if inline voice widget
+      if (config.widgetType === 'inline-voice') {
+        this.createInlineVoiceWidget();
+      } else {
+        this.createWidget();
+      }
       // bindEvents is now called in createWidgetContainer after DOM is ready
     },
 
@@ -66,6 +85,44 @@ export async function GET() {
       
       // Create widget container (initially hidden)
       this.createWidgetContainer();
+    },
+
+    createInlineVoiceWidget: function() {
+      console.log('🎙️ Vella Widget: createInlineVoiceWidget() called');
+      
+      // Find container element
+      const container = config.containerId 
+        ? document.getElementById(config.containerId) 
+        : document.body;
+      
+      if (!container) {
+        console.error('❌ Container not found:', config.containerId);
+        return;
+      }
+
+      // Create inline widget element
+      const inlineWidget = document.createElement('div');
+      inlineWidget.id = 'vella-inline-voice-widget';
+      inlineWidget.style.cssText = \`
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      \`;
+      
+      inlineWidget.innerHTML = this.getInlineVoiceHTML();
+      container.appendChild(inlineWidget);
+      
+      console.log('✅ Vella Widget: Inline voice widget created');
+      
+      // Just bind events - don't auto-start
+      setTimeout(() => {
+        this.bindInlineVoiceEvents();
+      }, 100);
     },
 
     createTriggerButton: function() {
@@ -190,74 +247,93 @@ export async function GET() {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
           }
+          
+          #vella-messages::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          #vella-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+          }
+          
+          #vella-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+          }
+          
+          #vella-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
         </style>
-        <div style="height: 100%; display: flex; flex-direction: column; margin-bottom: 100px;">
+        <div style="height: 100%; display: flex; flex-direction: column;">
           <!-- Header -->
           <div id="vella-header" style="
-            padding: 16px;
-            padding-right: 50px;
-            background: \${config.primaryColor};
+            padding: 20px;
+            background: linear-gradient(135deg, \${config.primaryColor} 0%, \${config.primaryColor}dd 100%);
             color: white;
             border-radius: 12px 12px 0 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex: 0 0 auto;
             position: relative;
-            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
           ">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="
-                width: 32px;
-                height: 32px;
-                background: rgba(255,255,255,0.2);
+                width: 40px;
+                height: 40px;
+                background: rgba(255,255,255,0.25);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 16px;
+                font-size: 18px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
               ">🤖</div>
               <div>
-                <div style="font-weight: 600; font-size: 14px;">\${config.title}</div>
-                <div style="font-size: 12px; opacity: 0.9;">Online now</div>
+                <div style="font-weight: 600; font-size: 16px;">\${config.title}</div>
+                <div style="font-size: 13px; opacity: 0.95; display: flex; align-items: center; gap: 6px;">
+                  <span style="
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    background: #10b981;
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+                  "></span>
+                  Online now
+                </div>
               </div>
             </div>
             <button id="vella-close" style="
-              position: absolute;
-              top: 8px;
-              right: 12px;
-              background: none;
+              background: rgba(255,255,255,0.2);
               border: none;
               color: white;
               cursor: pointer;
-              padding: 6px;
+              padding: 8px;
               border-radius: 50%;
-              font-size: 16px;
-              z-index: 10;
+              font-size: 20px;
+              font-weight: bold;
               display: flex;
               align-items: center;
               justify-content: center;
-              width: 24px;
-              height: 24px;
-            ">×</button>
+              width: 32px;
+              height: 32px;
+              transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
           </div>
 
           <!-- Messages -->
           <div id="vella-messages" style="
             flex: 1;
-            padding: 16px;
+            padding: 20px;
             overflow-y: auto;
-            background: white;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
           ">
-            <div class="vella-message vella-agent-message" style="
-              background: #f3f4f6;
-              padding: 12px;
-              border-radius: 8px;
-              flex: 1 1 auto;
-              font-size: 14px;
-            ">
-              👋 Hi! I'm \${config.title}. How can I help you today?
-            </div>
+            <!-- Initial greeting message will be added here -->
           </div>
 
           <!-- Voice Call Screen -->
@@ -317,12 +393,10 @@ export async function GET() {
 
           <!-- Input -->
           <div id="vella-input-area" style="
-            padding: 12px;
+            padding: 16px;
             border-top: 1px solid #e5e7eb;
             background: white;
             border-radius: 0 0 12px 12px;
-            position: relative;
-            z-index: 5;
           ">
             <!-- Chat Mode Input -->
             <div id="vella-chat-input" style="display: flex; gap: 8px; align-items: center;">
@@ -332,26 +406,31 @@ export async function GET() {
                 placeholder="Type your message..."
                 style="
                   flex: 1;
-                  padding: 10px 12px;
-                  border: 1px solid #d1d5db;
-                  border-radius: 6px;
+                  padding: 12px 16px;
+                  border: 1.5px solid #e5e7eb;
+                  border-radius: 24px;
                   font-size: 14px;
                   outline: none;
                   font-family: inherit;
+                  transition: border-color 0.2s;
+                  background: #f9fafb;
                 "
+                onfocus="this.style.borderColor='\${config.primaryColor}'; this.style.background='white';"
+                onblur="this.style.borderColor='#e5e7eb'; this.style.background='#f9fafb';"
               />
               <button id="vella-send" style="
-                padding: 10px 16px;
+                padding: 12px 20px;
                 background: \${config.primaryColor};
                 color: white;
                 border: none;
-                border-radius: 6px;
+                border-radius: 24px;
                 cursor: pointer;
                 font-size: 14px;
-                font-weight: 500;
+                font-weight: 600;
                 white-space: nowrap;
-                transition: opacity 0.2s;
-              ">Send</button>
+                transition: all 0.2s;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';">Send</button>
             </div>
           </div>
         </div>
@@ -459,37 +538,16 @@ export async function GET() {
             <!-- Status Text -->
             <div style="margin-bottom: 32px;">
               <h3 id="vella-voice-status" style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
-                Ready to Talk
+                Connecting...
               </h3>
               <p id="vella-voice-subtitle" style="font-size: 14px; color: #6B7280; margin-bottom: 24px; max-width: 280px;">
-                Click the microphone to start speaking
+                Starting voice call...
               </p>
             </div>
 
-            <!-- Single Voice Button -->
+            <!-- Call Controls -->
             <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px;">
-              <!-- Main Voice Button (Microphone) -->
-              <button id="vella-voice-main-btn" style="
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                background: \${config.primaryColor};
-                color: white;
-                border: none;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-                transition: all 0.3s;
-                position: relative;
-              " title="Start Voice Conversation">
-                <svg id="vella-voice-icon" style="width: 40px; height: 40px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              </button>
-
-              <!-- End Call Button (Hidden by default, shown during speaking) -->
+              <!-- End Call Button (Always visible during call) -->
               <button id="vella-voice-end-btn" style="
                 width: 64px;
                 height: 64px;
@@ -498,12 +556,12 @@ export async function GET() {
                 color: white;
                 border: none;
                 cursor: pointer;
-                display: none;
+                display: flex;
                 align-items: center;
                 justify-content: center;
                 box-shadow: 0 8px 16px rgba(239,68,68,0.3);
                 transition: all 0.3s;
-              " title="End Conversation">
+              " title="End Call">
                 <svg style="width: 28px; height: 28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -522,23 +580,460 @@ export async function GET() {
       return html;
     },
 
+    getInlineVoiceHTML: function() {
+      console.log('🎙️ Vella Widget: getInlineVoiceHTML() called');
+      const html = \`
+        <style>
+          @keyframes breathe {
+            0%, 100% { 
+              transform: scale(1); 
+              box-shadow: 0 8px 32px rgba(16,185,129,0.3);
+            }
+            50% { 
+              transform: scale(1.08); 
+              box-shadow: 0 12px 48px rgba(16,185,129,0.5);
+            }
+          }
+          
+          @keyframes listening-pulse {
+            0%, 100% { 
+              transform: scale(1); 
+              box-shadow: 0 8px 32px rgba(16,185,129,0.4), 0 0 0 0 rgba(16,185,129,0.7);
+            }
+            50% { 
+              transform: scale(1.05); 
+              box-shadow: 0 12px 48px rgba(16,185,129,0.6), 0 0 0 15px rgba(16,185,129,0);
+            }
+          }
+          
+          @keyframes speaking-pulse {
+            0%, 100% { 
+              transform: scale(1); 
+              box-shadow: 0 8px 32px rgba(139,92,246,0.4), 0 0 0 0 rgba(139,92,246,0.7);
+            }
+            50% { 
+              transform: scale(1.05); 
+              box-shadow: 0 12px 48px rgba(139,92,246,0.6), 0 0 0 15px rgba(139,92,246,0);
+            }
+          }
+          
+          @keyframes processing-spin {
+            0% { 
+              transform: rotate(0deg) scale(1); 
+            }
+            50% { 
+              transform: rotate(180deg) scale(1.05); 
+            }
+            100% { 
+              transform: rotate(360deg) scale(1); 
+            }
+          }
+          
+          @keyframes rec-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
+          
+          @keyframes pulse-ring {
+            0% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            50% {
+              transform: scale(1);
+              box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+          }
+          
+          @keyframes pulse-ring-red {
+            0% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+              transform: scale(1);
+              box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+          }
+          
+          @keyframes pulse-ring-blue {
+            0% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            50% {
+              transform: scale(1);
+              box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+          }
+          
+          @keyframes pulse-ring-purple {
+            0% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+            }
+            50% {
+              transform: scale(1);
+              box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+            }
+            100% {
+              transform: scale(0.95);
+              box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+            }
+          }
+          
+          @keyframes wave-animation {
+            0%, 100% { 
+              transform: scaleY(0.5); 
+            }
+            50% { 
+              transform: scaleY(1); 
+            }
+          }
+          
+          .vella-voice-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+          
+          .vella-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+          }
+          
+          .vella-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 24px;
+          }
+          
+          .vella-rec-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+          }
+          
+          .vella-rec-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: rec-blink 1.5s ease-in-out infinite;
+          }
+          
+          .vella-rec-time {
+            font-size: 18px;
+            color: #1f2937;
+            font-weight: 600;
+          }
+          
+          .vella-status-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+          }
+          
+          .vella-status-indicator.listening {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            animation: pulse-ring 2s ease-in-out infinite;
+          }
+          
+          .vella-status-indicator.processing {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            animation: pulse-ring-blue 1.5s ease-in-out infinite;
+          }
+          
+          .vella-status-indicator.speaking {
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            animation: pulse-ring-purple 1.5s ease-in-out infinite;
+          }
+          
+          .vella-status-indicator svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+          }
+          
+          .vella-call-status {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 32px;
+            display: none;
+          }
+          
+          .vella-endcall-btn {
+            width: auto;
+            margin: 0 auto 24px;
+            padding: 14px 32px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+          }
+          
+          .vella-endcall-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+          }
+          
+          .vella-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #9ca3af;
+          }
+          
+          .vella-footer-logo {
+            width: 18px;
+            height: 18px;
+          }
+          
+          .vella-start-call-btn {
+            width: auto;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          }
+          
+          .vella-start-call-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+          }
+          
+          .vella-start-call-btn:active {
+            transform: translateY(0);
+          }
+          
+          .vella-content-area {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+          }
+        </style>
+        
+        <!-- Voice Interface Card -->
+        <div class="vella-voice-card">
+          <div>
+            <!-- Avatar -->
+            <div class="vella-avatar" id="vella-voice-avatar">
+              <svg viewBox="-36 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="m351.21875 392.441406-71.398438-10.441406-119.390624.019531s-71.277344 10.398438-71.378907 10.410157c-49.632812 6.453124-79.050781 44.757812-79.050781 87.597656v21.972656h420v-21.992188c0-44.449218-30.308594-81.265624-78.78125-87.566406zm0 0" fill="#83c2b1"></path><path d="m390 210v46c0 11.050781-8.929688 20-19.96875 20h-40.019531c-.011719-.171875-.011719-.351562-.011719-.519531v-85.480469h40.03125c11.039062 0 19.96875 8.949219 19.96875 20zm0 0" fill="#83c2b1"></path><path d="m390.339844 335.578125c0 26.300781-16.890625 48.652344-40.398438 56.800781l-69.8125-9.058594-.308594-1.199218-9.492187-37.101563-.457031-.941406c35.6875-18.179687 60.128906-55.269531 60.128906-98.078125v30h.011719c.269531 32.949219 27.296875 59.578125 60.328125 59.578125zm0 0" fill="#424d63"></path><path d="m329.96875 190h-29.820312c-33.1875 0-60.097657-27.53125-60.097657-60.730469 0 33.199219-26.910156 60.730469-60.109375 60.730469h-69.941406v-8.835938c0-59.789062 47.257812-109.546874 107.023438-111.125 62.09375-1.640624 112.976562 48.210938 112.976562 109.960938v10zm0 0" fill="#424d63"></path><path d="m300.179688 190c-33.191407 0-60.101563-27.53125-60.101563-60.730469 0 33.199219-26.90625 60.730469-60.109375 60.730469h-69.96875v56c0 43.023438 24.6875 80.105469 60.339844 98.171875l-.417969.847656-9.492187 37.121094c3.082031 30.25 28.628906 53.859375 59.699218 53.859375 31.070313 0 56.621094-23.621094 59.691406-53.878906l-9.492187-37.101563-.457031-.941406c35.6875-18.179687 60.128906-55.269531 60.128906-98.078125v-56zm0 0" fill="#fed2a4"></path><path d="m160.257812 381.773438-.300781 1.175781-69.730469 9.050781h-.007812c-23.449219-8.121094-40.300781-30.40625-40.300781-56.625 32.914062 0 59.804687-26.539062 60.070312-59.375h.011719v-29.898438c0 30.277344 12.277344 57.683594 32.117188 77.515626 8.164062 8.160156 17.609374 15.046874 28.015624 20.320312l-.417968.84375zm0 0" fill="#424d63"></path><path d="m110 190v85.480469c0 .167969 0 .347656-.011719.519531h-39.957031c-11.050781 0-20.03125-8.949219-20.03125-20v-46c0-11.039062 8.960938-19.980469 20-20h.03125zm0 0" fill="#83c2b1"></path><path d="m270.28125 240c5.519531 0 10-4.480469 10-10s-4.480469-10-10-10c-5.53125 0-10 4.480469-10 10s4.46875 10 10 10zm0 0"></path><path d="m170.28125 240c5.519531 0 10-4.480469 10-10s-4.480469-10-10-10c-5.53125 0-10 4.480469-10 10s4.46875 10 10 10zm0 0"></path><path d="m0 480.050781v21.949219c0 5.523438 4.476562 10 10 10h420c5.523438 0 10-4.476562 10-10v-21.96875c0-39.769531-22.339844-76.523438-63.683594-91.613281 14.945313-13.054688 24.03125-32.183594 24.023438-52.863281 0-5.5-4.5-9.976563-10-9.976563-24.054688 0-44.328125-17.011719-49.210938-39.578125h28.902344c16.527344 0 29.96875-13.457031 29.96875-30v-46c0-13.042969-8.359375-24.164062-20-28.285156v-21.714844c0-88.222656-71.761719-160-159.96875-160-88.410156 0-160.03125 71.550781-160.03125 160v21.730469c-11.636719 4.136719-20 15.253906-20 28.269531v46c0 16.542969 13.472656 30 30.03125 30h28.839844c-4.875 22.566406-25.128906 39.578125-49.160156 39.578125-5.5 0-10 4.476563-10 9.976563-.007813 20.707031 9.101562 39.855468 24.085937 52.917968-41.183594 15.101563-63.796875 52.226563-63.796875 91.578125zm379.746094-135.308593c-3.113282 16.769531-14.652344 31.003906-30.777344 37.398437l-60.582031-7.867187-6.472657-25.296876c18.886719-11.292968 33.9375-27.25 44.023438-45.980468 9.410156 21.804687 29.621094 37.976562 53.808594 41.746094zm-79.316406-164.742188c-27.625 0-50.101563-22.757812-50.101563-50.730469 0-5.523437-4.476563-10-10-10-5.519531 0-10 4.476563-10 10 0 27.972657-22.476563 50.730469-50.109375 50.730469h-59.9375c0-55.140625 44.859375-100 100-100 55.246094 0 100 44.710938 100 100zm-180.429688 20h59.96875c25.484375 0 47.835938-13.785156 60.109375-34.355469 12.273437 20.570313 34.621094 34.355469 60.101563 34.355469h19.820312v46c0 37.824219-20.949219 71.992188-54.667969 89.167969-14.109375 7.1875-29.351562 10.832031-45.300781 10.832031-15.90625 0-31.101562-3.617188-45.171875-10.75-9.441406-4.785156-18.039063-11.019531-25.558594-18.542969-18.894531-18.882812-29.300781-43.996093-29.300781-70.707031zm57.167969 158.023438c13.691406 5.289062 28.144531 7.976562 43.113281 7.976562 15.027344 0 29.535156-2.710938 43.285156-8.054688l6.347656 24.824219c-3.332031 24.757813-24.335937 43.230469-49.535156 43.230469-25.195312 0-46.199218-18.464844-49.539062-43.214844zm202.832031-102.023438c0 5.515625-4.472656 10-9.96875 10h-30.03125v-66h30.03125c5.496094 0 9.96875 4.484375 9.96875 10zm-159.96875-236c77.179688 0 139.96875 62.804688 139.96875 140v20h-19.96875c0-66.300781-53.660156-120-120-120-66.167969 0-120 53.832031-120 120h-20.03125v-20c0-77.351562 62.636719-140 140.03125-140zm-160.03125 236v-46c0-5.503906 4.492188-9.988281 10.03125-10h29.96875v66h-29.96875c-5.53125 0-10.03125-4.484375-10.03125-10zm54.578125 46.96875c5.480469 10.125 12.457031 19.515625 20.832031 27.882812 7.046875 7.050782 14.902344 13.144532 23.402344 18.21875l-6.441406 25.207032-60.75 7.882812c-16.144532-6.398437-27.699219-20.640625-30.816406-37.417968 24.179687-3.773438 44.378906-19.960938 53.773437-41.773438zm-24.265625 99.492188 1.101562-.140626h.007813c.007813-.003906.015625-.003906.023437-.003906l61.121094-7.929687c8.097656 30.089843 35.386719 51.613281 67.5625 51.613281 32.175782 0 59.460938-21.523438 67.554688-51.617188 3.046875.398438-16.054688-2.082031 62.25 8.082032 43.839844 5.695312 70.066406 38.550781 70.066406 77.566406v11.96875h-400v-11.949219c0-38.285156 26.210938-71.863281 70.3125-77.589843zm0 0"></path><path d="m193.546875 308.734375c8.394531 3.957031 17.390625 5.964844 26.730469 5.964844 9.125 0 17.941406-1.925781 26.214844-5.722657 5.019531-2.300781 7.21875-8.238281 4.914062-13.257812-2.300781-5.019531-8.238281-7.222656-13.257812-4.917969-5.636719 2.585938-11.648438 3.898438-17.867188 3.898438-6.371094 0-12.5-1.363281-18.207031-4.054688-4.996094-2.355469-10.953125-.214843-13.308594 4.78125-2.355469 4.996094-.214844 10.957031 4.78125 13.308594zm0 0"></path><path d="m310.28125 466h40c5.523438 0 10-4.476562 10-10s-4.476562-10-10-10h-40c-5.523438 0-10 4.476562-10 10s4.476562 10 10 10zm0 0"></path><path d="m390 466c5.519531 0 10-4.480469 10-10s-4.480469-10-10-10-10 4.480469-10 10 4.480469 10 10 10zm0 0"></path></svg>
+            </div>
+            
+            <!-- Name -->
+            <div class="vella-name" id="vella-voice-name">\${config.title}</div>
+          </div>
+          
+          <!-- Content Area with Fixed Height -->
+          <div class="vella-content-area">
+            <!-- Start Call Button (Visible initially) -->
+            <button id="vella-inline-call-btn" class="vella-start-call-btn" data-state="ready" title="Start Call">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              <span id="vella-inline-text">Start Call</span>
+            </button>
+            
+            <!-- Call Status Container (Hidden initially) -->
+            <div id="vella-call-info" style="display: none;">
+              <!-- Recording Status -->
+              <div class="vella-rec-status">
+                <span class="vella-rec-dot"></span>
+                <span class="vella-rec-time" id="vella-rec-timer">00:00</span>
+              </div>
+              
+              <!-- Status Indicator -->
+              <div class="vella-status-indicator" id="vella-status-indicator">
+                <svg class="vella-status-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+              </div>
+              
+              <!-- Call Status Text (hidden) -->
+              <div class="vella-call-status" id="vella-call-status" style="display: none;">In call...</div>
+            </div>
+            
+            <!-- End Call Button (Hidden initially) -->
+            <button id="vella-endcall-btn" class="vella-endcall-btn" style="display: none;" title="End Call">
+              End Call
+            </button>
+          </div>
+          
+          <!-- Footer -->
+          <div class="vella-footer">
+            <span>Powered by</span>
+            <svg class="vella-footer-logo" viewBox="0 0 24 24" fill="#8B5CF6">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span style="color: #8B5CF6; font-weight: 600;">Vella AI</span>
+          </div>
+          
+          <!-- Hidden elements for accessibility -->
+          <div id="vella-inline-status" style="position: absolute; left: -9999px;">Ready to talk</div>
+          <div id="vella-inline-subtitle" style="position: absolute; left: -9999px;">Click to start</div>
+          <div id="vella-inline-pulse" style="display: none;"></div>
+        </div>
+      \`;
+      return html;
+    },
 
-// ...existing code...
-bindEvents: function() {
-  console.log('🔗 Vella Widget: bindEvents() called - looking for elements...');
-  console.log('widgetContainer exists:', !!widgetContainer);
-  if (widgetContainer) {
-    console.log('widgetContainer children:', widgetContainer.children.length);
-  }
-  
-  // Bind interactive controls. Use assignment (onclick/ons) to overwrite previous handlers
-  // and avoid duplicate listeners caused by multiple bindEvents() calls.
-  const self = this;
+    bindInlineVoiceEvents: function() {
+      console.log('🔗 Vella Widget: bindInlineVoiceEvents() called');
+      const self = this;
+      
+      // Get UI elements
+      const startCallBtn = document.getElementById('vella-inline-call-btn');
+      const endCallBtn = document.getElementById('vella-endcall-btn');
+      const callInfo = document.getElementById('vella-call-info');
+      const callStatus = document.getElementById('vella-call-status');
+      const recTimer = document.getElementById('vella-rec-timer');
+      const statusIndicator = document.getElementById('vella-status-indicator');
+      
+      let callStartTime = null;
+      let timerInterval = null;
+      
+      // Function to update timer
+      const updateTimer = () => {
+        if (callStartTime) {
+          const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+          const minutes = Math.floor(elapsed / 60);
+          const seconds = elapsed % 60;
+          if (recTimer) {
+            recTimer.textContent = \`\${String(minutes).padStart(2, '0')}:\${String(seconds).padStart(2, '0')}\`;
+          }
+        }
+      };
+      
+      // Start call button click
+      if (startCallBtn) {
+        startCallBtn.onclick = function() {
+          console.log('📞 Vella Widget: Start call clicked');
+          isVoiceMode = true;
+          self.startConversation();
+          
+          setTimeout(() => {
+            self.startVoiceListening();
+          }, 500);
+          
+          // Hide start button, show call info and end call button
+          startCallBtn.style.display = 'none';
+          if (callInfo) callInfo.style.display = 'block';
+          if (endCallBtn) endCallBtn.style.display = 'block';
+          if (statusIndicator) statusIndicator.classList.add('listening');
+          
+          // Start timer
+          callStartTime = Date.now();
+          timerInterval = setInterval(updateTimer, 1000);
+          
+          // Update status (hidden text for accessibility)
+          if (callStatus) callStatus.textContent = 'Listening...';
+        };
+      }
+      
+      // End call button click
+      if (endCallBtn) {
+        endCallBtn.onclick = function() {
+          console.log('🛑 Vella Widget: End call clicked');
+          isVoiceMode = false;
+          self.endVoiceConversation();
+          
+          // Show start button, hide call info and end call button
+          if (startCallBtn) startCallBtn.style.display = 'flex';
+          if (callInfo) callInfo.style.display = 'none';
+          if (endCallBtn) endCallBtn.style.display = 'none';
+          if (statusIndicator) statusIndicator.classList.remove('listening', 'processing', 'speaking');
+          
+          // Stop timer
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          callStartTime = null;
+          if (recTimer) recTimer.textContent = '00:00';
+        };
+      }
+      
+      console.log('✅ Vella Widget: Inline voice events bound');
+    },
+
+    bindEvents: function() {
+      console.log('🔗 Vella Widget: bindEvents() called - looking for elements...');
+      console.log('widgetContainer exists:', !!widgetContainer);
+      if (widgetContainer) {
+        console.log('widgetContainer children:', widgetContainer.children.length);
+      }
+      
+      // Bind interactive controls. Use assignment (onclick/ons) to overwrite previous handlers
+      // and avoid duplicate listeners caused by multiple bindEvents() calls.
+      const self = this;
 
   // Toggle widget (overwrite any previous handler)
   if (triggerButton) {
     triggerButton.onclick = self.toggleWidget.bind(self);
-    console.log('✅ Vella Widget: Trigger button onclick bound');
+    console.log('? Vella Widget: Trigger button onclick bound');
   }
 
   // Close widget (overwrite)
@@ -668,6 +1163,12 @@ bindEvents: function() {
       triggerButton.style.display = 'none'; // Hide trigger button when widget is open
       console.log('✅ Vella Widget: Widget opened, display set to block');
       
+      // Add initial greeting message if messages container is empty
+      const messagesContainer = document.getElementById('vella-messages');
+      if (messagesContainer && messagesContainer.children.length === 0) {
+        this.addMessage(\`Hello! I'm \${config.title}, your dedicated assistant for all things educational. How can I assist you today with your educational needs?\`, 'agent');
+      }
+      
       // Start conversation if not already started
       if (!conversationId) {
         console.log('💬 Vella Widget: No conversation ID, starting new conversation');
@@ -676,6 +1177,8 @@ bindEvents: function() {
         console.log('💬 Vella Widget: Conversation already exists, ID:', conversationId);
       }
 
+      // Don't auto-start for voice widgets - wait for user to click Start Call
+      
       // Re-bind events in case DOM was re-rendered
       setTimeout(() => {
         console.log('⏰ Vella Widget: openWidget setTimeout triggered, re-binding events');
@@ -705,48 +1208,271 @@ bindEvents: function() {
     startConversation: async function() {
       console.log('🚀 Vella Widget: startConversation() called for agentId:', config.agentId);
       console.log('🔍 Vella Widget: Current conversationId before start:', conversationId);
-      try {
-        const url = \`\${config.widgetBaseUrl}/api/widget/conversations/start/\${config.agentId}?channel=phone\`;
-        console.log('🌐 Vella Widget: Fetching conversation start URL:', url);
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        console.log('📡 Vella Widget: Conversation start response:', response.ok, response.status);
-        console.log('📡 Vella Widget: Response headers:', [...response.headers.entries()]);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('📄 Vella Widget: Conversation start data:', data);
-          console.log('🔍 Vella Widget: data.conversation:', data.conversation);
-          console.log('🔍 Vella Widget: data.conversation.conversation_id:', data.conversation?.conversation_id);
-          
-          if (data.conversation?.conversation_id) {
-            conversationId = data.conversation.conversation_id;
-            console.log('✅ Vella Widget: Conversation started, ID set to:', conversationId);
-          } else {
-            console.log('❌ Vella Widget: No conversation.conversation_id in response data');
-          }
-          
-          // If there's a greeting message, display it
-          if (data.conversation?.greeting) {
-            console.log('💬 Vella Widget: Adding greeting message:', data.conversation.greeting);
-            this.addMessage(data.conversation.greeting, 'agent');
-          } else {
-            console.log('⚠️ Vella Widget: No greeting message in response');
-          }
-        } else {
-          console.log('❌ Vella Widget: Failed to start conversation, response not ok');
-          const errorText = await response.text();
-          console.log('❌ Vella Widget: Error response text:', errorText);
-        }
-      } catch (error) {
-        console.error('❌ Vella Widget: Failed to start conversation:', error);
-        this.addMessage('Sorry, I\\'m having trouble connecting right now. Please try again later.', 'agent');
+      console.log('🔍 Vella Widget: WebSocket state:', ws ? ws.readyState : 'null');
+      
+      // Prevent duplicate calls - check if WebSocket is already open or connecting
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        console.log('⚠️ Vella Widget: WebSocket already open or connecting, skipping startConversation');
+        return;
       }
-      console.log('🔍 Vella Widget: Final conversationId after startConversation:', conversationId);
+      
+      // Connect WebSocket directly - it will handle conversation start
+      this.connectWebSocket();
+    },
+
+    connectWebSocket: function() {
+      console.log('🔌 connectWebSocket called - agentId:', config.agentId);
+      
+      // Close existing connection if any
+      if (ws) {
+        console.log('🔌 Closing existing WebSocket connection');
+        ws.close();
+        ws = null;
+      }
+
+      const wsUrl = config.apiBaseUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      const wsEndpoint = \`\${wsUrl}/ws/conversation/\${config.agentId}\`;
+      
+      console.log('🔌 WebSocket URL constructed:', wsEndpoint);
+      console.log('🔌 apiBaseUrl:', config.apiBaseUrl);
+      
+      const self = this; // Preserve context for event handlers
+      
+      try {
+        console.log('🔌 Creating new WebSocket connection...');
+        ws = new WebSocket(wsEndpoint);
+        console.log('🔌 WebSocket object created, readyState:', ws.readyState);
+        
+        ws.onopen = () => {
+          console.log('✅✅✅ WebSocket connected successfully! ✅✅✅');
+          console.log('🔌 WebSocket readyState:', ws.readyState);
+          wsReconnectAttempts = 0;
+          
+          // Send start conversation message
+          console.log('📡 Sending start_conversation event via WebSocket');
+          ws.send(JSON.stringify({
+            type: 'start_conversation',
+            agent_id: config.agentId,
+            channel: 'phone'
+          }));
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log('📨 WebSocket message received:', data);
+            
+            self.handleWebSocketMessage(data);
+          } catch (error) {
+            console.error('❌ Error parsing WebSocket message:', error);
+            console.log('Raw message:', event.data);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('❌❌❌ WebSocket error occurred:', error);
+          console.error('🔌 WebSocket readyState after error:', ws?.readyState);
+        };
+        
+        ws.onclose = (event) => {
+          console.log('🔌🔌🔌 WebSocket closed - code:', event.code, 'reason:', event.reason);
+          ws = null; // Clear the connection
+          
+          // Attempt to reconnect if not a normal closure
+          if (event.code !== 1000 && wsReconnectAttempts < wsMaxReconnectAttempts) {
+            wsReconnectAttempts++;
+            const delay = wsReconnectDelay * wsReconnectAttempts;
+            console.log(\`🔄 Attempting to reconnect WebSocket in \${delay}ms (attempt \${wsReconnectAttempts}/\${wsMaxReconnectAttempts})\`);
+            
+            setTimeout(() => {
+              self.connectWebSocket();
+            }, delay);
+          }
+        };
+      } catch (error) {
+        console.error('❌ Failed to create WebSocket:', error);
+      }
+    },
+
+    handleWebSocketMessage: function(data) {
+      const messageType = data.type;
+      console.log('🔍 Handling message type:', messageType);
+      
+      switch (messageType) {
+        case 'conversation_started':
+          console.log('🎉 Conversation started via WebSocket');
+          if (data.conversation_id) {
+            conversationId = data.conversation_id;
+            console.log('✅ Conversation ID set to:', conversationId);
+          }
+          if (data.greeting || data.message) {
+            const greetingText = data.greeting || data.message;
+            console.log('👋 Greeting received:', greetingText);
+            // For voice widget, we don't add messages to chat
+            // Just log it or handle it differently
+            if (config.widgetType !== 'voice' && !isVoiceMode) {
+              this.addMessage(greetingText, 'agent');
+            }
+          }
+          break;
+          
+        case 'greeting':
+          console.log('👋 Received greeting');
+          if (data.message) {
+            if (config.widgetType !== 'voice' && !isVoiceMode) {
+              this.addMessage(data.message, 'agent');
+            }
+          }
+          break;
+          
+        case 'response_start':
+          console.log('🎬 Response started');
+          currentResponseText = '';
+          audioChunks = [];
+          
+          // Typing indicator already shown in sendMessage, no need to show again
+          
+          if (config.widgetType === 'voice' || isVoiceMode) {
+            voiceState = 'processing';
+            this.updateVoiceState('processing');
+          }
+          break;
+          
+        case 'response_chunk':
+          console.log('📝 Response chunk:', data.content);
+          currentResponseText += data.content;
+          
+          // Update message in real-time for chat mode
+          if (!isVoiceMode && config.widgetType !== 'voice') {
+            // Hide typing indicator on first chunk
+            this.hideTypingIndicator();
+            this.updateStreamingMessage(currentResponseText);
+          }
+          break;
+          
+        case 'response_complete':
+          console.log('✅ Response complete:', data.full_response);
+          
+          if (!isVoiceMode && config.widgetType !== 'voice') {
+            this.hideTypingIndicator();
+            this.finalizeStreamingMessage(data.full_response || currentResponseText);
+          }
+          break;
+          
+        case 'audio_start':
+          console.log('🎵 Audio stream started');
+          audioChunks = [];
+          isAudioStreamComplete = false; // Reset flag when new audio stream starts
+          
+          if (config.widgetType === 'voice' || isVoiceMode) {
+            voiceState = 'responding';
+            this.updateVoiceState('responding');
+          }
+          break;
+          
+        case 'audio_chunk':
+          console.log('🎵 Audio chunk received, length:', data.audio?.length);
+          if (data.audio) {
+            // Add audio chunk to queue for sequential playback
+            if (config.widgetType === 'voice' || isVoiceMode) {
+              this.enqueueAudioChunk(data.audio);
+            }
+          }
+          break;
+          
+        case 'audio_complete':
+          console.log('🎵 Audio stream complete');
+          
+          // Mark that server finished sending audio chunks
+          isAudioStreamComplete = true;
+          audioChunks = [];
+          console.log('✅ Server finished sending audio, queue will process remaining chunks');
+          break;
+          
+        case 'message_received':
+          console.log('📬 Message received by server');
+          break;
+          
+        case 'error':
+          console.error('❌ Server error:', data.message || data.error);
+          if (!isVoiceMode && config.widgetType !== 'voice') {
+            this.hideTypingIndicator();
+            this.addMessage('Sorry, an error occurred. Please try again.', 'agent');
+          } else {
+            // Reset voice state on error
+            voiceState = 'ready';
+            this.updateVoiceState('ready');
+          }
+          break;
+          
+        default:
+          console.log('❓ Unknown message type:', messageType);
+          console.log('📦 Full data:', data);
+      }
+    },
+
+    updateStreamingMessage: function(text) {
+      const messagesContainer = document.getElementById('vella-messages');
+      if (!messagesContainer) return;
+      
+      // Check if there's already a streaming message wrapper
+      let streamingWrapper = document.getElementById('vella-streaming-wrapper');
+      
+      if (!streamingWrapper) {
+        // Create new streaming message wrapper
+        streamingWrapper = document.createElement('div');
+        streamingWrapper.id = 'vella-streaming-wrapper';
+        streamingWrapper.style.cssText = \`
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 4px;
+        \`;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.id = 'vella-streaming-message';
+        messageDiv.className = 'vella-message vella-agent-message';
+        messageDiv.style.cssText = \`
+          max-width: 75%;
+          padding: 10px 14px;
+          border-radius: 4px 16px 16px 16px;
+          font-size: 14px;
+          line-height: 1.5;
+          word-wrap: break-word;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          background: white;
+          color: #1f2937;
+          border: 1px solid #e5e7eb;
+        \`;
+        
+        streamingWrapper.appendChild(messageDiv);
+        messagesContainer.appendChild(streamingWrapper);
+      }
+      
+      // Update the message content
+      const messageDiv = document.getElementById('vella-streaming-message');
+      if (messageDiv) {
+        messageDiv.textContent = text;
+      }
+      
+      // Auto-scroll with smooth behavior
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+    },
+
+    finalizeStreamingMessage: function(text) {
+      const streamingWrapper = document.getElementById('vella-streaming-wrapper');
+      const streamingMsg = document.getElementById('vella-streaming-message');
+      
+      if (streamingWrapper && streamingMsg) {
+        // Remove IDs so they become regular messages
+        streamingWrapper.removeAttribute('id');
+        streamingMsg.removeAttribute('id');
+      } else {
+        // If no streaming message, add final message normally
+        this.addMessage(text, 'agent');
+      }
     },
 
     sendMessage: async function(voiceTranscript = null) {
@@ -756,20 +1482,14 @@ bindEvents: function() {
       
       // Use voiceTranscript if provided, otherwise get from input field
       const message = voiceTranscript || (input ? input.value.trim() : '');
-      console.log('💬 Vella Widget: Message to send:', message, 'Conversation ID:', conversationId);
+      console.log('💬 Vella Widget: Message to send:', message);
       
-      if (!message || !conversationId) {
-        console.log('⚠️ Vella Widget: Returning early - no message or conversationId');
+      if (!message) {
+        console.log('⚠️ Vella Widget: No message to send');
         return;
       }
 
       console.log('✅ Vella Widget: Proceeding to send message...');
-      
-      // Update voice state to processing
-      if (config.widgetType === 'voice' || isVoiceMode) {
-        voiceState = 'processing';
-        this.updateVoiceState('processing');
-      }
       
       // Add user message to chat (only in chat mode)
       if (!isVoiceMode && config.widgetType !== 'voice') {
@@ -781,180 +1501,57 @@ bindEvents: function() {
         input.value = '';
       }
 
+      // Update voice state to processing
+      if (config.widgetType === 'voice' || isVoiceMode) {
+        voiceState = 'processing';
+        this.updateVoiceState('processing');
+      }
+      
       // Show typing indicator (only in chat mode)
       if (!isVoiceMode && config.widgetType !== 'voice') {
         this.showTypingIndicator();
       }
 
-      try {
-        const url = \`\${config.widgetBaseUrl}/api/widget/conversations/\${conversationId}/message?message=\${encodeURIComponent(message)}\`;
-        console.log('🌐 Vella Widget: Sending message to URL:', url);
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+      // Send message ONLY via WebSocket
+      console.log('🔍 WebSocket status - ws:', ws, 'readyState:', ws?.readyState);
+      
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('✅ WebSocket is OPEN, sending message via WebSocket');
+        try {
+          const payload = JSON.stringify({
+            type: 'message',
+            message: message
+          });
+          console.log('📡 Sending WebSocket payload:', payload);
+          ws.send(payload);
+          console.log('✅ Message sent via WebSocket successfully');
+        } catch (error) {
+          console.error('❌ Error sending via WebSocket:', error);
+          // Reset states on error
+          if (config.widgetType === 'voice' || isVoiceMode) {
+            voiceState = 'ready';
+            this.updateVoiceState('ready');
           }
-        });
-        console.log('📡 Vella Widget: Message send response:', response.ok, response.status);
-        
-        if (!isVoiceMode && config.widgetType !== 'voice') {
-          this.hideTypingIndicator();
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('📄 Vella Widget: Message response data:', data);
-          console.log('🔍 Vella Widget: data.response:', data.response);
-          console.log('🔍 Vella Widget: data.response.agent_response:', data.response?.agent_response);
-          console.log('🔍 Vella Widget: data.response.agent_response type:', typeof data.response?.agent_response);
-          console.log('🔍 Vella Widget: data.response.agent_response length:', data.response?.agent_response ? data.response.agent_response.length : 'N/A');
-          
-          const agentResponse = data.response?.agent_response || 'I received your message.';
-          const responseAudio = data.response?.response_audio;
-          
-          // In chat mode, add message to chat
           if (!isVoiceMode && config.widgetType !== 'voice') {
-            this.addMessage(agentResponse, 'agent');
+            this.hideTypingIndicator();
           }
-          
-          // In voice mode or voice widget, play audio if available, otherwise speak
-          if (isVoiceMode || config.widgetType === 'voice') {
-            if (responseAudio) {
-              console.log('🎵 Vella Widget: Playing response audio from API in voice mode/widget');
-              try {
-                await this.playBase64AudioAsync(responseAudio);
-              } catch (audioError) {
-                console.error('🎵 Vella Widget: Error playing response audio:', audioError);
-                // Fallback to TTS if audio fails
-                this.speakText(agentResponse);
-              }
-            } else {
-              console.log('🗣️ Vella Widget: No response audio, using TTS in voice mode/widget');
-              this.speakText(agentResponse);
-            }
-          }
-        } else {
-          console.log('❌ Vella Widget: Message send failed, response not ok');
-          throw new Error('Failed to send message');
         }
-      } catch (error) {
-        console.log('❌ Vella Widget: Error in sendMessage:', error);
-        if (!isVoiceMode && config.widgetType !== 'voice') {
-          this.hideTypingIndicator();
-        }
-        console.error('Failed to send message:', error);
-        
-        if (!isVoiceMode && config.widgetType !== 'voice') {
-          this.addMessage('Sorry, I couldn\\'t process your message. Please try again.', 'agent');
-        } else {
-          this.speakText('Sorry, I couldn\\'t process your message. Please try again.');
-        }
-        
-        // Reset voice state on error
+      } else {
+        console.error('❌ WebSocket not connected! Cannot send message.');
+        console.log('⚠️ ws:', ws, 'readyState:', ws?.readyState);
+        // Reset states
         if (config.widgetType === 'voice' || isVoiceMode) {
           voiceState = 'ready';
           this.updateVoiceState('ready');
-          isVoiceActive = false;
+        }
+        if (!isVoiceMode && config.widgetType !== 'voice') {
+          this.hideTypingIndicator();
+          this.addMessage('Connection lost. Please refresh the page.', 'agent');
         }
       }
     },
 
-    sendVoiceMessage: async function(message) {
-      console.log('📤 Vella Widget: sendVoiceMessage() called with message:', message);
-      
-      if (!message || !conversationId) {
-        console.log('⚠️ Vella Widget: Returning early - no message or conversationId');
-        return;
-      }
 
-      // Update voice state to processing
-      voiceState = 'processing';
-      this.updateVoiceState('processing');
-
-      try {
-        const url = \`\${config.widgetBaseUrl}/api/widget/conversations/\${conversationId}/message?message=\${encodeURIComponent(message)}\`;
-        console.log('🌐 Vella Widget: Sending voice message to URL:', url);
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        console.log('📡 Vella Widget: Voice message send response:', response.ok, response.status);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('📄 Vella Widget: Voice message response data:', data);
-          
-          const agentResponse = data.response?.agent_response || 'I received your message.';
-          const responseAudio = data.response?.response_audio;
-          
-          console.log('🎵 Vella Widget: Response audio available:', !!responseAudio);
-          
-          // Update voice state to responding
-          voiceState = 'responding';
-          this.updateVoiceState('responding');
-          
-          // In voice mode, prefer playing response audio if available, otherwise use TTS
-          if (isVoiceMode) {
-            if (responseAudio) {
-              console.log('🎵 Vella Widget: Playing response audio from API');
-              try {
-                await this.playBase64AudioAsync(responseAudio);
-              } catch (audioError) {
-                console.error('🎵 Vella Widget: Error playing response audio:', audioError);
-                // Fallback to TTS if audio fails
-                await this.speakTextAsync(agentResponse);
-              }
-            } else {
-              console.log('🗣️ Vella Widget: No response audio, using TTS');
-              await this.speakTextAsync(agentResponse);
-            }
-            
-            // After response is complete, restart listening if voice is still active
-            if (isVoiceActive && isVoiceMode) {
-              console.log('🔄 Vella Widget: Restarting voice listening after response');
-              setTimeout(() => {
-                if (isVoiceActive && isVoiceMode && !isPlaying) {
-                  this.startVoiceRecording();
-                }
-              }, 1000);
-            }
-          } else {
-            // In chat mode, speak the response
-            console.log('🗣️ Vella Widget: Speaking voice response in chat mode');
-            try {
-              this.speakText(agentResponse);
-            } catch (speechError) {
-              console.error('🗣️ Vella Widget: Error in speech synthesis:', speechError);
-              // Continue without speech if there's an error
-            }
-          }
-          
-        } else {
-          console.log('❌ Vella Widget: Voice message send failed, response not ok');
-          throw new Error('Failed to send voice message');
-        }
-      } catch (error) {
-        console.log('❌ Vella Widget: Error in sendVoiceMessage:', error);
-        console.error('Failed to send voice message:', error);
-        
-        try {
-          await this.speakTextAsync('Sorry, I couldn\\'t process your message. Please try again.');
-        } catch (speechError) {
-          console.error('🗣️ Vella Widget: Error in fallback speech:', speechError);
-        }
-        
-        // Reset voice state and restart listening if still active
-        if (isVoiceActive && isVoiceMode) {
-          setTimeout(() => {
-            if (isVoiceActive && isVoiceMode && !isPlaying) {
-              this.startVoiceRecording();
-            }
-          }, 2000);
-        }
-      }
-    },
 
     addMessage: function(text, sender) {
       console.log('💬 Vella Widget: addMessage() called with text:', text, 'sender:', sender);
@@ -971,51 +1568,98 @@ bindEvents: function() {
         displayText = '🎤 ' + text;
       }
       
+      // Create message bubble wrapper
+      const bubbleWrapper = document.createElement('div');
+      bubbleWrapper.style.cssText = \`
+        display: flex;
+        justify-content: \${isAgent ? 'flex-start' : 'flex-end'};
+        margin-bottom: 4px;
+      \`;
+      
       messageDiv.style.cssText = \`
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 12px;
+        max-width: 75%;
+        padding: 10px 14px;
+        border-radius: \${isAgent ? '4px 16px 16px 16px' : '16px 4px 16px 16px'};
         font-size: 14px;
+        line-height: 1.5;
+        word-wrap: break-word;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         \${isAgent ? 
-          'background: #f3f4f6; margin-right: 20px;' : 
-          'background: ' + config.primaryColor + '; color: white; margin-left: 40px;'
+          'background: white; color: #1f2937; border: 1px solid #e5e7eb;' : 
+          'background: ' + config.primaryColor + '; color: white;'
         }
       \`;
       
       messageDiv.textContent = displayText;
-      messagesContainer.appendChild(messageDiv);
+      bubbleWrapper.appendChild(messageDiv);
+      messagesContainer.appendChild(bubbleWrapper);
       
-      // Scroll to bottom
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      // Scroll to bottom with smooth behavior
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: 'smooth'
+      });
       console.log('✅ Vella Widget: Message added to chat');
     },
 
     showTypingIndicator: function() {
       console.log('⌨️ Vella Widget: showTypingIndicator() called');
       const messagesContainer = document.getElementById('vella-messages');
+      
+      // Check if typing indicator already exists
+      if (document.getElementById('vella-typing-wrapper')) {
+        console.log('⚠️ Vella Widget: Typing indicator already exists, skipping');
+        return;
+      }
+      
+      const bubbleWrapper = document.createElement('div');
+      bubbleWrapper.id = 'vella-typing-wrapper';
+      bubbleWrapper.style.cssText = \`
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 4px;
+      \`;
+      
       const typingDiv = document.createElement('div');
       typingDiv.id = 'vella-typing';
       typingDiv.style.cssText = \`
-        background: #f3f4f6;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 12px;
+        max-width: 75%;
+        background: white;
+        padding: 10px 14px;
+        border-radius: 4px 16px 16px 16px;
         font-size: 14px;
-        margin-right: 20px;
-        font-style: italic;
+        border: 1px solid #e5e7eb;
         color: #6b7280;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 4px;
       \`;
-      typingDiv.textContent = 'Typing...';
-      messagesContainer.appendChild(typingDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Create animated dots
+      typingDiv.innerHTML = \`
+        <span>Typing</span>
+        <span style="display: inline-flex; gap: 2px;">
+          <span style="animation: pulse 1.4s ease-in-out infinite; animation-delay: 0s;">.</span>
+          <span style="animation: pulse 1.4s ease-in-out infinite; animation-delay: 0.2s;">.</span>
+          <span style="animation: pulse 1.4s ease-in-out infinite; animation-delay: 0.4s;">.</span>
+        </span>
+      \`;
+      
+      bubbleWrapper.appendChild(typingDiv);
+      messagesContainer.appendChild(bubbleWrapper);
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: 'smooth'
+      });
       console.log('✅ Vella Widget: Typing indicator shown');
     },
 
     hideTypingIndicator: function() {
       console.log('⌨️ Vella Widget: hideTypingIndicator() called');
-      const typingDiv = document.getElementById('vella-typing');
-      if (typingDiv) {
-        typingDiv.remove();
+      const typingWrapper = document.getElementById('vella-typing-wrapper');
+      if (typingWrapper) {
+        typingWrapper.remove();
         console.log('✅ Vella Widget: Typing indicator removed');
       } else {
         console.log('⚠️ Vella Widget: Typing indicator not found to remove');
@@ -1107,11 +1751,11 @@ bindEvents: function() {
               clearTimeout(silenceTimer);
             }
             
-            // Set new silence timer (3 seconds)
+            // Set new silence timer (1.5 seconds)
             silenceTimer = setTimeout(() => {
-              console.log('🔇 Vella Widget: Silence detected after 3 seconds');
+              console.log('🔇 Vella Widget: Silence detected after 1.5 seconds');
               this.handleSilenceDetected(finalTranscript.trim());
-            }, 3000);
+            }, 1500);
           }
 
           const input = document.getElementById('vella-input');
@@ -1275,10 +1919,22 @@ bindEvents: function() {
     endVoiceConversation: function() {
       console.log('🛑 Vella Widget: endVoiceConversation() called');
       
-      // Stop any audio playback
+      // Stop any audio playback immediately
       if (isPlaying) {
         this.stopAudio();
         this.stopSpeech();
+      }
+      
+      // Clear audio queue to prevent background playback
+      audioQueue = [];
+      isPlayingQueue = false;
+      console.log('🗑️ Vella Widget: Audio queue cleared');
+      
+      // Stop current audio if playing
+      if (this.currentAudio) {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+        this.currentAudio = null;
       }
       
       // Stop any recording
@@ -1385,6 +2041,17 @@ bindEvents: function() {
       const voicePulse = document.getElementById('vella-voice-pulse');
       const voiceIcon = document.getElementById('vella-voice-icon');
       
+      // Update inline voice widget UI
+      const inlineStatus = document.getElementById('vella-inline-status');
+      const inlineSubtitle = document.getElementById('vella-inline-subtitle');
+      const inlinePulse = document.getElementById('vella-inline-pulse');
+      const inlineIcon = document.getElementById('vella-inline-icon');
+      const inlineText = document.getElementById('vella-inline-text');
+      const inlineIconContainer = document.getElementById('vella-inline-icon-container');
+      const inlineCallBtn = document.getElementById('vella-inline-call-btn');
+      const inlineCallStatus = document.getElementById('vella-call-status');
+      const statusIndicator = document.getElementById('vella-status-indicator');
+      
       switch (state) {
         case 'listening':
           // Legacy UI
@@ -1421,6 +2088,35 @@ bindEvents: function() {
           }
           if (voiceIcon && voiceIcon.innerHTML) {
             voiceIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />';
+          }
+          
+          // Inline widget UI - Update status indicator to listening state
+          if (statusIndicator) {
+            statusIndicator.classList.remove('processing', 'speaking');
+            statusIndicator.classList.add('listening');
+            // Change icon to animated wave bars (same as speaking)
+            const icon = statusIndicator.querySelector('.vella-status-icon');
+            if (icon) {
+              icon.innerHTML = \`
+                <g>
+                  <rect x="4" y="8" width="3" height="8" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="8;16;8" dur="0.8s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="8;4;8" dur="0.8s" repeatCount="indefinite"/>
+                  </rect>
+                  <rect x="10" y="6" width="3" height="12" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="12;18;12" dur="0.8s" begin="0.1s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="6;3;6" dur="0.8s" begin="0.1s" repeatCount="indefinite"/>
+                  </rect>
+                  <rect x="16" y="4" width="3" height="16" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="16;20;16" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="4;2;4" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+                  </rect>
+                </g>
+              \`;
+            }
+          }
+          if (inlineCallStatus) {
+            inlineCallStatus.textContent = 'Listening...';
           }
           break;
           
@@ -1460,6 +2156,23 @@ bindEvents: function() {
             // Change to processing icon (spinner or clock)
             voiceIcon.innerHTML = '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>';
           }
+          
+          // Inline widget UI - Update status indicator to processing state
+          if (statusIndicator) {
+            statusIndicator.classList.remove('listening', 'speaking');
+            statusIndicator.classList.add('processing');
+            // Change icon to processing/loading
+            const icon = statusIndicator.querySelector('.vella-status-icon');
+            if (icon) {
+              icon.innerHTML = \`
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.25"/>
+                <path fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8V2z" opacity="0.75"/>
+              \`;
+            }
+          }
+          if (inlineCallStatus) {
+            inlineCallStatus.textContent = 'Processing...';
+          }
           break;
           
         case 'responding':
@@ -1495,6 +2208,35 @@ bindEvents: function() {
           if (voiceIcon && voiceIcon.innerHTML) {
             // Change to speaker icon
             voiceIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />';
+          }
+          
+          // Inline widget UI - Update status indicator to speaking state
+          if (statusIndicator) {
+            statusIndicator.classList.remove('listening', 'processing');
+            statusIndicator.classList.add('speaking');
+            // Change icon to animated sound waves
+            const icon = statusIndicator.querySelector('.vella-status-icon');
+            if (icon) {
+              icon.innerHTML = \`
+                <g>
+                  <rect x="4" y="8" width="3" height="8" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="8;16;8" dur="0.8s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="8;4;8" dur="0.8s" repeatCount="indefinite"/>
+                  </rect>
+                  <rect x="10" y="6" width="3" height="12" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="12;18;12" dur="0.8s" begin="0.1s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="6;3;6" dur="0.8s" begin="0.1s" repeatCount="indefinite"/>
+                  </rect>
+                  <rect x="16" y="4" width="3" height="16" fill="currentColor" rx="1.5">
+                    <animate attributeName="height" values="16;20;16" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+                    <animate attributeName="y" values="4;2;4" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+                  </rect>
+                </g>
+              \`;
+            }
+          }
+          if (inlineCallStatus) {
+            inlineCallStatus.textContent = 'AI is speaking...';
           }
           break;
           
@@ -1538,6 +2280,11 @@ bindEvents: function() {
           if (voiceIcon && voiceIcon.innerHTML) {
             // Reset to microphone icon
             voiceIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />';
+          }
+          
+          // Inline widget UI - Reset to Ready state
+          if (inlineCallStatus) {
+            inlineCallStatus.textContent = 'Ready to talk';
           }
           break;
       }
@@ -1943,20 +2690,8 @@ bindEvents: function() {
           // Clean up
           URL.revokeObjectURL(audioUrl);
           
-          // Reset voice state based on widget type
-          if (config.widgetType === 'voice') {
-            // Voice widget: go back to listening state and start recording for next question
-            voiceState = 'listening';
-            this.updateVoiceState('listening');
-            isVoiceActive = true;
-            
-            // Start voice recording again for continuous conversation
-            this.startVoiceRecording();
-          } else if (isVoiceMode && isVoiceActive) {
-            // Chat widget voice mode: stay in listening mode
-            voiceState = 'listening';
-            this.updateVoiceState('listening');
-          }
+          // Don't restart listening here - let processAudioQueue handle it
+          // This prevents premature state changes while queue is still processing
         };
 
         audio.onerror = (error) => {
@@ -1966,16 +2701,6 @@ bindEvents: function() {
           
           // Clean up
           URL.revokeObjectURL(audioUrl);
-          
-          // Reset voice state on error based on widget type
-          if (config.widgetType === 'voice') {
-            voiceState = 'ready';
-            this.updateVoiceState('ready');
-            isVoiceActive = false;
-          } else if (isVoiceMode && isVoiceActive) {
-            voiceState = 'listening';
-            this.updateVoiceState('listening');
-          }
         };
 
         // Store reference for stopping if needed
@@ -1996,6 +2721,117 @@ bindEvents: function() {
         isPlaying = false;
         this.updateAudioUI(false);
       }
+    },
+
+    enqueueAudioChunk: function(base64Audio) {
+      console.log('📥 Vella Widget: Enqueueing audio chunk, queue length:', audioQueue.length);
+      audioQueue.push(base64Audio);
+      
+      // Start processing queue if not already playing
+      if (!isPlayingQueue) {
+        this.processAudioQueue();
+      }
+    },
+
+    processAudioQueue: function() {
+      if (audioQueue.length === 0) {
+        console.log('✅ Vella Widget: Audio queue empty');
+        isPlayingQueue = false;
+        
+        // Only restart listening if BOTH queue is empty AND server finished sending chunks
+        if (!isAudioStreamComplete) {
+          console.log('⏳ Vella Widget: Waiting for more audio chunks from server...');
+          return; // Don't restart yet, more chunks coming
+        }
+        
+        console.log('✅ Vella Widget: All audio chunks played, stream complete');
+        
+        // Only restart listening if call is still active
+        if ((config.widgetType === 'voice' || isVoiceMode) && isVoiceMode) {
+          console.log('📞 Vella Widget: Auto-restarting listening (call mode)');
+          
+          // Brief pause before listening again
+          setTimeout(() => {
+            // Double-check call is still active before starting
+            if (isVoiceMode) {
+              voiceState = 'listening';
+              this.updateVoiceState('listening');
+              this.startVoiceRecording();
+            } else {
+              console.log('⚠️ Vella Widget: Call ended during audio playback, not restarting');
+            }
+          }, 500);
+        }
+        return;
+      }
+
+      isPlayingQueue = true;
+      const nextChunk = audioQueue.shift();
+      
+      console.log('▶️ Vella Widget: Playing next audio chunk, remaining:', audioQueue.length);
+      
+      this.playBase64AudioChunk(nextChunk)
+        .then(() => {
+          console.log('✅ Vella Widget: Chunk finished, playing next...');
+          // Play next chunk
+          this.processAudioQueue();
+        })
+        .catch(error => {
+          console.error('❌ Vella Widget: Error playing chunk, skipping:', error);
+          // Continue with next chunk even if this one failed
+          this.processAudioQueue();
+        });
+    },
+
+    playBase64AudioChunk: function(base64Audio) {
+      console.log('🎵 Vella Widget: playBase64AudioChunk() called');
+      
+      return new Promise((resolve, reject) => {
+        if (!base64Audio) {
+          console.log('❌ Vella Widget: No base64 audio chunk provided');
+          resolve();
+          return;
+        }
+
+        try {
+          // Convert base64 to blob
+          const binaryString = atob(base64Audio);
+          const bytes = new Uint8Array(binaryString.length);
+          
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          const audio = new Audio(audioUrl);
+          currentAudio = audio;
+
+          audio.onended = () => {
+            console.log('🎵 Vella Widget: Audio chunk playback ended');
+            URL.revokeObjectURL(audioUrl);
+            resolve();
+          };
+
+          audio.onerror = (error) => {
+            console.error('🎵 Vella Widget: Audio chunk playback error:', error);
+            URL.revokeObjectURL(audioUrl);
+            reject(error);
+          };
+
+          // Start playback
+          console.log('🎵 Vella Widget: Starting audio chunk playback');
+          audio.play().catch(error => {
+            console.error('🎵 Vella Widget: Failed to play audio chunk:', error);
+            URL.revokeObjectURL(audioUrl);
+            reject(error);
+          });
+        } catch (error) {
+          console.error('❌ Vella Widget: Failed to process audio chunk:', error);
+          reject(error);
+        }
+      });
     },
 
     playBase64AudioAsync: function(base64Audio) {
