@@ -572,12 +572,55 @@ function WidgetPreviewContent() {
                   </pre>
                 </div>
               ) : (
-                <div className="relative h-full bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
+                <div className="relative h-full bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-auto">
                   {/* Simulated website background */}
                   <div className="p-8">
                     <div className="max-w-4xl mx-auto">
                       <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Website</h2>
                       <p className="text-gray-600 mb-6">This is how the widget will appear on your website. Visitors can click the chat button to start a conversation with your AI agent.</p>
+                      
+                      {/* Voice Widget Preview (Inline) */}
+                      {(selectedWidgetType === 'voice' || channelType === 'phone') && (
+                        <div className="flex justify-center my-8">
+                          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                            {/* Voice Widget Header */}
+                            <div className="text-center mb-6">
+                              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                              <h3 className="text-xl font-semibold text-gray-900">{agentName}</h3>
+                              <p className="text-sm text-gray-500 mt-1">Voice Assistant</p>
+                            </div>
+
+                            {/* Voice Controls */}
+                            <div className="space-y-6">
+                              {/* Start Call Button */}
+                              <div className="flex justify-center">
+                                <button 
+                                  className="px-8 py-3 rounded-full text-white font-semibold shadow-lg hover:opacity-90 transition-all"
+                                  style={{ backgroundColor: customColor }}
+                                >
+                                  Start Call
+                                </button>
+                              </div>
+
+                              {/* Info */}
+                              {/* <div className="text-center text-xs text-gray-500 space-y-1">
+                                <p>🎙️ Click to start voice conversation</p>
+                                <p>🔊 Make sure your microphone is enabled</p>
+                              </div> */}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+                              <p className="text-xs text-gray-400">Powered by Vella AI</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="bg-white p-6 rounded-lg shadow-sm">
                           <h3 className="font-semibold mb-2">Feature 1</h3>
@@ -591,14 +634,16 @@ function WidgetPreviewContent() {
                     </div>
                   </div>
 
-                  {/* Widget Trigger Button */}
-                  <button
-                    onClick={() => setIsWidgetOpen(!isWidgetOpen)}
-                    className={`fixed ${currentPosition?.class} w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 transition-transform z-20`}
-                    style={{ backgroundColor: customColor }}
-                  >
-                    {isWidgetOpen ? '✕' : (channelType === 'phone' ? '📞' : (selectedWidgetType === 'voice' ? '📞' : '💬'))}
-                  </button>
+                  {/* Widget Trigger Button - Only show for chat widget */}
+                  {selectedWidgetType === 'chat' && channelType !== 'phone' && (
+                    <button
+                      onClick={() => setIsWidgetOpen(!isWidgetOpen)}
+                      className={`fixed ${currentPosition?.class} w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 transition-transform z-20`}
+                      style={{ backgroundColor: customColor }}
+                    >
+                      {isWidgetOpen ? '✕' : '💬'}
+                    </button>
+                  )}
 
                   {/* Widget Panel - Chat or Voice based on selection */}
                   {isWidgetOpen && selectedWidgetType === 'chat' && channelType !== 'phone' && (

@@ -1372,6 +1372,13 @@ export async function GET() {
           
         case 'audio_chunk':
           console.log('🎵 Audio chunk received, length:', data.audio?.length);
+          
+          // Ignore audio chunks if not in voice mode or call is not active
+          if (!isVoiceMode && config.widgetType !== 'voice') {
+            console.log('⚠️ Vella Widget: Ignoring audio chunk - not in voice mode');
+            break;
+          }
+          
           if (data.audio) {
             // Add audio chunk to queue for sequential playback
             if (config.widgetType === 'voice' || isVoiceMode) {
@@ -1919,22 +1926,51 @@ export async function GET() {
     endVoiceConversation: function() {
       console.log('🛑 Vella Widget: endVoiceConversation() called');
       
+      // Stop speech synthesis immediately
+      if ('speechSynthesis' in window && window.speechSynthesis) {
+        try {
+          if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            window.speechSynthesis.cancel();
+            console.log('✅ Vella Widget: Speech synthesis cancelled');
+          }
+        } catch (error) {
+          console.error('Error cancelling speech:', error);
+        }
+      }
+      
       // Stop any audio playback immediately
       if (isPlaying) {
         this.stopAudio();
         this.stopSpeech();
       }
       
+      // Stop global currentAudio if playing
+      if (currentAudio) {
+        try {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio = null;
+          console.log('✅ Vella Widget: Global audio stopped');
+        } catch (error) {
+          console.error('Error stopping global audio:', error);
+        }
+      }
+      
       // Clear audio queue to prevent background playback
       audioQueue = [];
       isPlayingQueue = false;
+      isAudioStreamComplete = false;
       console.log('🗑️ Vella Widget: Audio queue cleared');
       
-      // Stop current audio if playing
+      // Stop current audio if playing (instance variable)
       if (this.currentAudio) {
-        this.currentAudio.pause();
-        this.currentAudio.currentTime = 0;
-        this.currentAudio = null;
+        try {
+          this.currentAudio.pause();
+          this.currentAudio.currentTime = 0;
+          this.currentAudio = null;
+        } catch (error) {
+          console.error('Error stopping instance audio:', error);
+        }
       }
       
       // Stop any recording
@@ -1942,12 +1978,31 @@ export async function GET() {
         this.stopVoiceRecording();
       }
       
-      // Reset to ready state
-      isVoiceActive = false;
-      voiceState = 'ready';
-      this.updateVoiceState('ready');
+      // Close WebSocket connection to stop receiving audio chunks
+      if (ws) {
+        try {
+          console.log('🔌 Vella Widget: Closing WebSocket connection');
+          ws.close();
+          ws = null;
+          conversationId = null;
+          console.log('✅ Vella Widget: WebSocket closed');
+        } catch (error) {
+          console.error('Error closing WebSocket:', error);
+        }
+      }
       
-      console.log('✅ Vella Widget: Conversation ended, returned to ready state');
+      // Reset all flags
+      isPlaying = false;
+      isVoiceActive = false;
+      isVoiceMode = false;
+      voiceState = 'ready';
+      
+      // Update UI to ready state
+      this.updateVoiceState('ready');
+      this.updateSpeechUI(false);
+      this.updateAudioUI(false);
+      
+      console.log('✅ Vella Widget: Conversation ended, all audio stopped, WebSocket closed, returned to ready state');
     },
 
     startVoiceListening: function() {
