@@ -743,7 +743,8 @@ export async function GET() {
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+            height: 30px;
           }
           
           .vella-rec-dot {
@@ -764,12 +765,14 @@ export async function GET() {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            margin: 20px auto;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.4s ease;
             cursor: pointer;
+            position: absolute;
+            top: 0;
+            left: 0;
           }
           
           .vella-status-indicator:hover {
@@ -854,11 +857,13 @@ export async function GET() {
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin: 0 auto 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
           }
           
           .vella-start-call-btn:hover {
@@ -882,6 +887,7 @@ export async function GET() {
             justify-content: center;
             align-items: center;
             margin-bottom: 24px;
+            position: relative;
           }
         </style>
         
@@ -899,31 +905,28 @@ export async function GET() {
           
           <!-- Content Area with Fixed Height -->
           <div class="vella-content-area">
-            <!-- Start Call Button (Visible initially) -->
-            <button id="vella-inline-call-btn" class="vella-start-call-btn" data-state="ready" title="Start Call">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-              </svg>
-            </button>
+            <!-- Timer (Always visible at top) -->
+            <div class="vella-rec-status">
+              <span class="vella-rec-dot" id="vella-rec-dot" style="display: none;"></span>
+              <span class="vella-rec-time" id="vella-rec-timer">00:00</span>
+            </div>
             
-            <!-- Call Status Container (Hidden initially) -->
-            <div id="vella-call-info" style="display: none;">
-              <!-- Recording Status -->
-              <div class="vella-rec-status">
-                <span class="vella-rec-dot"></span>
-                <span class="vella-rec-time" id="vella-rec-timer">00:00</span>
-              </div>
+            <!-- Button Container (Both buttons in same position) -->
+            <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+              <!-- Start Call Button (Visible initially) -->
+              <button id="vella-inline-call-btn" class="vella-start-call-btn" data-state="ready" title="Start Call">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+              </button>
               
-              <!-- Status Indicator -->
-              <div class="vella-status-indicator" id="vella-status-indicator">
+              <!-- Status Indicator (Hidden initially) -->
+              <div class="vella-status-indicator" id="vella-status-indicator" style="display: none;">
                 <svg class="vella-status-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                   <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                 </svg>
               </div>
-              
-              <!-- Call Status Text (hidden) -->
-              <div class="vella-call-status" id="vella-call-status" style="display: none;">In call...</div>
             </div>
           </div>
           
@@ -951,9 +954,9 @@ export async function GET() {
       
       // Get UI elements
       const startCallBtn = document.getElementById('vella-inline-call-btn');
-      const callInfo = document.getElementById('vella-call-info');
       const callStatus = document.getElementById('vella-call-status');
       const recTimer = document.getElementById('vella-rec-timer');
+      const recDot = document.getElementById('vella-rec-dot');
       const statusIndicator = document.getElementById('vella-status-indicator');
       
       let callStartTime = null;
@@ -982,13 +985,18 @@ export async function GET() {
             self.startVoiceListening();
           }, 500);
           
-          // Hide start button, show call info
+          // Hide start button, show status indicator
           startCallBtn.style.display = 'none';
-          if (callInfo) callInfo.style.display = 'block';
-          if (statusIndicator) statusIndicator.classList.add('listening');
+          if (statusIndicator) {
+            statusIndicator.style.display = 'flex';
+            statusIndicator.classList.add('listening');
+          }
+          if (recDot) recDot.style.display = 'inline-block';
           
-          // Start timer
+          // Initialize and start timer
+          if (recTimer) recTimer.textContent = '00:00';
           callStartTime = Date.now();
+          updateTimer(); // Update immediately to show 00:00
           timerInterval = setInterval(updateTimer, 1000);
           
           // Update status (hidden text for accessibility)
@@ -1000,15 +1008,18 @@ export async function GET() {
       if (statusIndicator) {
         statusIndicator.onclick = function() {
           // Only end call if we're in an active call
-          if (isVoiceMode && callInfo && callInfo.style.display !== 'none') {
+          if (isVoiceMode && statusIndicator.style.display !== 'none') {
             console.log('🛑 Vella Widget: Status indicator clicked - ending call');
             isVoiceMode = false;
             self.endVoiceConversation();
             
-            // Show start button, hide call info
+            // Show start button, hide status indicator
             if (startCallBtn) startCallBtn.style.display = 'flex';
-            if (callInfo) callInfo.style.display = 'none';
-            if (statusIndicator) statusIndicator.classList.remove('listening', 'processing', 'speaking');
+            if (statusIndicator) {
+              statusIndicator.style.display = 'none';
+              statusIndicator.classList.remove('listening', 'processing', 'speaking');
+            }
+            if (recDot) recDot.style.display = 'none';
             
             // Stop timer
             if (timerInterval) {
@@ -2820,7 +2831,7 @@ export async function GET() {
             } else {
               console.log('⚠️ Vella Widget: Call ended during audio playback, not restarting');
             }
-          }, 500);
+          }, 100);
         }
         return;
       }
@@ -2832,8 +2843,8 @@ export async function GET() {
       
       this.playBase64AudioChunk(nextChunk)
         .then(() => {
-          console.log('✅ Vella Widget: Chunk finished, playing next...');
-          // Play next chunk
+          console.log('✅ Vella Widget: Chunk finished, playing next immediately...');
+          // Play next chunk immediately without delay
           this.processAudioQueue();
         })
         .catch(error => {
@@ -2867,6 +2878,10 @@ export async function GET() {
           
           const audio = new Audio(audioUrl);
           currentAudio = audio;
+          
+          // Preload the audio to reduce gap
+          audio.preload = 'auto';
+          audio.load();
 
           audio.onended = () => {
             console.log('🎵 Vella Widget: Audio chunk playback ended');
@@ -2879,8 +2894,13 @@ export async function GET() {
             URL.revokeObjectURL(audioUrl);
             reject(error);
           };
+          
+          // Set up canplaythrough event for smoother playback
+          audio.oncanplaythrough = () => {
+            console.log('🎵 Vella Widget: Audio chunk ready to play');
+          };
 
-          // Start playback
+          // Start playback immediately
           console.log('🎵 Vella Widget: Starting audio chunk playback');
           audio.play().catch(error => {
             console.error('🎵 Vella Widget: Failed to play audio chunk:', error);
