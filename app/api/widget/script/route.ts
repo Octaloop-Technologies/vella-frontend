@@ -769,6 +769,12 @@ export async function GET() {
             align-items: center;
             justify-content: center;
             transition: all 0.4s ease;
+            cursor: pointer;
+          }
+          
+          .vella-status-indicator:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
           }
           
           .vella-status-indicator.listening {
@@ -838,12 +844,12 @@ export async function GET() {
           }
           
           .vella-start-call-btn {
-            width: auto;
-            padding: 14px 32px;
+            width: 80px;
+            height: 80px;
             background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: white;
             border: none;
-            border-radius: 24px;
+            border-radius: 50%;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -852,16 +858,21 @@ export async function GET() {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
           }
           
           .vella-start-call-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.4);
           }
           
           .vella-start-call-btn:active {
-            transform: translateY(0);
+            transform: scale(0.95);
+          }
+          
+          .vella-start-call-btn svg {
+            width: 32px;
+            height: 32px;
           }
           
           .vella-content-area {
@@ -893,7 +904,6 @@ export async function GET() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>
-              <span id="vella-inline-text">Start Call</span>
             </button>
             
             <!-- Call Status Container (Hidden initially) -->
@@ -915,11 +925,6 @@ export async function GET() {
               <!-- Call Status Text (hidden) -->
               <div class="vella-call-status" id="vella-call-status" style="display: none;">In call...</div>
             </div>
-            
-            <!-- End Call Button (Hidden initially) -->
-            <button id="vella-endcall-btn" class="vella-endcall-btn" style="display: none;" title="End Call">
-              End Call
-            </button>
           </div>
           
           <!-- Footer -->
@@ -946,7 +951,6 @@ export async function GET() {
       
       // Get UI elements
       const startCallBtn = document.getElementById('vella-inline-call-btn');
-      const endCallBtn = document.getElementById('vella-endcall-btn');
       const callInfo = document.getElementById('vella-call-info');
       const callStatus = document.getElementById('vella-call-status');
       const recTimer = document.getElementById('vella-rec-timer');
@@ -978,10 +982,9 @@ export async function GET() {
             self.startVoiceListening();
           }, 500);
           
-          // Hide start button, show call info and end call button
+          // Hide start button, show call info
           startCallBtn.style.display = 'none';
           if (callInfo) callInfo.style.display = 'block';
-          if (endCallBtn) endCallBtn.style.display = 'block';
           if (statusIndicator) statusIndicator.classList.add('listening');
           
           // Start timer
@@ -993,26 +996,28 @@ export async function GET() {
         };
       }
       
-      // End call button click
-      if (endCallBtn) {
-        endCallBtn.onclick = function() {
-          console.log('🛑 Vella Widget: End call clicked');
-          isVoiceMode = false;
-          self.endVoiceConversation();
-          
-          // Show start button, hide call info and end call button
-          if (startCallBtn) startCallBtn.style.display = 'flex';
-          if (callInfo) callInfo.style.display = 'none';
-          if (endCallBtn) endCallBtn.style.display = 'none';
-          if (statusIndicator) statusIndicator.classList.remove('listening', 'processing', 'speaking');
-          
-          // Stop timer
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
+      // Status indicator click to end call
+      if (statusIndicator) {
+        statusIndicator.onclick = function() {
+          // Only end call if we're in an active call
+          if (isVoiceMode && callInfo && callInfo.style.display !== 'none') {
+            console.log('🛑 Vella Widget: Status indicator clicked - ending call');
+            isVoiceMode = false;
+            self.endVoiceConversation();
+            
+            // Show start button, hide call info
+            if (startCallBtn) startCallBtn.style.display = 'flex';
+            if (callInfo) callInfo.style.display = 'none';
+            if (statusIndicator) statusIndicator.classList.remove('listening', 'processing', 'speaking');
+            
+            // Stop timer
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
+            callStartTime = null;
+            if (recTimer) recTimer.textContent = '00:00';
           }
-          callStartTime = null;
-          if (recTimer) recTimer.textContent = '00:00';
         };
       }
       
