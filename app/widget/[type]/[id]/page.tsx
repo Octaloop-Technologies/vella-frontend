@@ -84,7 +84,7 @@ function WidgetContent() {
     <>
       {/* Load the widget script */}
       <Script
-        src="/api/widget/script"
+        src={`/api/widget/script?t=${Date.now()}`}
         strategy="afterInteractive"
         onLoad={() => {
           console.log('✅ Widget script loaded');
@@ -99,7 +99,7 @@ function WidgetContent() {
       {/* Widget will be mounted here */}
       <div 
         id="vella-widget-container"
-        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 p-4"
+        className="flex items-center justify-center min-h-screen bg-white p-4"
       ></div>
     </>
   );

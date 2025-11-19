@@ -109,7 +109,6 @@ export async function GET() {
         margin: 0 auto;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         overflow: hidden;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       \`;
@@ -707,7 +706,6 @@ export async function GET() {
             background: white;
             border-radius: 16px;
             padding: 40px 24px 24px 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 400px;
             margin: 0 auto;
@@ -848,7 +846,7 @@ export async function GET() {
           .vella-start-call-btn {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            background: \${config.primaryColor};
             color: white;
             border: none;
             border-radius: 50%;
@@ -859,7 +857,7 @@ export async function GET() {
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             position: absolute;
             top: 0;
             left: 0;
@@ -867,7 +865,7 @@ export async function GET() {
           
           .vella-start-call-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
           }
           
           .vella-start-call-btn:active {

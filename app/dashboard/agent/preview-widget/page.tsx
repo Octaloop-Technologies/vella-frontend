@@ -120,7 +120,7 @@ function WidgetPreviewContent() {
     currentSize?.width
   }; height: ${
     currentSize?.height
-  }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999;"
+  }; border: none; border-radius: 12px; z-index: 9999;"
   title="${agentName} - Vella AI Widget"
   allow="microphone"
 ></iframe>`;
@@ -201,7 +201,7 @@ function WidgetPreviewContent() {
         src="${iframeUrl}"
         style="width: ${currentSize?.width}; height: ${
         currentSize?.height
-      }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+      }; border: none; border-radius: 12px;"
         title="${agentName} - Vella AI Voice Widget"
         allow="microphone"
     ></iframe>
@@ -388,7 +388,7 @@ function WidgetPreviewContent() {
         src="${iframeUrl}"
         style="width: ${currentSize?.width}; height: ${
         currentSize?.height
-      }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+      }; border: none; border-radius: 12px;"
         title="${agentName} - Vella AI Voice Widget"
         allow="microphone"
     ></iframe>
@@ -679,28 +679,30 @@ function WidgetPreviewContent() {
               </div>
             </Card>
 
-            {/* Position Selection */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Position</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {positions.map((position) => (
-                  <label
-                    key={position.id}
-                    className="flex items-center space-x-2 cursor-pointer p-2 border rounded hover:bg-gray-50"
-                  >
-                    <input
-                      type="radio"
-                      name="position"
-                      value={position.id}
-                      checked={selectedPosition === position.id}
-                      onChange={(e) => setSelectedPosition(e.target.value)}
-                      className="text-brand-primary"
-                    />
-                    <span className="text-sm">{position.name}</span>
-                  </label>
-                ))}
-              </div>
-            </Card>
+            {/* Position Selection - Hide for voice widget */}
+            {!isVoiceWidget && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Position</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {positions.map((position) => (
+                    <label
+                      key={position.id}
+                      className="flex items-center space-x-2 cursor-pointer p-2 border rounded hover:bg-gray-50"
+                    >
+                      <input
+                        type="radio"
+                        name="position"
+                        value={position.id}
+                        checked={selectedPosition === position.id}
+                        onChange={(e) => setSelectedPosition(e.target.value)}
+                        className="text-brand-primary"
+                      />
+                      <span className="text-sm">{position.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             {/* Size Selection */}
             <Card className="p-6">
