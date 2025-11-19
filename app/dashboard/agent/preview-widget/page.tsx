@@ -15,6 +15,7 @@ function WidgetPreviewContent() {
   const [selectedSize, setSelectedSize] = useState("medium");
   const [customColor, setCustomColor] = useState("#8266D4");
   const [showCode, setShowCode] = useState(false);
+  const [embedType, setEmbedType] = useState<"iframe" | "script">("iframe");
   const [selectedWidgetType, setSelectedWidgetType] = useState<
     "chat" | "voice"
   >("chat");
@@ -96,10 +97,36 @@ function WidgetPreviewContent() {
   const currentPosition = positions.find((p) => p.id === selectedPosition);
   const currentSize = sizes.find((s) => s.id === selectedSize);
 
-  // Generate embed code
-  const embedCode = `
+  // Determine widget type for embed
+  const embedWidgetType =
+    channelType === "phone"
+      ? "voice"
+      : isOmnichannel
+      ? selectedWidgetType
+      : "chat";
 
+  // Voice widget uses iframe, chat uses script
+  const isVoiceWidget = embedWidgetType === "voice";
 
+  // Generate iframe embed code (for voice widget)
+  const iframeEmbedCode = `<!-- Vella AI Widget - iframe Embed -->
+<iframe
+  src="${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
+    customColor
+  )}"
+  style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: ${
+    currentSize?.width
+  }; height: ${
+    currentSize?.height
+  }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999;"
+  title="${agentName} - Vella AI Widget"
+  allow="microphone"
+></iframe>`;
+
+  // Generate script embed code (for chat widget)
+  const scriptEmbedCode = `<!-- Vella AI Widget - Script Embed -->
 <script>
   (function() {
     // Fetch agent configuration first
@@ -111,13 +138,7 @@ function WidgetPreviewContent() {
         const vellaConfig = {
           agentId: '${agentId}',
           title: agentConfig.name || '${agentName}',
-          widgetType: '${
-            channelType === "phone"
-              ? "voice"
-              : isOmnichannel
-              ? selectedWidgetType
-              : "chat"
-          }',
+          widgetType: 'chat',
           position: '${selectedPosition}',
           size: '${selectedSize}',
           primaryColor: '${customColor}'
@@ -146,102 +167,115 @@ function WidgetPreviewContent() {
   };
 
   const testWidget = () => {
-    // Determine if it's a voice widget
-    const isVoiceWidget =
-      channelType === "phone" || selectedWidgetType === "voice";
+    if (isVoiceWidget) {
+      // Voice Widget - iframe only, centered on screen
+      const iframeUrl = `${
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
+        customColor
+      )}`;
 
-    // Create a test HTML page with the widget
-    const testHtml = `
+      const testHtml = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Widget Test - ${agentName}</title>
+    <title>Voice Widget Test - ${agentName}</title>
     <style>
         body {
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
-            ${
-              isVoiceWidget
-                ? "display: flex; flex-direction: column; min-height: 100vh;"
-                : "max-width: 800px;"
-            }
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-            ${
-              isVoiceWidget
-                ? "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
-                : ""
-            }
-        }
-        .header {
-            background: ${
-              isVoiceWidget
-                ? "rgba(255,255,255,0.95)"
-                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            };
-            color: ${isVoiceWidget ? "#333" : "white"};
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            ${isVoiceWidget ? "box-shadow: 0 4px 20px rgba(0,0,0,0.1);" : ""}
-        }
-        .content {
-            background: ${isVoiceWidget ? "rgba(255,255,255,0.95)" : "#f9f9f9"};
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            ${isVoiceWidget ? "box-shadow: 0 4px 20px rgba(0,0,0,0.1);" : ""}
-        }
-        .voice-widget-container {
-            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-        }
-        #voice-widget-mount {
-            width: 100%;
-            max-width: 500px;
-        }
-        .footer {
-            text-align: center;
-            color: ${isVoiceWidget ? "white" : "#666"};
-            padding: 1rem;
-            ${
-              isVoiceWidget
-                ? "background: rgba(255,255,255,0.1); border-radius: 10px;"
-                : ""
-            }
-        }
-        .debug-panel {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
         }
     </style>
 </head>
 <body>
+    <!-- Vella AI Voice Widget - iframe Embed (Centered) -->
+    <iframe
+        src="${iframeUrl}"
+        style="width: ${currentSize?.width}; height: ${
+        currentSize?.height
+      }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+        title="${agentName} - Vella AI Voice Widget"
+        allow="microphone"
+    ></iframe>
+</body>
+</html>`;
 
-
-    ${
-      isVoiceWidget
-        ? `
-    <!-- Voice Widget Container (Center of Page) -->
-    <div class="voice-widget-container">
-        <div id="voice-widget-mount"></div>
+      const newWindow = window.open("", "_blank");
+      if (newWindow) {
+        newWindow.document.write(testHtml);
+        newWindow.document.close();
+        addToast({
+          message: "Voice widget test page opened",
+          type: "success",
+        });
+      } else {
+        addToast({
+          message: "Please allow popups to test the widget",
+          type: "error",
+        });
+      }
+    } else {
+      // Chat Widget - script embed
+      const testHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Test - ${agentName}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .content {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Vella AI Chat Widget Test</h1>
+        <p>Testing widget for: <strong>${agentName}</strong></p>
     </div>
-    `
-        : `
+
     <div class="content">
         <h2>Widget Status</h2>
-        <p id="status">Loading widget...</p>
+        <div class="success">
+            ✅ <strong>Widget loaded successfully!</strong>
+        </div>
         
         <h3>Test Instructions:</h3>
         <ul>
@@ -249,93 +283,26 @@ function WidgetPreviewContent() {
               selectedPosition.includes("right") ? "right" : "left"
             } corner</li>
             <li>✅ Click the button to open the chat widget</li>
-            <li>✅ Try sending a message</li>
-            <li>✅ Test the close button</li>
+            <li>✅ Try sending a message to test the conversation</li>
+            <li>✅ The widget integrates directly with the page using script</li>
         </ul>
-
-        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-            <strong>Agent Details:</strong><br>
-            ID: ${agentId}<br>
-            Name: ${agentName}<br>
-            Type: ${agentType}<br>
-            Status: ${agentStatus}
-        </div>
-
-        <div class="debug-panel">
-            <strong>Debug Console:</strong><br>
-            <div id="debug-output"></div>
-        </div>
     </div>
-    `
-    }
 
-
-    <!-- Vella AI Widget -->
+    <!-- Vella AI Chat Widget - Script Embed -->
     <script>
-        ${
-          !isVoiceWidget
-            ? `
-        // Override console.log to show in debug panel
-        const originalLog = console.log;
-        const originalError = console.error;
-        const debugOutput = document.getElementById('debug-output');
-        
-        function addToDebug(message, type = 'log') {
-            const time = new Date().toLocaleTimeString();
-            const div = document.createElement('div');
-            div.style.color = type === 'error' ? 'red' : type === 'warn' ? 'orange' : 'black';
-            div.textContent = '[' + time + '] ' + message;
-            debugOutput.appendChild(div);
-            debugOutput.scrollTop = debugOutput.scrollHeight;
-            originalLog(message);
-        }
-        
-        console.log = function(...args) {
-            addToDebug(args.join(' '), 'log');
-        };
-        
-        console.error = function(...args) {
-            addToDebug(args.join(' '), 'error');
-        };
-        
-        console.warn = function(...args) {
-            addToDebug(args.join(' '), 'warn');
-        };
-        `
-            : ""
-        }
-
         (function() {
             console.log('🚀 Starting widget initialization...');
             
             const vellaConfig = {
                 agentId: '${agentId}',
-                widgetType: '${
-                  isVoiceWidget
-                    ? "inline-voice"
-                    : channelType === "phone"
-                    ? "voice"
-                    : isOmnichannel
-                    ? selectedWidgetType
-                    : "chat"
-                }',
-                ${
-                  isVoiceWidget
-                    ? "containerId: 'voice-widget-mount',"
-                    : `position: '${selectedPosition}',`
-                }
+                widgetType: 'chat',
+                position: '${selectedPosition}',
                 size: '${selectedSize}',
                 primaryColor: '${customColor}',
                 title: '${agentName}'
             };
             
             console.log('📝 Widget config:', JSON.stringify(vellaConfig));
-            
-            ${
-              !isVoiceWidget
-                ? "document.getElementById('status').textContent = 'Loading widget script...';"
-                : ""
-            }
             
             // Widget loader script
             const script = document.createElement('script');
@@ -345,47 +312,22 @@ function WidgetPreviewContent() {
             
             script.onload = function() {
                 console.log('✅ Widget script loaded successfully');
-                ${
-                  !isVoiceWidget
-                    ? "document.getElementById('status').textContent = 'Widget script loaded, initializing...';"
-                    : ""
-                }
                 
                 if (window.VellaWidget) {
                     console.log('🎯 Initializing widget...');
                     try {
                         window.VellaWidget.init(vellaConfig);
-                        ${
-                          !isVoiceWidget
-                            ? `document.getElementById('status').innerHTML = '✅ <strong style="color: green;">Widget loaded successfully!</strong> Look for the chat button.';`
-                            : ""
-                        }
                         console.log('🎉 Widget initialized!');
                     } catch (error) {
                         console.error('❌ Widget initialization failed:', error);
-                        ${
-                          !isVoiceWidget
-                            ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Widget initialization failed</strong>';"
-                            : ""
-                        }
                     }
                 } else {
                     console.error('❌ VellaWidget not found on window');
-                    ${
-                      !isVoiceWidget
-                        ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Widget failed to initialize</strong>';"
-                        : ""
-                    }
                 }
             };
             
             script.onerror = function(error) {
                 console.error('❌ Failed to load widget script:', error);
-                ${
-                  !isVoiceWidget
-                    ? "document.getElementById('status').innerHTML = '❌ <strong style=\"color: red;\">Failed to load widget script</strong><br>Make sure your Next.js app is running on localhost:3000';"
-                    : ""
-                }
             };
             
             console.log('📤 Loading widget script from:', script.src);
@@ -395,36 +337,157 @@ function WidgetPreviewContent() {
 </body>
 </html>`;
 
-    // Open test page in a new window
-    const newWindow = window.open("", "_blank");
-    if (newWindow) {
-      newWindow.document.write(testHtml);
-      newWindow.document.close();
-      addToast({
-        message: "Widget test page opened in new window",
-        type: "success",
-      });
-    } else {
-      addToast({
-        message: "Please allow popups to test the widget",
-        type: "error",
-      });
+      const newWindow = window.open("", "_blank");
+      if (newWindow) {
+        newWindow.document.write(testHtml);
+        newWindow.document.close();
+        addToast({
+          message: "Chat widget test page opened",
+          type: "success",
+        });
+      } else {
+        addToast({
+          message: "Please allow popups to test the widget",
+          type: "error",
+        });
+      }
     }
   };
 
   const downloadCode = () => {
-    const blob = new Blob([embedCode], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `vella-widget-${agentName
-      .toLowerCase()
-      .replace(/\s+/g, "-")}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    addToast({ message: "Widget code downloaded!", type: "success" });
+    if (isVoiceWidget) {
+      // Voice Widget - iframe embed
+      const iframeUrl = `${
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
+        customColor
+      )}`;
+
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${agentName} - Voice Widget</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Vella AI Voice Widget - iframe Embed (Centered) -->
+    <iframe
+        src="${iframeUrl}"
+        style="width: ${currentSize?.width}; height: ${
+        currentSize?.height
+      }; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+        title="${agentName} - Vella AI Voice Widget"
+        allow="microphone"
+    ></iframe>
+</body>
+</html>`;
+
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vella-voice-widget-${agentId}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      addToast({
+        message: "Voice widget code downloaded (iframe embed)",
+        type: "success",
+      });
+    } else {
+      // Chat Widget - script embed
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${agentName} - Chat Widget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to ${agentName}</h1>
+    <div class="info">
+        <p>This page includes the Vella AI Chat Widget. Look for the chat button in the bottom-${
+          selectedPosition.includes("right") ? "right" : "left"
+        } corner!</p>
+    </div>
+
+    <!-- Vella AI Chat Widget - Script Embed -->
+    <script>
+        (function() {
+            const vellaConfig = {
+                agentId: '${agentId}',
+                widgetType: 'chat',
+                position: '${selectedPosition}',
+                size: '${selectedSize}',
+                primaryColor: '${customColor}',
+                title: '${agentName}'
+            };
+            
+            const script = document.createElement('script');
+            script.src = '${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/api/widget/script?t=' + Date.now();
+            
+            script.onload = function() {
+                if (window.VellaWidget) {
+                    window.VellaWidget.init(vellaConfig);
+                }
+            };
+            
+            document.head.appendChild(script);
+        })();
+    </script>
+</body>
+</html>`;
+
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vella-chat-widget-${agentId}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      addToast({
+        message: "Chat widget code downloaded (script embed)",
+        type: "success",
+      });
+    }
   };
 
   if (!agentId) {
@@ -700,10 +763,20 @@ function WidgetPreviewContent() {
               {showCode ? (
                 <div className="h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium">Embed Code</h4>
+                    <div className="flex items-center gap-4">
+                      <h4 className="font-medium">
+                        {isVoiceWidget
+                          ? "iframe Embed Code"
+                          : "Script Embed Code"}
+                      </h4>
+                    </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => copyToClipboard(embedCode)}
+                        onClick={() =>
+                          copyToClipboard(
+                            isVoiceWidget ? iframeEmbedCode : scriptEmbedCode
+                          )
+                        }
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
                       >
                         Copy
@@ -716,8 +789,25 @@ function WidgetPreviewContent() {
                       </button>
                     </div>
                   </div>
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-auto h-[calc(100%-60px)] font-mono">
-                    {embedCode}
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-600">
+                      {isVoiceWidget ? (
+                        <>
+                          <strong>iframe embed:</strong> Voice widget embedded
+                          in an isolated iframe, centered on the screen. Perfect
+                          for dedicated voice interaction pages.
+                        </>
+                      ) : (
+                        <>
+                          <strong>Script embed:</strong> Chat widget dynamically
+                          loaded with your page. Appears in the corner and
+                          integrates seamlessly.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-auto h-[calc(100%-140px)] font-mono">
+                    {isVoiceWidget ? iframeEmbedCode : scriptEmbedCode}
                   </pre>
                 </div>
               ) : (
