@@ -95,10 +95,15 @@ export interface Conversation extends Record<string, unknown> {
 }
 
 export interface Document extends Record<string, unknown> {
+  id?: string;
   name: string;
   type: string;
   status: string;
   statusVariant: 'published' | 'draft' | 'processing' | 'error';
   size: string;
   lastUpdated: string;
+  tags?: string[];
+  onViewDetails?: () => void;
+  onDownload?: () => void;
+  onDelete?: () => void;
 }

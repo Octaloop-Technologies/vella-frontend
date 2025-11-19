@@ -59,7 +59,6 @@ export default function Agent() {
     const timeoutId = setTimeout(() => {
       searchAgents({
         search: searchTerm,
-        status: filterStatus,
         page: 1,
         limit: 10
       });
@@ -68,7 +67,12 @@ export default function Agent() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, filterStatus, searchAgents]);
 
-  const filteredData = agentsData;
+  // Filter data by type on frontend
+  const filteredData = filterStatus === 'All Agents' 
+    ? agentsData 
+    : agentsData.filter(agent => 
+        agent.type.toLowerCase() === filterStatus.toLowerCase()
+      );
 
   const handleViewDetails = (agent: AgentsTable) => {
     setSelectedAgent(agent);
@@ -261,7 +265,7 @@ export default function Agent() {
                 setIsOpen={setIsDropdownOpen}
                 value={filterStatus}
                 setValue={setFilterStatus}
-                options={['All Agents', 'active', 'inactive', 'draft']}
+                options={['All Agents', 'Inbound', 'Outbound', 'Widget']}
               />
             </div>
           </Card>
@@ -352,7 +356,9 @@ export default function Agent() {
                         </div>
                       }
                       title={agent.name}
-                      description={agent.description || "AI agent for customer interactions"}
+                      onTitleClick={() => handleViewDetails(agent)}
+                      description={agent.description?.slice(0, 100) || "AI agent for customer interactions"}
+                      phoneNumber={agent.phoneNumber}
                       badges={[
                         { label: agent.type, variant: agent.typeVariant },
                         { label: agent.status, variant: agent.statusVariant }
@@ -363,10 +369,10 @@ export default function Agent() {
                         { label: 'Last Active', value: agent.lastActive }
                       ]}
                       menuItems={[
-                        { icon: <FileEditIcon />, label: 'Edit Agent' },
-                        { icon: <CopyIcon />, label: 'Duplicate Agent' },
+                        // { icon: <FileEditIcon />, label: 'Edit Agent' },
+                        // { icon: <CopyIcon />, label: 'Duplicate Agent' },
                         { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
-                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && agent.status === 'Draft' ? [{
+                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && (agent.status === 'Draft' || agent.status === 'Inactive') ? [{
                           icon: <PlayIcon />,
                           label: 'Activate Agent',
                           onClick: () => handleActivateAgent(agent)
@@ -376,8 +382,12 @@ export default function Agent() {
                           label: 'Deactivate Agent',
                           onClick: () => handleDeactivateAgent(agent)
                         }] : []),
-                        { icon: <AgentIcon className="w-4 h-4 text-[#1F2937]"  />, label: 'Test Agent', onClick: () => handleTestAgent(agent) },
-                        ...(agent.type === 'widget' ? [{
+                        ...((agent.type === 'Inbound' || agent.type === 'Outbound') ? [{
+                          icon: <AgentIcon className="w-4 h-4 text-[#1F2937]" />,
+                          label: 'Test Agent',
+                          onClick: () => handleTestAgent(agent)
+                        }] : []),
+                        ...(agent.type === 'Widget' ? [{
                           icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                             <circle cx="9" cy="9" r="2"/>
@@ -386,7 +396,7 @@ export default function Agent() {
                           label: 'Preview Widget', 
                           onClick: () => handlePreviewWidget(agent) 
                         }] : []),
-                        ...(agent.type === 'outbound' || agent.type === 'Outbound' ? [{
+                        ...((agent.type === 'Outbound') ? [{
                           icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                           </svg>,

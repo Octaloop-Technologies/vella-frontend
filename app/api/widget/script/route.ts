@@ -706,15 +706,14 @@ export async function GET() {
           .vella-voice-card {
             background: white;
             border-radius: 16px;
-            padding: 40px 24px;
+            padding: 40px 24px 24px 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 400px;
             margin: 0 auto;
-            min-height: 420px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
           }
           
           .vella-avatar {
@@ -735,7 +734,7 @@ export async function GET() {
             font-size: 24px;
             font-weight: 600;
             color: #1f2937;
-            margin-bottom: 24px;
+            margin-bottom: 8px;
           }
           
           .vella-rec-status {
@@ -743,7 +742,7 @@ export async function GET() {
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             height: 30px;
           }
           
@@ -881,13 +880,13 @@ export async function GET() {
           }
           
           .vella-content-area {
-            min-height: 220px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             position: relative;
+            padding-top: 0;
           }
         </style>
         

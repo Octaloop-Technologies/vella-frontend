@@ -90,7 +90,8 @@ export interface CreateAgentRequest {
     use_speaker_boost: boolean;
   };
   model_id: string;
- phone_number?: string | null;
+  phone_number?: string | null;
+  knowledge_base_document_ids?: string | (string | null)[];
 }
 
 export interface CreateAgentResponse {

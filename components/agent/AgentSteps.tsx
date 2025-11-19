@@ -402,7 +402,8 @@ export function Step5ReviewPublish() {
           use_speaker_boost: true
         },
         model_id: 'eleven_monolingual_v1',
-        phone_number: agentData.phoneNumber || null
+        phone_number: agentData.phoneNumber || null,
+        knowledge_base_document_ids: agentData.selectedDocuments || []
       };
 
       console.log('Sending agent data to API:', createAgentData);

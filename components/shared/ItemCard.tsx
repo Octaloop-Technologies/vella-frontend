@@ -6,7 +6,9 @@ import { Dropdown, DropdownItem, DotsIcon } from '@/components/shared/Dropdown';
 interface ItemCardProps {
   icon: ReactNode;
   title: string;
+  onTitleClick?: () => void;
   description: string;
+  phoneNumber?: string | null;
   badges?: Array<{
     label: string;
     variant?: string;
@@ -27,7 +29,9 @@ interface ItemCardProps {
 const ItemCard: React.FC<ItemCardProps> = ({
   icon,
   title,
+  onTitleClick,
   description,
+  phoneNumber,
   badges = [],
   stats,
   footerTags = [],
@@ -40,7 +44,12 @@ const ItemCard: React.FC<ItemCardProps> = ({
           <div className="flex items-center space-x-3">
             {icon}
             <div>
-              <h3 className="font-semibold text-lg text-black">{title}</h3>
+              <h3 
+                className={`font-semibold text-lg text-black ${onTitleClick ? 'cursor-pointer hover:text-[#8266D4] transition-colors' : ''}`}
+                onClick={onTitleClick}
+              >
+                {title}
+              </h3>
               {badges.length > 0 && (
                 <div className="flex items-center space-x-2 mt-1">
                   {badges.map((badge, index) => (
@@ -71,6 +80,29 @@ const ItemCard: React.FC<ItemCardProps> = ({
       </div>
 
       <p className="text-sm text-black mb-4 font-medium">{description}</p>
+      
+      {phoneNumber && phoneNumber !== 'null' && phoneNumber !== 'undefined' && (
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-gradient-to-b from-[#8266D4]/10 to-[#41288A]/10 px-3 py-1.5 rounded-lg border border-[#8266D4]/20">
+            <svg 
+              className="w-3.5 h-3.5 text-[#8266D4]" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
+              />
+            </svg>
+            <span className="text-xs font-medium text-[#8266D4]">
+              {phoneNumber}
+            </span>
+          </div>
+        </div>
+      )}
       
       <div className="space-y-3">
         {stats.map((stat, index) => (

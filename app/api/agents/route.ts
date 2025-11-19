@@ -82,7 +82,16 @@ export async function POST(request: NextRequest) {
     const formData = new URLSearchParams();
     Object.entries(apiPayload).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (typeof value === 'object') {
+        // Special handling for arrays - append each item separately
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            value.forEach(item => {
+              if (item !== null && item !== undefined) {
+                formData.append(key, String(item));
+              }
+            });
+          }
+        } else if (typeof value === 'object') {
           formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, String(value));

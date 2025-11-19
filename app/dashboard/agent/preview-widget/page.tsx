@@ -228,14 +228,7 @@ function WidgetPreviewContent() {
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🚀 Widget Test for ${agentName}</h1>
-        <p>${
-          isVoiceWidget
-            ? "Your voice assistant will appear below. Speak naturally to interact!"
-            : "This is a live test of your AI widget. Click the chat button in the bottom-right corner!"
-        }</p>
-    </div>
+
 
     ${
       isVoiceWidget
@@ -276,9 +269,6 @@ function WidgetPreviewContent() {
     `
     }
 
-    <div class="footer">
-        <p>Powered by Vella AI Widget System</p>
-    </div>
 
     <!-- Vella AI Widget -->
     <script>

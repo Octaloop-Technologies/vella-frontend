@@ -434,14 +434,23 @@ const getColumnConfig = <T extends Record<string, unknown>>(
         {
           key: "actions",
           header: "Actions",
-          render: () => (
+          render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
-              <DropdownItem icon={<EyeIcon />} label="View Details" />
-              <DropdownItem icon={<DownloadIcon />} label="Download" />
+              <DropdownItem 
+                icon={<EyeIcon />} 
+                label="View Details"
+                onClick={row.onViewDetails as () => void}
+              />
+              <DropdownItem 
+                icon={<DownloadIcon />} 
+                label="Download"
+                onClick={row.onDownload as () => void}
+              />
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Document"
                 className="text-[#DC2626]"
+                onClick={row.onDelete as () => void}
               />
             </Dropdown>
           ),

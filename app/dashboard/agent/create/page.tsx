@@ -597,24 +597,40 @@ function Step2() {
   const searchParams = useSearchParams();
   const agentType = searchParams.get("type") || "inbound";
   const { agentData, updateAgentData } = useAgentCreation();
+  const { addToast } = useToast();
 
-  const documents = [
-    {
-      id: "product-faq",
-      name: "Product FAQ",
-      lastUpdated: "Last updated 2 days ago",
-    },
-    {
-      id: "sales-playbook",
-      name: "Sales Playbook",
-      lastUpdated: "Last updated 2 days ago",
-    },
-    {
-      id: "support-guidelines",
-      name: "Support Guidelines",
-      lastUpdated: "Last updated 2 days ago",
-    },
-  ];
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch documents from knowledge base API
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('/api/knowledge?skip=0&limit=100');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
+        }
+
+        const data = await response.json();
+        setDocuments(data);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load documents';
+        setError(errorMessage);
+        addToast({
+          message: errorMessage,
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, [addToast]);
 
   const toggleDocument = (docId: string) => {
     const current = agentData.selectedDocuments || [];
@@ -624,6 +640,23 @@ function Step2() {
       });
     } else {
       updateAgentData({ selectedDocuments: [...current, docId] });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return 'Last updated today';
+    } else if (diffDays === 1) {
+      return 'Last updated yesterday';
+    } else if (diffDays < 7) {
+      return `Last updated ${diffDays} days ago`;
+    } else {
+      return `Last updated on ${date.toLocaleDateString()}`;
     }
   };
 
@@ -646,37 +679,63 @@ function Step2() {
         access to.
       </div>
 
-      <div className="space-y-4">
-        {documents.map((doc) => (
-          <Card
-            key={doc.id}
-            className="flex items-center justify-between p-4 rounded-[12px] border border-[#E5E7EB]"
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8266D4]"></div>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg"
           >
-            <div className="flex items-center space-x-4">
-              <Image
-                src="/svgs/page.svg"
-                alt="Document Icon"
-                width={24}
-                height={24}
-              />
-              <div className='space-y-1'>
-                <h3 className="font-medium text-sm text-black">{doc.name}</h3>
-                <p className="text-xs text-[#2B231E] opacity-50 text-black">{doc.lastUpdated}</p>
+            Retry
+          </button>
+        </div>
+      ) : documents.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-[#717182] mb-4">No documents found in your knowledge base.</p>
+          <button
+            onClick={() => router.push('/dashboard/knowledge')}
+            className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg"
+          >
+            Add Documents
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {documents.map((doc) => (
+            <Card
+              key={doc.id}
+              className="flex items-center justify-between p-4 rounded-[12px] border border-[#E5E7EB]"
+            >
+              <div className="flex items-center space-x-4">
+                <Image
+                  src="/svgs/page.svg"
+                  alt="Document Icon"
+                  width={24}
+                  height={24}
+                />
+                <div className='space-y-1'>
+                  <h3 className="font-medium text-sm text-black">{doc.name}</h3>
+                  <p className="text-xs text-[#717182]">{formatDate(doc.updated_at || doc.created_at)}</p>
+                </div>
               </div>
-            </div>
 
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={(agentData.selectedDocuments || []).includes(doc.id)}
-                onChange={() => toggleDocument(doc.id)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-[#E5E7EB] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-b from-[#8266D4] to-[#41288A]"></div>
-            </label>
-          </Card>
-        ))}
-      </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={(agentData.selectedDocuments || []).includes(doc.id)}
+                  onChange={() => toggleDocument(doc.id)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-[#E5E7EB] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-b from-[#8266D4] to-[#41288A]"></div>
+              </label>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <StepNavigation
         onPrevious={() =>
