@@ -148,13 +148,15 @@ export default function Knowledge() {
       
       // Transform API data to match Document interface
       const transformedDocuments: Document[] = apiDocuments.map((doc) => {
+      
         const { status: displayStatus, variant } = mapStatus(doc.status);
+        const fileSize = doc.metadata?.file_size_bytes || doc.size || 0;
         return {
           name: doc.name,
           type: doc.document_type,
           status: displayStatus,
           statusVariant: variant,
-          size: formatFileSize(doc.size),
+          size: formatFileSize(fileSize),
           lastUpdated: formatDate(doc.updated_at),
           id: doc.id,
           tags: doc.tags,
@@ -163,7 +165,7 @@ export default function Knowledge() {
             type: doc.document_type,
             status: displayStatus,
             statusVariant: variant,
-            size: formatFileSize(doc.size),
+            size: formatFileSize(fileSize),
             lastUpdated: formatDate(doc.updated_at),
             id: doc.id,
             tags: doc.tags,
@@ -173,7 +175,7 @@ export default function Knowledge() {
             type: doc.document_type,
             status: displayStatus,
             statusVariant: variant,
-            size: formatFileSize(doc.size),
+            size: formatFileSize(fileSize),
             lastUpdated: formatDate(doc.updated_at),
             id: doc.id,
             tags: doc.tags,
@@ -183,7 +185,7 @@ export default function Knowledge() {
             type: doc.document_type,
             status: displayStatus,
             statusVariant: variant,
-            size: formatFileSize(doc.size),
+            size: formatFileSize(fileSize),
             lastUpdated: formatDate(doc.updated_at),
             id: doc.id,
             tags: doc.tags,

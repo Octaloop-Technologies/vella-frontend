@@ -433,14 +433,21 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Document Name",
           render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium">{String(row.name)}</span>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-gradient-to-b from-[#8266D4]/10 to-[#41288A]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-[#8266D4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-black">{String(row.name)}</span>
+            </div>
           ),
         },
         {
           key: "type",
           header: "Type",
           render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.type)}</span>
+            <span className="text-xs text-black">{String(row.type)}</span>
           ),
         },
         {
@@ -456,27 +463,36 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "size",
           header: "Size",
           render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.size)}</span>
+            <span className="text-xs text-black">{String(row.size)}</span>
           ),
         },
         {
           key: "lastUpdated",
           header: "Last Updated",
           render: (row: Record<string, unknown>) => (
-            <span className="text-xs">{String(row.lastUpdated)}</span>
+            <span className="text-xs text-black">{String(row.lastUpdated)}</span>
           ),
         },
         {
           key: "actions",
           header: "Actions",
-          render: () => (
+          render: (row: Record<string, unknown>) => (
             <Dropdown trigger={<DotsIcon />}>
-              <DropdownItem icon={<EyeIcon />} label="View Details" />
-              <DropdownItem icon={<DownloadIcon />} label="Download" />
+              <DropdownItem 
+                icon={<EyeIcon />} 
+                label="View Details"
+                onClick={row.onViewDetails as () => void}
+              />
+              <DropdownItem 
+                icon={<DownloadIcon />} 
+                label="Download"
+                onClick={row.onDownload as () => void}
+              />
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Document"
                 className="text-[#DC2626]"
+                onClick={row.onDelete as () => void}
               />
             </Dropdown>
           ),
@@ -546,7 +562,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
   return (
     <Card className={`${className}`}>
       {(title || showSearch || viewToggle) && (
-        <div className="p-6">
+        <div className="p-6 ">
           <div className="flex items-center justify-between">
             {title && (
               <h2 className="text-lg font-medium text-black">{title}</h2>
@@ -662,7 +678,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, index) => (
                   <th
                     key={index}
-                    className={`px-6 py-4 ${column.key === 'name' && type === 'agents' ? 'text-left' : 'text-center'} text-sm font-medium text-[#6B7280] whitespace-nowrap ${
+                    className={`px-6 py-4 ${(column.key === 'name' && type === 'agents') || type === 'documents' ? 'text-left' : 'text-center'} text-sm font-medium text-[#6B7280] whitespace-nowrap ${
                       type === "conversations"
                         ? "border-b border-[#0000001A]"
                         : ""
@@ -670,7 +686,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
                     style={{ width: column.width }}
                     onClick={() => column.key !== 'actions' && handleSort(String(column.key))}
                   >
-                    <div className={`flex items-center ${column.key === 'name' && type === 'agents' ? 'justify-start' : 'justify-center'} gap-2`}>
+                    <div className={`flex items-center ${(column.key === 'name' && type === 'agents') || type === 'documents' ? 'justify-start' : 'justify-center'} gap-2`}>
                       {column.header}
                       {column.key !== 'actions' && sortConfig.key === column.key && (
                         <span className="text-brand-primary">
@@ -693,14 +709,14 @@ export default function SharedTable<T extends Record<string, unknown>>({
                   <td
                     key={colIndex}
                     className={`px-6 py-4 ${
-                      (column.key === 'name' && type === 'agents') || type === 'topAgents' 
+                      (column.key === 'name' && type === 'agents') || type === 'topAgents' || type === 'documents'
                         ? 'text-left' 
                         : 'text-center'
                     }`}
                     style={column.width ? { width: column.width } : undefined}
                   >
                     <div className={`flex items-center ${
-                      (column.key === 'name' && type === 'agents') || type === 'topAgents'
+                      (column.key === 'name' && type === 'agents') || type === 'topAgents' || type === 'documents'
                         ? 'justify-start' 
                         : 'justify-center'
                     }`}>
