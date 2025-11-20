@@ -52,13 +52,15 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Workflow Name",
           render: (row: Record<string, unknown>) => (
-            <span className="text-sm font-medium text-black">{String(row.name)}</span>
-          )
+            <span className="text-sm font-medium">{String(row.name)}</span>
+          ),
         },
         {
-          key: 'linkedAgent',
-          header: 'Linked Agent',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.linkedAgent)}</span>
+          key: "linkedAgent",
+          header: "Linked Agent",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.linkedAgent)}</span>
+          ),
         },
         {
           key: "status",
@@ -70,14 +72,18 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: 'nodes',
-          header: 'Nodes',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.nodes)}</span>
+          key: "nodes",
+          header: "Nodes",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.nodes)}</span>
+          ),
         },
         {
-          key: 'lastEdited',
-          header: 'Last Edited',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastEdited)}</span>
+          key: "lastEdited",
+          header: "Last Edited",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.lastEdited)}</span>
+          ),
         },
         {
           key: "actions",
@@ -159,26 +165,24 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Agent Name",
           render: (row: Record<string, unknown>) => (
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={row.onViewDetails as () => void}
-            >
-              <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              {/* <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center">
                 <AgentIcon className="h-3 w-3 text-white" />
-              </div>
-              <span className="text-sm font-medium text-[#1F2937] hover:text-[#8266D4] transition-colors">
+              </div> */}
+              <span className="text-sm font-medium text-[#1F2937]">
                 {String(row.name)}
               </span>
             </div>
           ),
         },
         {
-          key: "agent_type",
+          key: "type",
           header: "Type",
           render: (row: Record<string, unknown>) => (
-            <Badge variant={String(row.typeVariant) as BadgeProps["variant"]}>
+             <span className="text-xs text-black">
               {String(row.type)}
-            </Badge>
+            </span>
+  
           ),
         },
         {
@@ -200,42 +204,13 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: "phoneNumber",
-          header: "Phone Number",
-          render: (row: Record<string, unknown>) => {
-            const phoneNumber = row.phoneNumber as string | null | undefined;
-            
-            if (!phoneNumber || phoneNumber === 'null' || phoneNumber === 'undefined') {
-              return (
-                <span className="text-xs text-gray-400 italic">
-                  Not assigned
-                </span>
-              );
-            }
-            
-            return (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 bg-gradient-to-b from-[#8266D4]/10 to-[#41288A]/10 px-3 py-1.5 rounded-lg border border-[#8266D4]/20">
-                  <svg 
-                    className="w-3.5 h-3.5 text-[#8266D4]" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
-                    />
-                  </svg>
-                  <span className="text-xs font-medium text-[#8266D4]">
-                    {phoneNumber}
-                  </span>
-                </div>
-              </div>
-            );
-          },
+          key: "successRate",
+          header: "Success Rate",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs text-black">
+              {String(row.successRate)}
+            </span>
+          ),
         },
         {
           key: "lastActive",
@@ -247,83 +222,86 @@ const getColumnConfig = <T extends Record<string, unknown>>(
         {
           key: "actions",
           header: "Actions",
-          render: (row: Record<string, unknown>) => (
-            <Dropdown trigger={<DotsIcon />}>
-              {/* <DropdownItem icon={<FileEditIcon />} label="Edit Agent" /> */}
-              {/* <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
-              <DropdownItem
-                icon={<EyeIcon />}
-                label="View Details"
-                onClick={row.onViewDetails as () => void}
-              />
-              {(row.type === 'Inbound' || row.type === 'inbound') && (row.status === 'Draft' || row.status === 'Inactive') && (
-                <DropdownItem 
-                  icon={<PlayIcon />} 
-                  label="Activate Agent"
-                  onClick={row.onActivate as () => void}
-                />
-              )}
-              {(row.type === 'Inbound' || row.type === 'inbound') && row.status === 'Active' && (
-                <DropdownItem 
-                  icon={<PauseIcon />} 
-                  label="Deactivate Agent"
-                  onClick={row.onDeactivate as () => void}
-                />
-              )}
-              {
-                (row.type === 'Inbound' || row.type === 'Outbound') && 
-                   <DropdownItem
-                icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />}
-                label="Test Agent"
-                onClick={row.onTestAgent as () => void}
-              />
-              }
-           
-              {row.type === 'Widget' && (
+          render: (row: Record<string, unknown>) => {
+            const agentType = String(row.type);
+            const agentStatus = String(row.status);
+            
+            return (
+              <Dropdown trigger={<DotsIcon />}>
+                {/* <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
+                <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
                 <DropdownItem
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="9" cy="9" r="2" />
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                    </svg>
-                  }
-                  label="Preview Widget"
-                  onClick={row.onPreviewWidget as () => void}
+                  icon={<EyeIcon />}
+                  label="View Details"
+                  onClick={row.onViewDetails as () => void}
                 />
-              )}
-              {(row.type === 'Outbound') && (
-                <DropdownItem 
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                    </svg>
-                  }
-                  label="Make a Call"
-                  onClick={row.onMakeCall as () => void}
+                
+                {/* Activate Agent - Only for Inbound agents with Draft or Inactive status */}
+                {(agentType === 'Inbound' || agentType === 'inbound') && 
+                 (agentStatus === 'Draft' || agentStatus === 'Inactive') && (
+                  <DropdownItem
+                    icon={<PlayIcon />}
+                    label="Activate Agent"
+                    onClick={row.onActivate as () => void}
+                  />
+                )}
+                
+                {/* Deactivate Agent - Only for Inbound agents with Active status */}
+                {(agentType === 'Inbound' || agentType === 'inbound') && 
+                 agentStatus === 'Active' && (
+                  <DropdownItem
+                    icon={<PauseIcon />}
+                    label="Deactivate Agent"
+                    onClick={row.onDeactivate as () => void}
+                  />
+                )}
+                
+                {/* Test Agent - Only for Inbound and Outbound agents */}
+                {(agentType === 'Inbound' || agentType === 'Outbound') && (
+                  <DropdownItem
+                    icon={<AgentIcon className="w-4 h-4 text-[#1F2937]" />}
+                    label="Test Agent"
+                    onClick={row.onTestAgent as () => void}
+                  />
+                )}
+                
+                {/* Preview Widget - Only for Widget agents */}
+                {agentType === 'Widget' && (
+                  <DropdownItem
+                    icon={
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                      </svg>
+                    }
+                    label="Preview Widget"
+                    onClick={row.onPreviewWidget as () => void}
+                  />
+                )}
+                
+                {/* Make a Call - Only for Outbound agents */}
+                {agentType === 'Outbound' && (
+                  <DropdownItem
+                    icon={
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
+                    }
+                    label="Make a Call"
+                    onClick={row.onMakeCall as () => void}
+                  />
+                )}
+                
+                <DropdownItem
+                  icon={<TrashIcon />}
+                  label="Delete Agent"
+                  className="text-[#DC2626]"
+                  onClick={row.onDelete as () => void}
                 />
-              )}
-
-              <DropdownItem
-                icon={<TrashIcon />}
-                label="Delete Agent"
-                className="text-[#DC2626]"
-                onClick={row.onDelete as () => void}
-              />
-            </Dropdown>
-          ),
+              </Dropdown>
+            );
+          },
         },
       ];
     case "conversations":
@@ -333,25 +311,33 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Customer",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5 text-black">{String(row.customerName)}</div>
-              <div className="text-xs text-black">{String(row.customerEmail)}</div>
+              <div className="text-sm font-medium mb-0.5">
+                {String(row.customerName)}
+              </div>
+              <div className="text-xs">{String(row.customerEmail)}</div>
             </div>
           ),
         },
         {
-          key: 'agent',
-          header: 'Agent',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.agent)}</span>
+          key: "agent",
+          header: "Agent",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.agent)}</span>
+          ),
         },
         {
-          key: 'channel',
-          header: 'Channel',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.channel)}</span>
+          key: "channel",
+          header: "Channel",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.channel)}</span>
+          ),
         },
         {
-          key: 'duration',
-          header: 'Duration',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.duration)}</span>
+          key: "duration",
+          header: "Duration",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.duration)}</span>
+          ),
         },
         {
           key: "status",
@@ -367,8 +353,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Satisfaction",
           render: (row: Record<string, unknown>) => (
             <div className="flex items-center gap-1">
-                <StarIcon />
-              <span className="text-sm font-medium text-black">{String(row.rating)}</span>
+              <StarIcon />
+              <span className="text-sm font-medium">{String(row.rating)}</span>
             </div>
           ),
         },
@@ -377,8 +363,10 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "Date",
           render: (row: Record<string, unknown>) => (
             <div>
-              <div className="text-sm font-medium mb-0.5 text-black">{String(row.date)}</div>
-              <div className="text-xs text-black">{String(row.time)}</div>
+              <div className="text-sm font-medium mb-0.5">
+                {String(row.date)}
+              </div>
+              <div className="text-xs">{String(row.time)}</div>
             </div>
           ),
         },
@@ -403,14 +391,18 @@ const getColumnConfig = <T extends Record<string, unknown>>(
     case "documents":
       return [
         {
-          key: 'name',
-          header: 'Document Name',
-          render: (row: Record<string, unknown>) => <span className="text-sm font-medium text-black">{String(row.name)}</span>
+          key: "name",
+          header: "Document Name",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-sm font-medium">{String(row.name)}</span>
+          ),
         },
         {
-          key: 'type',
-          header: 'Type',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.type)}</span>
+          key: "type",
+          header: "Type",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.type)}</span>
+          ),
         },
         {
           key: "status",
@@ -422,35 +414,30 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           ),
         },
         {
-          key: 'size',
-          header: 'Size',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.size)}</span>
+          key: "size",
+          header: "Size",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.size)}</span>
+          ),
         },
         {
-          key: 'lastUpdated',
-          header: 'Last Updated',
-          render: (row: Record<string, unknown>) => <span className="text-xs text-black">{String(row.lastUpdated)}</span>
+          key: "lastUpdated",
+          header: "Last Updated",
+          render: (row: Record<string, unknown>) => (
+            <span className="text-xs">{String(row.lastUpdated)}</span>
+          ),
         },
         {
           key: "actions",
           header: "Actions",
-          render: (row: Record<string, unknown>) => (
+          render: () => (
             <Dropdown trigger={<DotsIcon />}>
-              <DropdownItem 
-                icon={<EyeIcon />} 
-                label="View Details"
-                onClick={row.onViewDetails as () => void}
-              />
-              <DropdownItem 
-                icon={<DownloadIcon />} 
-                label="Download"
-                onClick={row.onDownload as () => void}
-              />
+              <DropdownItem icon={<EyeIcon />} label="View Details" />
+              <DropdownItem icon={<DownloadIcon />} label="Download" />
               <DropdownItem
                 icon={<TrashIcon />}
                 label="Delete Document"
                 className="text-[#DC2626]"
-                onClick={row.onDelete as () => void}
               />
             </Dropdown>
           ),
@@ -473,7 +460,13 @@ export default function SharedTable<T extends Record<string, unknown>>({
 }: TableProps<T>): React.ReactElement {
   const [searchTerm, setSearchTerm] = React.useState<string>("");
   const [view, setView] = React.useState<"list" | "grid">("list");
+  const [sortConfig, setSortConfig] = React.useState<{
+    key: string | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'asc' });
+  
   const columns = getColumnConfig(type);
+  
   const filteredData = React.useMemo(() => {
     if (!searchTerm) return data;
     return data.filter((row) =>
@@ -482,7 +475,35 @@ export default function SharedTable<T extends Record<string, unknown>>({
       )
     );
   }, [data, searchTerm]);
-  
+
+  const sortedData = React.useMemo(() => {
+    if (!sortConfig.key) return filteredData;
+    
+    const sorted = [...filteredData].sort((a, b) => {
+      const aValue = String(a[sortConfig.key!] || '');
+      const bValue = String(b[sortConfig.key!] || '');
+      
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    
+    return sorted;
+  }, [filteredData, sortConfig]);
+
+  const handleSort = (key: string) => {
+    if (key === 'actions') return; // Don't sort actions column
+    
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   return (
     <Card className={`${className}`}>
       {(title || showSearch || viewToggle) && (
@@ -602,21 +623,29 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, index) => (
                   <th
                     key={index}
-                    className={`px-6 py-4 text-left text-sm font-medium text-[#6B7280] whitespace-nowrap ${
+                    className={`px-6 py-4 text-center text-sm font-medium text-[#6B7280] whitespace-nowrap ${
                       type === "conversations"
                         ? "border-b border-[#0000001A]"
                         : ""
-                    }`}
+                    } ${column.key !== 'actions' ? 'cursor-pointer hover:bg-[#F9FAFB]' : ''}`}
                     style={{ width: column.width }}
+                    onClick={() => column.key !== 'actions' && handleSort(String(column.key))}
                   >
-                    {column.header}
+                    <div className="flex items-center justify-center gap-2">
+                      {column.header}
+                      {column.key !== 'actions' && sortConfig.key === column.key && (
+                        <span className="text-brand-primary">
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
                   </th>
                 ))}
               </tr>
             </thead>
           )}
           <tbody>
-            {filteredData.map((row, rowIndex) => (
+            {sortedData.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
                 className="border-b border-[#0000001A] last:border-b-0 hover:bg-[#F9FAFB] transition-colors"
@@ -624,12 +653,14 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className="px-6 py-4"
+                    className="px-6 py-4 text-center"
                     style={column.width ? { width: column.width } : undefined}
                   >
-                    {column.render
-                      ? column.render(row)
-                      : String(row[column.key])}
+                    <div className="flex items-center justify-center">
+                      {column.render
+                        ? column.render(row)
+                        : String(row[column.key])}
+                    </div>
                   </td>
                 ))}
               </tr>

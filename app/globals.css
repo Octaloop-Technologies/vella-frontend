@@ -151,3 +151,13 @@ body {
   }
 }
 
+/* CRITICAL: Hide Vella widget on all pages except preview page */
+body:not([data-vella-preview-mode="true"]) #vella-widget,
+body:not([data-vella-preview-mode="true"]) #vella-trigger-button,
+body:not([data-vella-preview-mode="true"]) [data-vella-widget] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+

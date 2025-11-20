@@ -264,7 +264,7 @@ export async function GET() {
             background: #94a3b8;
           }
         </style>
-        <div style="height: 100%; display: flex; flex-direction: column;">
+        <div style="height: 100%; display: flex; flex-direction: column; ">
           <!-- Header -->
           <div id="vella-header" style="
             padding: 20px;

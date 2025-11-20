@@ -2,36 +2,32 @@
 
 import React, { Suspense, useState, useRef, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Script from "next/script";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import Card from "@/components/shared/Card";
 import { useToast } from "@/contexts/ToastContext";
+
+// Extend Window interface for VellaWidget
+declare global {
+  interface Window {
+    VellaWidget?: {
+      init: (config: any) => void;
+    };
+  }
+}
 
 function WidgetPreviewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { addToast } = useToast();
-  const [isWidgetOpen, setIsWidgetOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState("bottom-right");
   const [selectedSize, setSelectedSize] = useState("medium");
   const [customColor, setCustomColor] = useState("#8266D4");
   const [showCode, setShowCode] = useState(false);
-  const [embedType, setEmbedType] = useState<"iframe" | "script">("iframe");
   const [selectedWidgetType, setSelectedWidgetType] = useState<
     "chat" | "voice"
   >("chat");
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: `👋 Hi! I'm ${
-        searchParams.get("name") || "AI Assistant"
-      }. How can I help you today?`,
-      sender: "agent",
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const widgetRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [forceReload, setForceReload] = useState(0);
 
   // Get agent details from URL params
   const agentId = searchParams.get("id") || "";
@@ -43,42 +39,6 @@ function WidgetPreviewContent() {
 
   // Check if it's omnichannel
   const isOmnichannel = channelType === "omnichannel";
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage = {
-      id: Date.now(),
-      text: inputValue,
-      sender: "user" as const,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setIsTyping(true);
-
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse = {
-        id: Date.now() + 1,
-        text: `I received your message: "${inputValue}". This is a preview of how your widget will work on external websites!`,
-        sender: "agent" as const,
-      };
-      setMessages((prev) => [...prev, agentResponse]);
-      setIsTyping(false);
-    }, 1500);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
-  };
 
   // Widget configurations
   const positions = [
@@ -107,6 +67,274 @@ function WidgetPreviewContent() {
 
   // Voice widget uses iframe, chat uses script
   const isVoiceWidget = embedWidgetType === "voice";
+
+  // Cleanup on component unmount to prevent widget from persisting on other pages
+  useEffect(() => {
+    console.log('🎬 Preview page mounted');
+    
+    // Set preview mode flag immediately on body element
+    document.body.setAttribute('data-vella-preview-mode', 'true');
+    (window as any).__VELLA_PREVIEW_MODE__ = true;
+    
+    // Cleanup function that runs when leaving this page
+    return () => {
+      console.log('🚪 Leaving preview page - AGGRESSIVE cleanup starting...');
+      
+      // CRITICAL: Remove preview mode attribute and flag FIRST
+      document.body.removeAttribute('data-vella-preview-mode');
+      delete (window as any).__VELLA_PREVIEW_MODE__;
+      
+      // Disconnect any observers
+      if ((window as any).__VELLA_OBSERVER__) {
+        (window as any).__VELLA_OBSERVER__.disconnect();
+        delete (window as any).__VELLA_OBSERVER__;
+      }
+      
+      // Remove all widget elements - check multiple times
+      const removeElements = () => {
+        const widget = document.getElementById('vella-widget');
+        const trigger = document.getElementById('vella-trigger-button');
+        const dataElements = document.querySelectorAll('[data-vella-widget]');
+        const styles = document.querySelectorAll('style#vella-preview-styles');
+        const scripts = document.querySelectorAll('script[src*="/api/widget/script"], script#vella-widget-script');
+        
+        widget?.remove();
+        trigger?.remove();
+        dataElements.forEach(el => el.remove());
+        styles.forEach(s => s.remove());
+        scripts.forEach(s => s.remove());
+        
+        console.log('🗑️ Removed elements:', {
+          widget: !!widget,
+          trigger: !!trigger,
+          dataElements: dataElements.length,
+          styles: styles.length,
+          scripts: scripts.length
+        });
+      };
+      
+      // Remove immediately
+      removeElements();
+      
+      // Remove again after a short delay to catch any delayed additions
+      setTimeout(removeElements, 100);
+      setTimeout(removeElements, 300);
+      setTimeout(removeElements, 500);
+      
+      // Clear window objects
+      if (window.VellaWidget) {
+        delete window.VellaWidget;
+      }
+      
+      console.log('✅ Preview page AGGRESSIVE cleanup complete');
+    };
+  }, []); // Empty dependency array - runs only on mount/unmount
+
+  // Load widget script for chat widgets
+  useEffect(() => {
+    // Mark this page as preview mode to prevent widget from loading elsewhere
+    (window as any).__VELLA_PREVIEW_MODE__ = true;
+    
+    // Aggressive cleanup function
+    const cleanup = () => {
+      console.log('🧹 Starting cleanup...');
+      
+      // Remove widget container
+      const existingWidget = document.getElementById('vella-widget');
+      if (existingWidget) {
+        existingWidget.remove();
+        console.log('🗑️ Removed existing widget');
+      }
+      
+      // Remove trigger button
+      const existingTrigger = document.getElementById('vella-trigger-button');
+      if (existingTrigger) {
+        existingTrigger.remove();
+        console.log('🗑️ Removed existing trigger');
+      }
+      
+      // Remove any data-vella-widget elements
+      const existingWidgets = document.querySelectorAll('[data-vella-widget]');
+      existingWidgets.forEach(el => {
+        el.remove();
+        console.log('🗑️ Removed data-vella-widget element');
+      });
+      
+      // CRITICAL: Remove ALL style tags with id vella-preview-styles
+      // This ensures voice-mode CSS doesn't persist when switching to chat
+      const existingStyles = document.querySelectorAll('style#vella-preview-styles');
+      existingStyles.forEach(style => {
+        style.remove();
+        console.log('🗑️ Removed existing style tag');
+      });
+      
+      // Remove any widget scripts
+      const existingScripts = document.querySelectorAll('script[src*="/api/widget/script"]');
+      existingScripts.forEach(script => {
+        script.remove();
+        console.log('🗑️ Removed widget script');
+      });
+      
+      // Clear VellaWidget from window
+      if (window.VellaWidget) {
+        delete window.VellaWidget;
+        console.log('🗑️ Cleared VellaWidget from window');
+      }
+      
+      // CRITICAL: Close any active WebSocket connections
+      try {
+        // Access the widget's WebSocket if it exists
+        const scripts = document.querySelectorAll('script[src*="/api/widget/script"]');
+        if (scripts.length > 0) {
+          // Force close any WebSocket connections by reloading will trigger cleanup
+          console.log('🔌 Forcing WebSocket cleanup');
+        }
+      } catch (e) {
+        console.log('⚠️ Could not access WebSocket for cleanup');
+      }
+      
+      // Restore VellaWidget property descriptor (in case it was blocked in voice mode)
+      try {
+        delete (window as any).VellaWidget;
+        console.log('🔓 Restored VellaWidget property');
+      } catch (e) {
+        // Ignore errors
+      }
+      
+      console.log('✅ Cleanup complete');
+    };
+
+    // Always cleanup first
+    cleanup();
+
+    if (!isVoiceWidget && !showCode) {
+      // ========== CHAT WIDGET MODE ==========
+      console.log('🎯 Loading CHAT widget');
+      
+      // Add CRITICAL CSS to fix layout - must be added BEFORE widget loads
+      const styleTag = document.createElement('style');
+      styleTag.id = 'vella-preview-styles';
+      styleTag.textContent = `
+        /* CRITICAL: Widget container z-index */
+        #vella-widget {
+          z-index: 10000 !important;
+        }
+        
+        /* CRITICAL: Trigger button must be BELOW widget when open */
+        #vella-trigger-button {
+          z-index: 9999 !important;
+        }
+        
+        /* Hide trigger button when widget is open */
+        #vella-widget[style*="display: block"] ~ #vella-trigger-button,
+        #vella-widget[style*="display:block"] ~ #vella-trigger-button {
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(styleTag);
+      console.log('✅ Added critical CSS for widget layout with z-index fixes');
+
+      const vellaConfig = {
+        agentId: agentId,
+        title: agentName,
+        widgetType: 'chat',
+        position: selectedPosition,
+        size: selectedSize,
+        primaryColor: customColor
+      };
+
+      // Load widget script
+      const timeoutId = setTimeout(() => {
+        console.log('🚀 Loading widget script');
+        const script = document.createElement('script');
+        script.id = 'vella-widget-script';
+        script.src = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/widget/script?t=${Date.now()}`;
+        script.async = true;
+        
+        script.onload = () => {
+          console.log('✅ Widget script loaded');
+          if (window.VellaWidget) {
+            window.VellaWidget.init(vellaConfig);
+            console.log('✅ Widget initialized');
+          } else {
+            console.error('❌ VellaWidget not found');
+          }
+        };
+
+        script.onerror = (error) => {
+          console.error('❌ Failed to load widget script:', error);
+        };
+
+        document.head.appendChild(script);
+      }, 200);
+
+      return () => {
+        clearTimeout(timeoutId);
+        cleanup();
+      };
+    } else if (isVoiceWidget && !showCode) {
+      // ========== VOICE WIDGET MODE ==========
+      console.log('🎙️ Voice widget mode - blocking chat widget');
+      
+      // Add aggressive CSS to hide chat elements
+      const styleTag = document.createElement('style');
+      styleTag.id = 'vella-preview-styles';
+      styleTag.textContent = `
+        /* Force hide chat widget elements when in voice mode */
+        #vella-trigger-button,
+        #vella-widget,
+        button[id*="vella"],
+        div[id*="vella-widget"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          position: absolute !important;
+          left: -9999px !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+      `;
+      document.head.appendChild(styleTag);
+      
+      // Prevent any VellaWidget initialization
+      Object.defineProperty(window, 'VellaWidget', {
+        get: () => undefined,
+        set: () => {},
+        configurable: true
+      });
+      
+      // Use MutationObserver to aggressively remove chat elements
+      const observer = new MutationObserver((mutations) => {
+        const elementsToRemove = document.querySelectorAll(
+          '#vella-trigger-button, #vella-widget, [data-vella-widget]'
+        );
+        elementsToRemove.forEach(el => {
+          el.remove();
+          console.log('🗑️ Removed chat widget element in voice mode');
+        });
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      return () => {
+        observer.disconnect();
+        // Restore VellaWidget property
+        delete (window as any).VellaWidget;
+        cleanup();
+      };
+    }
+    
+    return () => {
+      cleanup();
+      // Clear preview mode flag when leaving this page
+      delete (window as any).__VELLA_PREVIEW_MODE__;
+    };
+  }, [isVoiceWidget, showCode, agentId, agentName, selectedPosition, selectedSize, customColor, forceReload]);
 
   // Generate iframe embed code (for voice widget)
   const iframeEmbedCode = `<!-- Vella AI Widget - iframe Embed -->
@@ -515,7 +743,7 @@ function WidgetPreviewContent() {
 
   return (
     <DashboardLayout>
-      <div className="p-8">
+      <div className="p-8 text-black">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -592,11 +820,12 @@ function WidgetPreviewContent() {
                       name="widgetType"
                       value="chat"
                       checked={selectedWidgetType === "chat"}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setSelectedWidgetType(
                           e.target.value as "chat" | "voice"
-                        )
-                      }
+                        );
+                        setForceReload(prev => prev + 1);
+                      }}
                       className="text-brand-primary"
                     />
                     <div className="flex items-center space-x-2">
@@ -627,11 +856,12 @@ function WidgetPreviewContent() {
                       name="widgetType"
                       value="voice"
                       checked={selectedWidgetType === "voice"}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setSelectedWidgetType(
                           e.target.value as "chat" | "voice"
-                        )
-                      }
+                        );
+                        setForceReload(prev => prev + 1);
+                      }}
                       className="text-brand-primary"
                     />
                     <div className="flex items-center space-x-2">
@@ -740,25 +970,11 @@ function WidgetPreviewContent() {
                 <h3 className="text-lg font-semibold">Live Preview</h3>
                 <div className="flex gap-2">
                   <button
-                    onClick={testWidget}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    🚀 Test Widget
-                  </button>
-                  <button
                     onClick={() => setShowCode(!showCode)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     {showCode ? "Hide Code" : "Show Code"}
                   </button>
-                  {selectedWidgetType === "chat" && channelType !== "phone" && (
-                    <button
-                      onClick={() => setIsWidgetOpen(!isWidgetOpen)}
-                      className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg hover:opacity-90"
-                    >
-                      {isWidgetOpen ? "Close Widget" : "Open Widget"}
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -813,369 +1029,63 @@ function WidgetPreviewContent() {
                   </pre>
                 </div>
               ) : (
-                <div className="relative h-full bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-auto">
-                  {/* Simulated website background */}
-                  <div className="p-8">
-                    <div className="max-w-4xl mx-auto">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                        Your Website
-                      </h2>
-                      <p className="text-gray-600 mb-6">
-                        This is how the widget will appear on your website.
-                        Visitors can click the chat button to start a
-                        conversation with your AI agent.
-                      </p>
-
-                      {/* Voice Widget Preview (Inline) */}
-                      {(selectedWidgetType === "voice" ||
-                        channelType === "phone") && (
-                        <div className="flex justify-center my-8">
-                          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-                            {/* Voice Widget Header */}
-                            <div className="text-center mb-6">
-                              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                <svg
-                                  className="w-12 h-12 text-gray-600"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
-                                </svg>
-                              </div>
-                              <h3 className="text-xl font-semibold text-gray-900">
-                                {agentName}
-                              </h3>
-                              <p className="text-sm text-gray-500 mt-1">
-                                Voice Assistant
-                              </p>
-                            </div>
-
-                            {/* Voice Controls */}
-                            <div className="space-y-6">
-                              {/* Start Call Button */}
-                              <div className="flex justify-center">
-                                <button
-                                  className="px-8 py-3 rounded-full text-white font-semibold shadow-lg hover:opacity-90 transition-all"
-                                  style={{ backgroundColor: customColor }}
-                                >
-                                  Start Call
-                                </button>
-                              </div>
-
-                              {/* Info */}
-                              {/* <div className="text-center text-xs text-gray-500 space-y-1">
-                                <p>🎙️ Click to start voice conversation</p>
-                                <p>🔊 Make sure your microphone is enabled</p>
-                              </div> */}
-                            </div>
-
-                            {/* Footer */}
-                            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-                              <p className="text-xs text-gray-400">
-                                Powered by Vella AI
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div className="bg-white p-6 rounded-lg shadow-sm">
-                          <h3 className="font-semibold mb-2">Feature 1</h3>
-                          <p className="text-gray-600 text-sm">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing
-                            elit.
-                          </p>
-                        </div>
-                        <div className="bg-white p-6 rounded-lg shadow-sm">
-                          <h3 className="font-semibold mb-2">Feature 2</h3>
-                          <p className="text-gray-600 text-sm">
-                            Sed do eiusmod tempor incididunt ut labore et dolore
-                            magna aliqua.
-                          </p>
-                        </div>
-                      </div>
+                <div className="relative h-full bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
+                  {/* Voice Widget - Show iframe */}
+                  {isVoiceWidget ? (
+                    <div className="h-full flex items-center justify-center p-8">
+                      <iframe
+                        src={`${
+                          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+                        }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
+                          customColor
+                        )}`}
+                        style={{
+                          width: currentSize?.width,
+                          height: currentSize?.height,
+                          border: "none",
+                          borderRadius: "12px",
+                        }}
+                        title={`${agentName} - Vella AI Voice Widget`}
+                        allow="microphone"
+                      />
                     </div>
-                  </div>
+                  ) : (
+                    /* Chat Widget - Show actual widget */
+                    <>
+                      {/* Simulated website background */}
+                      <div className="p-8">
+                        <div className="max-w-4xl mx-auto">
+                          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                            Your Website
+                          </h2>
+                          <p className="text-gray-600 mb-6">
+                            This is how the widget will appear on your website.
+                            Click the chat button to start a conversation with your AI agent.
+                          </p>
 
-                  {/* Widget Trigger Button - Only show for chat widget */}
-                  {selectedWidgetType === "chat" && channelType !== "phone" && (
-                    <button
-                      onClick={() => setIsWidgetOpen(!isWidgetOpen)}
-                      className={`fixed ${currentPosition?.class} w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 transition-transform z-20`}
-                      style={{ backgroundColor: customColor }}
-                    >
-                      {isWidgetOpen ? "✕" : "💬"}
-                    </button>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div className="bg-white p-6 rounded-lg shadow-sm">
+                              <h3 className="font-semibold mb-2">Feature 1</h3>
+                              <p className="text-gray-600 text-sm">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing
+                                elit.
+                              </p>
+                            </div>
+                            <div className="bg-white p-6 rounded-lg shadow-sm">
+                              <h3 className="font-semibold mb-2">Feature 2</h3>
+                              <p className="text-gray-600 text-sm">
+                                Sed do eiusmod tempor incididunt ut labore et dolore
+                                magna aliqua.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Load actual chat widget script */}
+                      <div id="vella-widget-container"></div>
+                    </>
                   )}
-
-                  {/* Widget Panel - Chat or Voice based on selection */}
-                  {isWidgetOpen &&
-                    selectedWidgetType === "chat" &&
-                    channelType !== "phone" && (
-                      <div
-                        ref={widgetRef}
-                        className={`fixed ${currentPosition?.class} bg-white rounded-lg shadow-2xl border border-gray-200 z-10 transition-all duration-300`}
-                        style={{
-                          width: currentSize?.width,
-                          height: currentSize?.height,
-                          marginRight: selectedPosition.includes("right")
-                            ? "80px"
-                            : "auto",
-                          marginLeft: selectedPosition.includes("left")
-                            ? "80px"
-                            : "auto",
-                          marginBottom: selectedPosition.includes("bottom")
-                            ? "80px"
-                            : "auto",
-                          marginTop: selectedPosition.includes("top")
-                            ? "80px"
-                            : "auto",
-                        }}
-                      >
-                        {/* Widget Header */}
-                        <div
-                          className="p-4 border-b flex items-center justify-between text-white rounded-t-lg"
-                          style={{ backgroundColor: customColor }}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                              <span className="text-sm">🤖</span>
-                            </div>
-                            <div>
-                              <h4 className="font-medium">{agentName}</h4>
-                              <p className="text-xs opacity-90">Online now</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setIsWidgetOpen(false)}
-                            className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-
-                        {/* Widget Body */}
-                        <div
-                          className="p-4 h-full overflow-y-auto"
-                          style={{ height: "calc(100% - 140px)" }}
-                        >
-                          <div className="space-y-4">
-                            {messages.map((message) => (
-                              <div
-                                key={message.id}
-                                className={`p-3 rounded-lg ${
-                                  message.sender === "agent"
-                                    ? "bg-gray-100 mr-8"
-                                    : "bg-blue-500 text-white ml-8"
-                                }`}
-                                style={
-                                  message.sender === "user"
-                                    ? { backgroundColor: customColor }
-                                    : {}
-                                }
-                              >
-                                <p className="text-sm">{message.text}</p>
-                              </div>
-                            ))}
-                            {isTyping && (
-                              <div className="bg-gray-100 p-3 rounded-lg mr-8">
-                                <p className="text-sm italic text-gray-600">
-                                  Typing...
-                                </p>
-                              </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                          </div>
-                        </div>
-
-                        {/* Widget Footer */}
-                        <div className="p-3 border-t">
-                          <div className="flex space-x-2">
-                            <input
-                              type="text"
-                              placeholder="Type your message..."
-                              value={inputValue}
-                              onChange={(e) => setInputValue(e.target.value)}
-                              onKeyPress={handleKeyPress}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                              style={
-                                {
-                                  "--focus-ring-color": customColor,
-                                } as React.CSSProperties
-                              }
-                            />
-                            <button
-                              onClick={handleSendMessage}
-                              disabled={!inputValue.trim()}
-                              className="px-4 py-2 text-white rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
-                              style={{ backgroundColor: customColor }}
-                            >
-                              send massage
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Voice Widget Panel */}
-                  {isWidgetOpen &&
-                    (selectedWidgetType === "voice" ||
-                      channelType === "phone") && (
-                      <div
-                        ref={widgetRef}
-                        className={`fixed ${currentPosition?.class} bg-white rounded-lg shadow-2xl border border-gray-200 z-10 transition-all duration-300`}
-                        style={{
-                          width: currentSize?.width,
-                          height: currentSize?.height,
-                          marginRight: selectedPosition.includes("right")
-                            ? "80px"
-                            : "auto",
-                          marginLeft: selectedPosition.includes("left")
-                            ? "80px"
-                            : "auto",
-                          marginBottom: selectedPosition.includes("bottom")
-                            ? "80px"
-                            : "auto",
-                          marginTop: selectedPosition.includes("top")
-                            ? "80px"
-                            : "auto",
-                        }}
-                      >
-                        {/* Voice Widget Header */}
-                        <div
-                          className="p-4 border-b flex items-center justify-between text-white rounded-t-lg"
-                          style={{ backgroundColor: customColor }}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                              <span className="text-sm">📞</span>
-                            </div>
-                            <div>
-                              <h4 className="font-medium">{agentName}</h4>
-                              <p className="text-xs opacity-90">
-                                Voice Assistant
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setIsWidgetOpen(false)}
-                            className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-
-                        {/* Voice Widget Body */}
-                        <div
-                          className="p-6 h-full flex flex-col items-center justify-center"
-                          style={{ height: "calc(100% - 72px)" }}
-                        >
-                          <div className="text-center space-y-6">
-                            {/* Voice Animation Circle */}
-                            <div className="relative w-full  flex items-center justify-center">
-                              <div
-                                className="w-32 h-32 rounded-full flex items-center justify-center"
-                                style={{ backgroundColor: `${customColor}20` }}
-                              >
-                                <div
-                                  className="w-24 h-24 rounded-full flex items-center justify-center animate-pulse"
-                                  style={{
-                                    backgroundColor: `${customColor}40`,
-                                  }}
-                                >
-                                  <svg
-                                    className="w-12 h-12"
-                                    style={{ color: customColor }}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Status Text */}
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Ready to Talk
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-6">
-                                Click the microphone to start speaking
-                              </p>
-                            </div>
-
-                            {/* Single Voice Button */}
-                            <div className="flex items-center justify-center">
-                              <button
-                                className="w-20 h-20 rounded-full text-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg transform hover:scale-105"
-                                style={{ backgroundColor: customColor }}
-                                title="Start Voice Conversation"
-                              >
-                                <svg
-                                  className="w-10 h-10"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-
-                            {/* Info Text */}
-                            <div className="mt-6 text-xs text-gray-500">
-                              <p>🎙️ Speak clearly into your microphone</p>
-                              <p className="mt-1">
-                                🔊 Make sure your speakers are on
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                 </div>
               )}
             </Card>

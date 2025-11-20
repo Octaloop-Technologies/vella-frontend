@@ -54,7 +54,7 @@ export default function Agent() {
     refreshAgents 
   } = useAgents();
 
-  // Debounced search effect
+  // Debounced search effect - only search by searchTerm, not filterStatus
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       searchAgents({
@@ -65,7 +65,7 @@ export default function Agent() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterStatus, searchAgents]);
+  }, [searchTerm, searchAgents]); // Removed filterStatus from dependencies
 
   // Filter data by type on frontend
   const filteredData = filterStatus === 'All Agents' 
@@ -346,7 +346,7 @@ export default function Agent() {
                   data={tableData}
                 />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 text-black md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredData.map((agent, index) => (
                     <ItemCard
                       key={agent.id || index}
