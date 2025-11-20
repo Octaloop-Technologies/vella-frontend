@@ -117,7 +117,7 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           header: "",
           width: "60%",
           render: (row: Record<string, unknown>) => (
-            <div className="flex items-center gap-3">
+            <div className="flex justify-start items-start gap-3">
               <AgentIcon gradient={{ from: "#8266D4", to: "#41288A" }} />
               <div>
                 <div className="text-sm font-semibold text-black mb-1.5">
@@ -692,10 +692,18 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-6 py-4 ${column.key === 'name' && type === 'agents' ? 'text-left' : 'text-center'}`}
+                    className={`px-6 py-4 ${
+                      (column.key === 'name' && type === 'agents') || type === 'topAgents' 
+                        ? 'text-left' 
+                        : 'text-center'
+                    }`}
                     style={column.width ? { width: column.width } : undefined}
                   >
-                    <div className={`flex items-center ${column.key === 'name' && type === 'agents' ? 'justify-start' : 'justify-center'}`}>
+                    <div className={`flex items-center ${
+                      (column.key === 'name' && type === 'agents') || type === 'topAgents'
+                        ? 'justify-start' 
+                        : 'justify-center'
+                    }`}>
                       {column.render
                         ? column.render(row)
                         : String(row[column.key])}
