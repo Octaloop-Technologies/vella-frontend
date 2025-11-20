@@ -165,16 +165,25 @@ const getColumnConfig = <T extends Record<string, unknown>>(
           key: "name",
           header: "Agent Name",
           render: (row: Record<string, unknown>) => (
-            <div className="flex items-center gap-3">
-              {/* <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center">
+            <div 
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (row.onViewDetails) {
+                  (row.onViewDetails as () => void)();
+                }
+              }}
+            >
+              <div className="h-[18px] w-[18px] bg-gradient-to-b from-[#41288A] to-[#301971] rounded flex items-center justify-center flex-shrink-0">
                 <AgentIcon className="h-3 w-3 text-white" />
-              </div> */}
-              <span className="text-sm font-medium text-[#1F2937]">
+              </div>
+              <span className="text-sm font-medium text-[#1F2937] group-hover:text-[#8266D4] transition-colors">
                 {String(row.name)}
               </span>
             </div>
           ),
         },
+   
         {
           key: "type",
           header: "Type",
@@ -194,6 +203,36 @@ const getColumnConfig = <T extends Record<string, unknown>>(
             </Badge>
           ),
         },
+             {
+          key: "phoneNumber",
+          header: "Phone Number",
+          render: (row: Record<string, unknown>) => (
+        
+             <span className="text-xs text-black">
+              {row.phoneNumber ?        <div className="mb-4 flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-gradient-to-b from-[#8266D4]/10 to-[#41288A]/10 px-3 py-1.5 rounded-lg border border-[#8266D4]/20">
+            <svg 
+              className="w-3.5 h-3.5 text-[#8266D4]" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
+              />
+            </svg>
+            <span className="text-xs font-medium text-[#8266D4]">
+              {String(row.phoneNumber)}
+            </span>
+          </div>
+        </div> : '-'}
+            </span>
+          ),
+        },
+      
         {
           key: "conversations",
           header: "Conversations",
@@ -623,7 +662,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, index) => (
                   <th
                     key={index}
-                    className={`px-6 py-4 text-center text-sm font-medium text-[#6B7280] whitespace-nowrap ${
+                    className={`px-6 py-4 ${column.key === 'name' && type === 'agents' ? 'text-left' : 'text-center'} text-sm font-medium text-[#6B7280] whitespace-nowrap ${
                       type === "conversations"
                         ? "border-b border-[#0000001A]"
                         : ""
@@ -631,7 +670,7 @@ export default function SharedTable<T extends Record<string, unknown>>({
                     style={{ width: column.width }}
                     onClick={() => column.key !== 'actions' && handleSort(String(column.key))}
                   >
-                    <div className="flex items-center justify-center gap-2">
+                    <div className={`flex items-center ${column.key === 'name' && type === 'agents' ? 'justify-start' : 'justify-center'} gap-2`}>
                       {column.header}
                       {column.key !== 'actions' && sortConfig.key === column.key && (
                         <span className="text-brand-primary">
@@ -653,10 +692,10 @@ export default function SharedTable<T extends Record<string, unknown>>({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className="px-6 py-4 text-center"
+                    className={`px-6 py-4 ${column.key === 'name' && type === 'agents' ? 'text-left' : 'text-center'}`}
                     style={column.width ? { width: column.width } : undefined}
                   >
-                    <div className="flex items-center justify-center">
+                    <div className={`flex items-center ${column.key === 'name' && type === 'agents' ? 'justify-start' : 'justify-center'}`}>
                       {column.render
                         ? column.render(row)
                         : String(row[column.key])}

@@ -54,25 +54,33 @@ export default function Agent() {
     refreshAgents 
   } = useAgents();
 
-  // Debounced search effect - only search by searchTerm, not filterStatus
+  // Fetch all agents on initial load only
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      searchAgents({
-        search: searchTerm,
-        page: 1,
-        limit: 10
-      });
-    }, 500);
+    searchAgents({
+      search: '',
+      page: 1,
+      limit: 100 // Fetch more agents at once
+    });
+  }, []); // Empty dependency array - only run once on mount
 
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, searchAgents]); // Removed filterStatus from dependencies
-
-  // Filter data by type on frontend
-  const filteredData = filterStatus === 'All Agents' 
-    ? agentsData 
-    : agentsData.filter(agent => 
-        agent.type.toLowerCase() === filterStatus.toLowerCase()
-      );
+  // Filter data locally by search term and type
+  const filteredData = agentsData.filter(agent => {
+    // Filter by type
+    const matchesType = filterStatus === 'All Agents' 
+      ? true 
+      : agent.type.toLowerCase() === filterStatus.toLowerCase();
+    
+    // Filter by search term
+    const matchesSearch = searchTerm === '' 
+      ? true 
+      : agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (agent.phoneNumber && agent.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (agent.description && agent.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesType && matchesSearch;
+  });
 
   const handleViewDetails = (agent: AgentsTable) => {
     setSelectedAgent(agent);
@@ -277,7 +285,7 @@ export default function Agent() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-medium text-black">Agents</h2>
-                {!loading && <p className="text-sm text-gray-500 mt-1 text-black">Total: {total} agents</p>}
+                {!loading && <p className="text-sm text-black mt-1">Total: {filteredData.length} agents {searchTerm || filterStatus !== 'All Agents' ? `(filtered from ${agentsData.length})` : ''}</p>}
               </div>
               <div className="flex items-center space-x-2 border border-[#EBEBEB] p-[5px] rounded-[10px]">
                 <button
