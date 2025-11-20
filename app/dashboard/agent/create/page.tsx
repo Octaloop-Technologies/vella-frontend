@@ -136,14 +136,14 @@ function Step1() {
               label="Agent Name *"
               value={agentData.agentName}
               onChange={(e) => {
-                if (e.target.value.length <= 20) {
+                if (e.target.value.length <= 50) {
                   updateAgentData({ agentName: e.target.value });
                 }
               }}
               placeholder="Type..."
             />
             <p className="text-xs text-gray-500 mt-1">
-              {agentData.agentName?.length || 0}/20 characters
+              {agentData.agentName?.length || 0}/50 characters
             </p>
           </div>
 
@@ -217,7 +217,7 @@ function Step1() {
             placeholder="Type..."
             value={agentData.description}
             onChange={(e) => {
-              if (e.target.value.length <= 500) {
+              if (e.target.value.length <= 5000) {
                 updateAgentData({ description: e.target.value });
               }
             }}
@@ -225,7 +225,7 @@ function Step1() {
             className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
           />
           <p className="text-xs text-gray-500 mt-1">
-            {agentData.description?.length || 0}/500 characters
+            {agentData.description?.length || 0}/5000 characters
           </p>
 
           {showGenPanel && (
@@ -663,7 +663,7 @@ function Step2() {
   const nextStep = agentType === "widget" ? 3 : 3; // For widget, next is 3 (widget settings), else 3 (channels)
 
   return (
-    <div className="p-6">
+    <div className="p-6 overflow-auto h-[80vh]">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">

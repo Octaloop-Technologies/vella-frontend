@@ -31,7 +31,7 @@ export function Step3Channels() {
   // Assume connect buttons update selected, but not implemented; reusing as is
 
   return (
-    <div className='p-6'>
+    <div className='p-6 overflow-auto h-[80vh]'>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Channels</h1>
@@ -432,7 +432,7 @@ export function Step5ReviewPublish() {
   const previousStep = agentType === 'widget' ? 3 : 4;
 
   return (
-    <div className='p-6'>
+    <div className='p-6 overflow-auto h-[80vh]'>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Review & Publish</h1>
