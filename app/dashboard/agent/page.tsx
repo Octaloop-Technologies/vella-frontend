@@ -42,6 +42,10 @@ export default function Agent() {
   const [isActivating, setIsActivating] = useState(false);
   const [isActivationSuccessModalOpen, setIsActivationSuccessModalOpen] = useState(false);
   const [activationData, setActivationData] = useState<any>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Use the agents hook to fetch real data
   const { 
@@ -56,10 +60,11 @@ export default function Agent() {
 
   // Fetch all agents on initial load only
   useEffect(() => {
+    // Fetch with maximum allowed limit by API
     searchAgents({
       search: '',
       page: 1,
-      limit: 100 // Fetch more agents at once
+      limit: 100 // Maximum allowed by API
     });
   }, []); // Empty dependency array - only run once on mount
 
@@ -81,6 +86,17 @@ export default function Agent() {
     
     return matchesType && matchesSearch;
   });
+
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   const handleViewDetails = (agent: AgentsTable) => {
     setSelectedAgent(agent);
@@ -216,7 +232,7 @@ export default function Agent() {
   };
 
   // Updated SharedTable data with action handlers
-  const tableData = filteredData.map(agent => ({
+  const tableData = paginatedData.map(agent => ({
     ...agent,
     onViewDetails: () => handleViewDetails(agent),
     onDelete: () => handleDeleteAgent(agent),
@@ -355,7 +371,7 @@ export default function Agent() {
                 />
               ) : (
                 <div className="grid grid-cols-1 text-black md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filteredData.map((agent, index) => (
+                  {paginatedData.map((agent, index) => (
                     <ItemCard
                       key={agent.id || index}
                       icon={
@@ -415,6 +431,64 @@ export default function Agent() {
                       ]}
                     />
                   ))}
+                </div>
+              )}
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                  <div className="text-sm text-black">
+                    Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of {filteredData.length} results
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-black hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                        // Show first page, last page, current page, and pages around current
+                        const showPage = pageNum === 1 || 
+                                       pageNum === totalPages || 
+                                       Math.abs(pageNum - currentPage) <= 1;
+                        
+                        const showEllipsis = (pageNum === 2 && currentPage > 3) || 
+                                           (pageNum === totalPages - 1 && currentPage < totalPages - 2);
+                        
+                        if (showEllipsis) {
+                          return <span key={pageNum} className="px-2 text-black">...</span>;
+                        }
+                        
+                        if (!showPage) return null;
+                        
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              currentPage === pageNum
+                                ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                                : 'border border-gray-300 text-black hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-black hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
             </>
