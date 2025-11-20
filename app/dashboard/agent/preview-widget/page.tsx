@@ -851,20 +851,8 @@ function WidgetPreviewContent() {
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Widget Type</h3>
                 <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="widgetType"
-                      value="chat"
-                      checked={selectedWidgetType === "chat"}
-                      onChange={(e) => {
-                        setSelectedWidgetType(
-                          e.target.value as "chat" | "voice"
-                        );
-                        setForceReload(prev => prev + 1);
-                      }}
-                      className="text-brand-primary"
-                    />
+                  <label className="flex justify-between items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
+                   
                     <div className="flex items-center space-x-2">
                       <svg
                         className="w-5 h-5 text-gray-600"
@@ -886,13 +874,11 @@ function WidgetPreviewContent() {
                         </div>
                       </div>
                     </div>
-                  </label>
-                  <label className="flex items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
-                    <input
+                     <input
                       type="radio"
                       name="widgetType"
-                      value="voice"
-                      checked={selectedWidgetType === "voice"}
+                      value="chat"
+                      checked={selectedWidgetType === "chat"}
                       onChange={(e) => {
                         setSelectedWidgetType(
                           e.target.value as "chat" | "voice"
@@ -901,6 +887,9 @@ function WidgetPreviewContent() {
                       }}
                       className="text-brand-primary"
                     />
+                  </label>
+                  <label className="flex justify-between items-center space-x-3 cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    
                     <div className="flex items-center space-x-2">
                       <svg
                         className="w-5 h-5 text-gray-600"
@@ -922,6 +911,19 @@ function WidgetPreviewContent() {
                         </div>
                       </div>
                     </div>
+                      <input
+                        type="radio"
+                        name="widgetType"
+                        value="voice"
+                        checked={selectedWidgetType === "voice"}
+                        onChange={(e) => {
+                          setSelectedWidgetType(
+                            e.target.value as "chat" | "voice"
+                          );
+                          setForceReload(prev => prev + 1);
+                        }}
+                        className="text-brand-primary"
+                      />
                   </label>
                 </div>
               </Card>
