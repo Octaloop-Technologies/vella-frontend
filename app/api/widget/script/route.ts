@@ -163,8 +163,11 @@ export async function GET() {
 
     getTriggerButtonStyles: function() {
       const positions = this.getPositionStyles();
+      // Use absolute positioning if in preview container, fixed otherwise
+      const previewContainer = document.getElementById('vella-preview-container');
+      const positionType = previewContainer ? 'absolute' : 'fixed';
       return \`
-        position: fixed;
+        position: \${positionType};
         \${positions};
         width: 60px;
         height: 60px;
@@ -187,9 +190,12 @@ export async function GET() {
     getWidgetContainerStyles: function() {
       const positions = this.getPositionStyles();
       const sizes = this.getSizeStyles();
+      // Use absolute positioning if in preview container, fixed otherwise
+      const previewContainer = document.getElementById('vella-preview-container');
+      const positionType = previewContainer ? 'absolute' : 'fixed';
       
       return \`
-        position: fixed;
+        position: \${positionType};
         \${positions};
         \${sizes};
         z-index: 9999;

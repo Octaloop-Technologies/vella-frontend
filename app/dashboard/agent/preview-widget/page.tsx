@@ -270,30 +270,41 @@ function WidgetPreviewContent() {
         primaryColor: customColor
       };
 
-      // Load widget script
-      const timeoutId = setTimeout(() => {
-        console.log('🚀 Loading widget script');
-        const script = document.createElement('script');
-        script.id = 'vella-widget-script';
-        script.src = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/widget/script?t=${Date.now()}`;
-        script.async = true;
-        
-        script.onload = () => {
-          console.log('✅ Widget script loaded');
-          if (window.VellaWidget) {
-            window.VellaWidget.init(vellaConfig);
-            console.log('✅ Widget initialized');
-          } else {
-            console.error('❌ VellaWidget not found');
-          }
-        };
+      // Load widget script after DOM is ready
+      const loadWidget = () => {
+        const previewContainer = document.getElementById('vella-preview-container');
+        if (previewContainer) {
+          console.log('✅ Preview container found, loading widget script');
+          
+          console.log('🚀 Loading widget script');
+          const script = document.createElement('script');
+          script.id = 'vella-widget-script';
+          script.src = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/widget/script?t=${Date.now()}`;
+          script.async = true;
+          
+          script.onload = () => {
+            console.log('✅ Widget script loaded');
+            if (window.VellaWidget) {
+              window.VellaWidget.init(vellaConfig);
+              console.log('✅ Widget initialized');
+            } else {
+              console.error('❌ VellaWidget not found');
+            }
+          };
 
-        script.onerror = (error) => {
-          console.error('❌ Failed to load widget script:', error);
-        };
+          script.onerror = (error) => {
+            console.error('❌ Failed to load widget script:', error);
+          };
 
-        document.head.appendChild(script);
-      }, 200);
+          document.head.appendChild(script);
+        } else {
+          console.log('⏳ Preview container not ready, retrying...');
+          requestAnimationFrame(loadWidget);
+        }
+      };
+      
+      // Wait longer for React to finish rendering
+      const timeoutId = setTimeout(loadWidget, 500);
 
       return () => {
         clearTimeout(timeoutId);
@@ -990,8 +1001,8 @@ function WidgetPreviewContent() {
           </div>
 
           {/* Preview Panel */}
-          <div className="lg:col-span-2">
-            <Card className="p-6 h-[800px] relative overflow-hidden">
+          <div className="lg:col-span-2 h-full">
+            <Card className="p-6 h-[75vh] relative overflow-hidden">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold">Live Preview</h3>
                 <div className="flex gap-2">
@@ -1055,7 +1066,7 @@ function WidgetPreviewContent() {
                   </pre>
                 </div>
               ) : (
-                <div className="relative h-full bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
+                <div className="relative h-[65vh] bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
                   {/* Voice Widget - Show iframe */}
                   {isVoiceWidget ? (
                     <div className="h-full flex items-center justify-center p-8">
@@ -1079,7 +1090,7 @@ function WidgetPreviewContent() {
                     /* Chat Widget - Show actual widget */
                     <>
                       {/* Widget Preview Container - Isolated positioning context */}
-                      <div id="vella-preview-container" className="relative h-full w-full">
+                      <div id="vella-preview-container" className="relative h-full w-full ">
                         {/* Simulated website background */}
                         <div className="p-8">
                           <div className="max-w-4xl mx-auto">
