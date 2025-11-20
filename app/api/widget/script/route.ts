@@ -127,13 +127,16 @@ export async function GET() {
     createTriggerButton: function() {
       console.log('🔘 Vella Widget: createTriggerButton() called');
       triggerButton = document.createElement('button');
-      triggerButton.id = 'vella-widget-trigger';
+      triggerButton.id = 'vella-trigger-button';
       // Set icon based on widget type
       triggerButton.innerHTML = config.widgetType === 'voice' ? '📞' : '💬';
       triggerButton.style.cssText = this.getTriggerButtonStyles();
       
-      document.body.appendChild(triggerButton);
-      console.log('✅ Vella Widget: Trigger button created and added to DOM');
+      // Check if we're in preview mode - append to preview container if available
+      const previewContainer = document.getElementById('vella-preview-container');
+      const targetContainer = previewContainer || document.body;
+      targetContainer.appendChild(triggerButton);
+      console.log('✅ Vella Widget: Trigger button created and added to', previewContainer ? 'preview container' : 'body');
     },
 
     createWidgetContainer: function() {
@@ -144,8 +147,12 @@ export async function GET() {
       widgetContainer.style.display = 'none';
       
       widgetContainer.innerHTML = this.getWidgetHTML();
-      document.body.appendChild(widgetContainer);
-      console.log('✅ Vella Widget: Widget container created and added to DOM');
+      
+      // Check if we're in preview mode - append to preview container if available
+      const previewContainer = document.getElementById('vella-preview-container');
+      const targetContainer = previewContainer || document.body;
+      targetContainer.appendChild(widgetContainer);
+      console.log('✅ Vella Widget: Widget container created and added to', previewContainer ? 'preview container' : 'body');
 
       // Bind events after DOM is created
       setTimeout(() => {

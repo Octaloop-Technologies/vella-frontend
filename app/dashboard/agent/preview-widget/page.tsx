@@ -139,18 +139,33 @@ function WidgetPreviewContent() {
     const cleanup = () => {
       console.log('🧹 Starting cleanup...');
       
-      // Remove widget container
+      // Remove widget container from anywhere (body or preview container)
       const existingWidget = document.getElementById('vella-widget');
       if (existingWidget) {
         existingWidget.remove();
         console.log('🗑️ Removed existing widget');
       }
       
-      // Remove trigger button
+      // Remove trigger button from anywhere
       const existingTrigger = document.getElementById('vella-trigger-button');
       if (existingTrigger) {
         existingTrigger.remove();
         console.log('🗑️ Removed existing trigger');
+      }
+      
+      // Also check preview container specifically
+      const previewContainer = document.getElementById('vella-preview-container');
+      if (previewContainer) {
+        const containerTrigger = previewContainer.querySelector('#vella-trigger-button');
+        const containerWidget = previewContainer.querySelector('#vella-widget');
+        if (containerTrigger) {
+          containerTrigger.remove();
+          console.log('🗑️ Removed trigger from preview container');
+        }
+        if (containerWidget) {
+          containerWidget.remove();
+          console.log('🗑️ Removed widget from preview container');
+        }
       }
       
       // Remove any data-vella-widget elements
@@ -215,6 +230,17 @@ function WidgetPreviewContent() {
       const styleTag = document.createElement('style');
       styleTag.id = 'vella-preview-styles';
       styleTag.textContent = `
+        /* CRITICAL: Contain widget within preview container */
+        #vella-preview-container {
+          position: relative !important;
+        }
+        
+        /* Widget elements positioned within preview container */
+        #vella-preview-container #vella-widget,
+        #vella-preview-container #vella-trigger-button {
+          position: absolute !important;
+        }
+        
         /* CRITICAL: Widget container z-index */
         #vella-widget {
           z-index: 10000 !important;
@@ -1052,38 +1078,38 @@ function WidgetPreviewContent() {
                   ) : (
                     /* Chat Widget - Show actual widget */
                     <>
-                      {/* Simulated website background */}
-                      <div className="p-8">
-                        <div className="max-w-4xl mx-auto">
-                          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                            Your Website
-                          </h2>
-                          <p className="text-gray-600 mb-6">
-                            This is how the widget will appear on your website.
-                            Click the chat button to start a conversation with your AI agent.
-                          </p>
+                      {/* Widget Preview Container - Isolated positioning context */}
+                      <div id="vella-preview-container" className="relative h-full w-full">
+                        {/* Simulated website background */}
+                        <div className="p-8">
+                          <div className="max-w-4xl mx-auto">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                              Your Website
+                            </h2>
+                            <p className="text-gray-600 mb-6">
+                              This is how the widget will appear on your website.
+                              Click the chat button to start a conversation with your AI agent.
+                            </p>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div className="bg-white p-6 rounded-lg shadow-sm">
-                              <h3 className="font-semibold mb-2">Feature 1</h3>
-                              <p className="text-gray-600 text-sm">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing
-                                elit.
-                              </p>
-                            </div>
-                            <div className="bg-white p-6 rounded-lg shadow-sm">
-                              <h3 className="font-semibold mb-2">Feature 2</h3>
-                              <p className="text-gray-600 text-sm">
-                                Sed do eiusmod tempor incididunt ut labore et dolore
-                                magna aliqua.
-                              </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                              <div className="bg-white p-6 rounded-lg shadow-sm">
+                                <h3 className="font-semibold mb-2">Feature 1</h3>
+                                <p className="text-gray-600 text-sm">
+                                  Lorem ipsum dolor sit amet, consectetur adipiscing
+                                  elit.
+                                </p>
+                              </div>
+                              <div className="bg-white p-6 rounded-lg shadow-sm">
+                                <h3 className="font-semibold mb-2">Feature 2</h3>
+                                <p className="text-gray-600 text-sm">
+                                  Sed do eiusmod tempor incididunt ut labore et dolore
+                                  magna aliqua.
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Load actual chat widget script */}
-                      <div id="vella-widget-container"></div>
                     </>
                   )}
                 </div>
