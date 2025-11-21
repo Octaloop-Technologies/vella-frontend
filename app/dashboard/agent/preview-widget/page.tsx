@@ -29,6 +29,13 @@ function WidgetPreviewContent() {
   >("chat");
   const [forceReload, setForceReload] = useState(0);
 
+  // Voice widget customization options
+  const [showAvatar, setShowAvatar] = useState(true);
+  const [showWidgetTitle, setShowWidgetTitle] = useState(true);
+  const [showCallDuration, setShowCallDuration] = useState(true);
+  const [buttonColor, setButtonColor] = useState("#8266D4");
+  const [iconColor, setIconColor] = useState("#FFFFFF");
+
   // Get agent details from URL params
   const agentId = searchParams.get("id") || "";
   const agentName = searchParams.get("name") || "AI Assistant";
@@ -374,13 +381,21 @@ function WidgetPreviewContent() {
   }, [isVoiceWidget, showCode, agentId, agentName, selectedPosition, selectedSize, customColor, forceReload]);
 
   // Generate iframe embed code (for voice widget)
+  const voiceWidgetParams = new URLSearchParams({
+    size: selectedSize,
+    color: customColor,
+    showAvatar: showAvatar.toString(),
+    showTitle: showWidgetTitle.toString(),
+    showDuration: showCallDuration.toString(),
+    buttonColor: buttonColor,
+    iconColor: iconColor
+  });
+
   const iframeEmbedCode = `<!-- Vella AI Widget - iframe Embed -->
 <iframe
   src="${
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
-    customColor
-  )}"
+  }/widget/voice/${agentId}?${voiceWidgetParams.toString()}"
   style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: ${
     currentSize?.width
   }; height: ${
@@ -436,9 +451,7 @@ function WidgetPreviewContent() {
       // Voice Widget - iframe only, centered on screen
       const iframeUrl = `${
         process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-      }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
-        customColor
-      )}`;
+      }/widget/voice/${agentId}?${voiceWidgetParams.toString()}`;
 
       const testHtml = `
 <!DOCTYPE html>
@@ -624,9 +637,7 @@ function WidgetPreviewContent() {
       // Voice Widget - iframe embed
       const iframeUrl = `${
         process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-      }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
-        customColor
-      )}`;
+      }/widget/voice/${agentId}?${voiceWidgetParams.toString()}`;
 
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -814,9 +825,9 @@ function WidgetPreviewContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1  lg:grid-cols-3 gap-8">
           {/* Configuration Panel */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 h-[73vh] overflow-auto space-y-6">
             {/* Agent Info */}
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Agent Details</h3>
@@ -931,22 +942,113 @@ function WidgetPreviewContent() {
 
             {/* Primary Color Selection */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Primary Color</h3>
+              <h3 className="text-lg font-semibold mb-4">{isVoiceWidget ? "Widget Colors" : "Primary Color"}</h3>
               <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(e) => setCustomColor(e.target.value)}
-                    className="w-16 h-16 rounded border-2 cursor-pointer"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-700">Custom Color</p>
-                    <p className="text-sm text-gray-500">{customColor}</p>
+                {!isVoiceWidget ? (
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={customColor}
+                      onChange={(e) => setCustomColor(e.target.value)}
+                      className="w-10 h-10 rounded border-2 cursor-pointer"
+                    />
+                    <div>
+                      <p className="font-medium text-gray-700">Custom Color</p>
+                      <p className="text-sm text-gray-500">{customColor}</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={buttonColor}
+                        onChange={(e) => setButtonColor(e.target.value)}
+                        className="w-10 h-10 rounded border-2 cursor-pointer"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-700">Button Color</p>
+                        <p className="text-sm text-gray-500">{buttonColor}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={iconColor}
+                        onChange={(e) => setIconColor(e.target.value)}
+                        className="w-10 h-10 rounded border-2 cursor-pointer"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-700">Icon Color</p>
+                        <p className="text-sm text-gray-500">{iconColor}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
+
+            {/* Voice Widget Display Options */}
+            {isVoiceWidget && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Display Options</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <div>
+                        <div className="font-medium text-sm">Show Avatar</div>
+                        <div className="text-xs text-gray-500">Display agent avatar image</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={showAvatar}
+                      onChange={(e) => setShowAvatar(e.target.checked)}
+                      className="w-4 h-4 text-brand-primary rounded focus:ring-2 focus:ring-brand-primary"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                      <div>
+                        <div className="font-medium text-sm">Show Widget Title</div>
+                        <div className="text-xs text-gray-500">Display agent name as title</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={showWidgetTitle}
+                      onChange={(e) => setShowWidgetTitle(e.target.checked)}
+                      className="w-4 h-4 text-brand-primary rounded focus:ring-2 focus:ring-brand-primary"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between cursor-pointer p-3 border rounded hover:bg-gray-50">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <div className="font-medium text-sm">Show Call Duration</div>
+                        <div className="text-xs text-gray-500">Display call timer</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={showCallDuration}
+                      onChange={(e) => setShowCallDuration(e.target.checked)}
+                      className="w-4 h-4 text-brand-primary rounded focus:ring-2 focus:ring-brand-primary"
+                    />
+                  </label>
+                </div>
+              </Card>
+            )}
 
             {/* Position Selection - Hide for voice widget */}
             {!isVoiceWidget && (
@@ -1004,7 +1106,7 @@ function WidgetPreviewContent() {
 
           {/* Preview Panel */}
           <div className="lg:col-span-2 h-full">
-            <Card className="p-6 h-[75vh] relative overflow-hidden">
+            <Card className="p-6 h-[73vh] relative overflow-auto">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold">Live Preview</h3>
                 <div className="flex gap-2">
@@ -1063,21 +1165,20 @@ function WidgetPreviewContent() {
                       )}
                     </p>
                   </div>
-                  <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-auto h-[calc(100%-140px)] font-mono">
+                  <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-auto h-[73vh] font-mono">
                     {isVoiceWidget ? iframeEmbedCode : scriptEmbedCode}
                   </pre>
                 </div>
               ) : (
-                <div className="relative h-[65vh] bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg overflow-hidden">
+                <div className="relative h-[65vh] bg-white rounded-lg overflow-hidden">
                   {/* Voice Widget - Show iframe */}
                   {isVoiceWidget ? (
                     <div className="h-full flex items-center justify-center p-8">
                       <iframe
+                        key={`${showAvatar}-${showWidgetTitle}-${showCallDuration}-${buttonColor}-${iconColor}-${forceReload}`}
                         src={`${
                           process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-                        }/widget/voice/${agentId}?size=${selectedSize}&color=${encodeURIComponent(
-                          customColor
-                        )}`}
+                        }/widget/voice/${agentId}?${voiceWidgetParams.toString()}`}
                         style={{
                           width: currentSize?.width,
                           height: currentSize?.height,
@@ -1095,9 +1196,9 @@ function WidgetPreviewContent() {
                       <div id="vella-preview-container" className="relative h-full w-full ">
                         {/* Simulated website background */}
                         <div className="p-8">
-                          <div className="max-w-4xl mx-auto">
+                          <div className="max-w-4xl mx-auto ">
                             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                              Your Website
+                              Your Websites
                             </h2>
                             <p className="text-gray-600 mb-6">
                               This is how the widget will appear on your website.

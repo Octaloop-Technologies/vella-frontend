@@ -17,6 +17,13 @@ function WidgetContent() {
   const position = searchParams.get("position") || "bottom-right";
   const size = searchParams.get("size") || "medium";
   const color = searchParams.get("color") || "#8266D4";
+  
+  // Voice widget customization options
+  const showAvatar = searchParams.get("showAvatar") === "true" || searchParams.get("showAvatar") === null;
+  const showTitle = searchParams.get("showTitle") === "true" || searchParams.get("showTitle") === null;
+  const showDuration = searchParams.get("showDuration") === "true" || searchParams.get("showDuration") === null;
+  const buttonColor = searchParams.get("buttonColor") || "#8266D4";
+  const iconColor = searchParams.get("iconColor") || "#FFFFFF";
 
   useEffect(() => {
     // Fetch agent configuration
@@ -43,7 +50,13 @@ function WidgetContent() {
         primaryColor: color,
         title: agentConfig.name || 'AI Assistant',
         apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://ai-voice-agent-backend.octaloop.dev',
-        widgetBaseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        widgetBaseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        // Voice widget customization
+        showAvatar: showAvatar,
+        showTitle: showTitle,
+        showDuration: showDuration,
+        buttonColor: buttonColor,
+        iconColor: iconColor
       };
 
       console.log('🎯 Initializing Vella Widget with config:', vellaConfig);
@@ -57,7 +70,7 @@ function WidgetContent() {
         }
       }, 100);
     }
-  }, [scriptLoaded, agentConfig, agentId, widgetType, size, color]);
+  }, [scriptLoaded, agentConfig, agentId, widgetType, size, color, showAvatar, showTitle, showDuration, buttonColor, iconColor]);
 
   if (loading) {
     return (
