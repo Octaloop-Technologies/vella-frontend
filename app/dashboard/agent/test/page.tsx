@@ -673,7 +673,7 @@ function TestAgentContent() {
                                                     </div>
                                                     
                                                     <div className="flex items-center gap-4">
-                                                        <button
+                                                        {/* <button
                                                             disabled={true}
                                                             className={`w-14 h-14 rounded-full border flex items-center justify-center transition-all ${
                                                                 isRecording 
@@ -688,7 +688,7 @@ function TestAgentContent() {
                                                                 height={22}
                                                                 className={isRecording ? 'brightness-0 invert' : ''}
                                                             />
-                                                        </button>
+                                                        </button> */}
                                                         <button
                                                             onClick={toggleMute}
                                                             className="w-14 h-14 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center hover:bg-gray-50 transition-all"
