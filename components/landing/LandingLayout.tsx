@@ -19,11 +19,11 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                     <div className='flex items-center'>
                         <p className='text-[#53399E] font-bold text-lg -mr-4'>VELA</p>
                         <Image
-                            src="/svgs/bird2.svg"
-                            alt="Bird Illustration"
+                            src="/dashboard/png/dash-new.png"
+                            alt="Bird Illustration" 
                             width={107}
-                            height={84}
-                            className="object-contain w-16 h-12 sm:w-20 sm:h-16 md:w-[107px] md:h-[84px]"
+                            height={901}
+                            className="object-contain w-16 h-12 sm:w-20 sm:h-16 md:w-[107px] md:h-[90px]"
                         />
                     </div>
 
