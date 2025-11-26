@@ -30,9 +30,9 @@ function WidgetPreviewContent() {
   const [forceReload, setForceReload] = useState(0);
 
   // Voice widget customization options
-  const [showAvatar, setShowAvatar] = useState(true);
+  const [showAvatar, setShowAvatar] = useState(false);
   const [showWidgetTitle, setShowWidgetTitle] = useState(true);
-  const [showCallDuration, setShowCallDuration] = useState(true);
+  const [showCallDuration, setShowCallDuration] = useState(false);
   const [buttonColor, setButtonColor] = useState("#8266D4");
   const [iconColor, setIconColor] = useState("#FFFFFF");
 
@@ -388,7 +388,8 @@ function WidgetPreviewContent() {
     showTitle: showWidgetTitle.toString(),
     showDuration: showCallDuration.toString(),
     buttonColor: buttonColor,
-    iconColor: iconColor
+    iconColor: iconColor,
+    title: agentName // Pass title to iframe
   });
 
   const iframeEmbedCode = `<!-- Vella AI Widget - iframe Embed -->
@@ -464,7 +465,7 @@ function WidgetPreviewContent() {
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -511,7 +512,7 @@ function WidgetPreviewContent() {
     <title>Chat Widget Test - ${agentName}</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -649,7 +650,7 @@ function WidgetPreviewContent() {
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -695,7 +696,7 @@ function WidgetPreviewContent() {
     <title>${agentName} - Chat Widget</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;

@@ -17,6 +17,7 @@ function WidgetContent() {
   const position = searchParams.get("position") || "bottom-right";
   const size = searchParams.get("size") || "medium";
   const color = searchParams.get("color") || "#8266D4";
+  const titleParam = searchParams.get("title");
   
   // Voice widget customization options
   const showAvatar = searchParams.get("showAvatar") === "true" || searchParams.get("showAvatar") === null;
@@ -48,7 +49,7 @@ function WidgetContent() {
         containerId: 'vella-widget-container',
         size: size,
         primaryColor: color,
-        title: agentConfig.name || 'AI Assistant',
+        title: titleParam || agentConfig.name || 'AI Assistant',
         apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://ai-voice-agent-backend.octaloop.dev',
         widgetBaseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
         // Voice widget customization

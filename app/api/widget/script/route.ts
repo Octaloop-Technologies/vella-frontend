@@ -120,7 +120,7 @@ export async function GET() {
         background: white;
         border-radius: 16px;
         overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       \`;
       
       inlineWidget.innerHTML = this.getInlineVoiceHTML();
@@ -193,7 +193,7 @@ export async function GET() {
         color: white;
         font-size: 24px;
         transition: transform 0.2s ease;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       \`;
     },
 
@@ -214,7 +214,7 @@ export async function GET() {
         background: white;
         border: 1px solid #e5e7eb;
         transition: all 0.3s ease;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         overflow: hidden;
       \`;
     },
@@ -473,6 +473,10 @@ export async function GET() {
             0% { transform: scale(1); opacity: 1; }
             100% { transform: scale(1.5); opacity: 0; }
           }
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
         </style>
         <div style="height: 100%; display: flex; flex-direction: column;">
           <!-- Header -->
@@ -560,10 +564,10 @@ export async function GET() {
             <!-- Status Text -->
             <div style="margin-bottom: 32px;">
               <h3 id="vella-voice-status" style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
-                Connecting...
+                Ready to Talk
               </h3>
               <p id="vella-voice-subtitle" style="font-size: 14px; color: #6B7280; margin-bottom: 24px; max-width: 280px;">
-                Starting voice call...
+                Click here to Call with \${config.title}
               </p>
             </div>
 
@@ -606,6 +610,11 @@ export async function GET() {
       console.log('🎙️ Vella Widget: getInlineVoiceHTML() called');
       const html = \`
         <style>
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          
           @keyframes breathe {
             0%, 100% { 
               transform: scale(1); 
@@ -884,11 +893,13 @@ export async function GET() {
             position: absolute;
             top: 0;
             left: 0;
+            animation: bounce 2s infinite;
           }
           
           .vella-start-call-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            animation: none;
           }
           
           .vella-start-call-btn:active {
@@ -923,8 +934,15 @@ export async function GET() {
             
             <!-- Name -->
             \${config.showTitle ? \`
-            <div class="vella-name" id="vella-voice-name">\${config.title}</div>
+            <div class="vella-name" id="vella-voice-name">Click here to call with \${config.title}</div>
+            <div style="display: flex; justify-content: center; margin: 8px 0 16px 0; animation: bounce 2s infinite;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14m-7-7l7 7 7-7"/>
+              </svg>
+            </div>
             \` : ''}
+            
+            
           \${config.showAvatar || config.showTitle ? '</div>' : ''}
           
           <!-- Content Area with Fixed Height -->
@@ -967,7 +985,6 @@ export async function GET() {
           
           <!-- Hidden elements for accessibility -->
           <div id="vella-inline-status" style="position: absolute; left: -9999px;">Ready to talk</div>
-          <div id="vella-inline-subtitle" style="position: absolute; left: -9999px;">Click to start</div>
           <div id="vella-inline-pulse" style="display: none;"></div>
         </div>
       \`;
@@ -2221,6 +2238,9 @@ export async function GET() {
           if (inlineCallStatus) {
             inlineCallStatus.textContent = 'Listening...';
           }
+          if (inlineSubtitle) {
+            inlineSubtitle.textContent = "I'm listening... speak now";
+          }
           break;
           
         case 'processing':
@@ -2255,9 +2275,10 @@ export async function GET() {
           if (voiceEndBtn) {
             voiceEndBtn.style.display = 'none';
           }
-          if (voiceIcon && voiceIcon.innerHTML) {
+          if (voiceIcon) {
+            voiceIcon.style.color = 'white';
             // Change to processing icon (spinner or clock)
-            voiceIcon.innerHTML = '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>';
+            voiceIcon.innerHTML = '<svg style="width: 48px; height: 48px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path></svg>';
           }
           
           // Inline widget UI - Update status indicator to processing state
@@ -2275,6 +2296,9 @@ export async function GET() {
           }
           if (inlineCallStatus) {
             inlineCallStatus.textContent = 'Processing...';
+          }
+          if (inlineSubtitle) {
+            inlineSubtitle.textContent = "Understanding your question...";
           }
           break;
           
@@ -2341,6 +2365,9 @@ export async function GET() {
           if (inlineCallStatus) {
             inlineCallStatus.textContent = 'AI is speaking...';
           }
+          if (inlineSubtitle) {
+            inlineSubtitle.textContent = "AI is responding to you...";
+          }
           break;
           
         case 'idle':
@@ -2365,11 +2392,12 @@ export async function GET() {
             voiceStatusTitle.style.color = '#111827';
           }
           if (voiceSubtitle) {
-            voiceSubtitle.textContent = 'Click the microphone to start speaking';
+            voiceSubtitle.textContent = 'Click here to Call with ' + config.title;
           }
           if (voiceMainBtn) {
-            voiceMainBtn.style.background = config.primaryColor;
-            voiceMainBtn.style.animation = 'none';
+            voiceMainBtn.style.background = config.primaryColor + '20'; // Reset to light background
+            voiceMainBtn.style.backgroundColor = config.primaryColor + '20';
+            voiceMainBtn.style.animation = 'bounce 2s infinite';
             voiceMainBtn.disabled = false;
             voiceMainBtn.style.cursor = 'pointer';
             voiceMainBtn.style.display = 'flex';
@@ -2378,16 +2406,21 @@ export async function GET() {
             voiceEndBtn.style.display = 'none'; // Hide end button
           }
           if (voicePulse) {
-            voicePulse.style.animation = 'pulse 2s infinite';
+            voicePulse.style.animation = 'none';
+            voicePulse.style.background = config.primaryColor + '40';
           }
-          if (voiceIcon && voiceIcon.innerHTML) {
+          if (voiceIcon) {
+            voiceIcon.style.color = config.primaryColor;
             // Reset to microphone icon
-            voiceIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />';
+            voiceIcon.innerHTML = '<svg style="width: 48px; height: 48px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>';
           }
           
           // Inline widget UI - Reset to Ready state
           if (inlineCallStatus) {
             inlineCallStatus.textContent = 'Ready to talk';
+          }
+          if (inlineSubtitle) {
+            inlineSubtitle.textContent = "Click here to call with " + config.title;
           }
           break;
       }
