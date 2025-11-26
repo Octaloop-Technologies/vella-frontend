@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Card from '@/components/shared/Card';
 import Input from '@/components/shared/Input';
@@ -11,8 +11,10 @@ import StatsCard from '@/components/shared/StatsCard';
 import Image from 'next/image';
 import IntegrationCard from '@/components/integration/IntegrationCard';
 import FilterDropdown from '@/components/shared/FilterDropdown';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Integration {
+  id: string;
   name: string;
   description: string;
   icon: React.ReactNode;
@@ -26,9 +28,11 @@ interface Integration {
   isConnected?: boolean;
   onConnect?: () => void;
   onConfigure?: () => void;
+  onDisconnect?: () => void;
 }
 
 export default function Integration() {
+  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All Categories');
   const [filterStatus, setFilterStatus] = useState('All Status');
@@ -37,6 +41,77 @@ export default function Integration() {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [ghlStatus, setGhlStatus] = useState<{ is_connected: boolean; connected_at?: string } | null>(null);
+
+  useEffect(() => {
+    fetchGHLStatus();
+  }, []);
+
+  const fetchGHLStatus = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+      
+      const response = await fetch('/api/ghl/status', {
+        headers: {
+          'Authorization': `${tokenType} ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGhlStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch GHL status', error);
+    }
+  };
+
+  const handleGHLConnect = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+      const response = await fetch('/api/ghl/auth-url', {
+        headers: {
+          'Authorization': `${tokenType} ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        addToast({ message: "Failed to get authorization URL", type: "error" });
+      }
+    } catch (error) {
+      addToast({ message: "Something went wrong", type: "error" });
+    }
+  };
+
+  const handleGHLDisconnect = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+      const response = await fetch('/api/ghl/disconnect', {
+        method: 'POST',
+        headers: {
+          'Authorization': `${tokenType} ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        addToast({ message: "Disconnected successfully", type: "success" });
+        setGhlStatus({ is_connected: false });
+      } else {
+        addToast({ message: "Failed to disconnect", type: "error" });
+      }
+    } catch (error) {
+      addToast({ message: "Something went wrong", type: "error" });
+    }
+  };
 
   const statsCards = [
     {
@@ -45,20 +120,42 @@ export default function Integration() {
     },
     {
       title: "Connected",
-      value: "2",
+      value: ghlStatus?.is_connected ? "1" : "0",
     },
     {
       title: "Pending",
-      value: "1",
+      value: "0",
     },
     {
       title: "Available",
-      value: "1",
+      value: ghlStatus?.is_connected ? "4" : "5",
     },
   ];
 
   const integrationsData: Integration[] = [
     {
+      id: 'ghl',
+      name: 'GoHighLevel',
+      description: 'All-in-one sales & marketing platform',
+      icon: (
+        <div className="w-16 h-16 bg-[#1877F21A] rounded-xl flex items-center justify-center">
+           {/* Placeholder for GHL Icon, using text or a generic icon if image not available */}
+           <span className="text-[#1877F2] font-bold text-xs">GHL</span>
+        </div>
+      ),
+      badges: ghlStatus?.is_connected 
+        ? [{ label: "Connected", variant: "connected" }, { label: "CRM", variant: "popular" }]
+        : [{ label: "Not Connected", variant: "notConnected" }, { label: "CRM", variant: "popular" }],
+      connectedDate: ghlStatus?.connected_at ? new Date(ghlStatus.connected_at).toLocaleDateString() : undefined,
+      lastSync: ghlStatus?.is_connected ? 'Just now' : undefined,
+      footerTags: ['Contact Sync', 'Calendar', 'Opportunities'],
+      isConnected: ghlStatus?.is_connected || false,
+      onConnect: handleGHLConnect,
+      onConfigure: () => console.log('Configure GHL'),
+      onDisconnect: handleGHLDisconnect,
+    },
+    {
+      id: 'hubspot',
       name: 'HubSpot',
       description: 'Frequently asked questions about our product features',
       icon: (
@@ -66,15 +163,16 @@ export default function Integration() {
           <Image src="/svgs/hubspot.svg" alt="HubSpot" width={42} height={42} />
         </div>
       ),
-      badges: [{ label: "Connected", variant: "connected" }, { label: "Popular", variant: "popular" }],
-      connectedDate: '2025/01/15',
-      lastSync: '2 minutes ago',
+      badges: [{ label: "Not Connected", variant: "notConnected" }, { label: "Popular", variant: "popular" }],
+      connectedDate: undefined,
+      lastSync: undefined,
       footerTags: ['Contact Sync', 'Deal Management', 'Activity Tracking'],
-      isConnected: true,
-      onConnect: () => handleConnect(integrationsData[0]),
-      onConfigure: () => handleConfigure(integrationsData[0]),
+      isConnected: false,
+      onConnect: () => handleConnect(integrationsData[1]),
+      onConfigure: () => handleConfigure(integrationsData[1]),
     },
     {
+      id: 'messenger',
       name: 'Facebook Messenger',
       description: 'Frequently asked questions about our product features',
       icon: (
@@ -83,14 +181,15 @@ export default function Integration() {
         </div>
       ),
       badges: [{ label: "Not Connected", variant: "notConnected" }, { label: "Popular", variant: "popular" }],
-      connectedDate: '2025/01/15',
-      lastSync: '2 minutes ago',
+      connectedDate: undefined,
+      lastSync: undefined,
       footerTags: ['Contact Sync', 'Deal Management', 'Activity Tracking', 'Lead Management'],
       isConnected: false,
-      onConnect: () => handleConnect(integrationsData[1]),
-      onConfigure: () => handleConfigure(integrationsData[1]),
+      onConnect: () => handleConnect(integrationsData[2]),
+      onConfigure: () => handleConfigure(integrationsData[2]),
     },
     {
+      id: 'whatsapp',
       name: 'WhatsApp Business',
       description: 'Frequently asked questions about our product features',
       icon: (
@@ -98,15 +197,16 @@ export default function Integration() {
           <Image src="/svgs/whatsapp.svg" alt="WhatsApp" width={42} height={42} />
         </div>
       ),
-      badges: [{ label: "Connected", variant: "connected" }, { label: "Popular", variant: "popular" }],
-      connectedDate: '2025/01/15',
-      lastSync: '2 minutes ago',
+      badges: [{ label: "Not Connected", variant: "notConnected" }, { label: "Popular", variant: "popular" }],
+      connectedDate: undefined,
+      lastSync: undefined,
       footerTags: ['Contact Sync', 'Deal Management', 'Activity Tracking'],
-      isConnected: true,
-      onConnect: () => handleConnect(integrationsData[2]),
-      onConfigure: () => handleConfigure(integrationsData[2]),
+      isConnected: false,
+      onConnect: () => handleConnect(integrationsData[3]),
+      onConfigure: () => handleConfigure(integrationsData[3]),
     },
     {
+      id: 'instagram',
       name: 'Instagram',
       description: 'Frequently asked questions about our product features',
       icon: (
@@ -114,13 +214,13 @@ export default function Integration() {
           <Image src="/svgs/instagram.svg" alt="Instagram" width={42} height={42} />
         </div>
       ),
-      badges: [{ label: "Connected", variant: "connected" }, { label: "Popular", variant: "popular" }],
-      connectedDate: '2025/01/15',
-      lastSync: '2 minutes ago',
+      badges: [{ label: "Not Connected", variant: "notConnected" }, { label: "Popular", variant: "popular" }],
+      connectedDate: undefined,
+      lastSync: undefined,
       footerTags: ['Contact Sync', 'Deal Management', 'Activity Tracking'],
-      isConnected: true,
-      onConnect: () => handleConnect(integrationsData[3]),
-      onConfigure: () => handleConfigure(integrationsData[3]),
+      isConnected: false,
+      onConnect: () => handleConnect(integrationsData[4]),
+      onConfigure: () => handleConfigure(integrationsData[4]),
     },
   ];
 
@@ -219,6 +319,7 @@ export default function Integration() {
               isConnected={integration.isConnected}
               onConnect={integration.onConnect}
               onConfigure={integration.onConfigure}
+              onDisconnect={integration.onDisconnect}
             />
           ))}
         </div>

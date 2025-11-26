@@ -112,7 +112,7 @@ const HeroSection: React.FC = () => {
 
             {/* Bird Illustration with Float Animation */}
             <Image
-              src="/svgs/bird2.svg"
+              src="/dashboard/png/dash-new.png"
               alt="Bird Illustration"
               width={300}
               height={300}

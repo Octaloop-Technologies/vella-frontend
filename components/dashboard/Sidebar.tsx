@@ -6,9 +6,11 @@ import { usePathname } from 'next/navigation';
 import { SIDEBAR_ITEMS_CONFIG } from '@/constants/sidebar';
 import { getIconComponent } from '@/utils/iconHelper';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="w-60 h-screen primary-gradient border-r border-brand-gray-light flex flex-col">
@@ -25,11 +27,18 @@ const Sidebar: React.FC = () => {
           {SIDEBAR_ITEMS_CONFIG.map((item) => {
             const isActive = pathname === item.href;
             const IconComponent = getIconComponent(item.iconName);
+            const isLogout = item.label === 'Log Out';
             
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={(e) => {
+                    if (isLogout) {
+                      e.preventDefault();
+                      logout();
+                    }
+                  }}
                   className={`
                     flex items-center space-x-3 px-3 pl-6 py-2.5 rounded-[10px] transition-all duration-200 text-white
                     ${isActive 

@@ -14,9 +14,10 @@ interface InputProps {
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     icon?: React.ReactNode;
     disabled?: boolean;
+    required?: boolean;
 }
 
-const Input: React.FC<InputProps> = ({ containerClassName, className, label, placeholder = "Search agents, docs, chats...", type = "text", value, onChange, onKeyDown, icon, disabled }) => {
+const Input: React.FC<InputProps> = ({ containerClassName, className, label, placeholder = "Search agents, docs, chats...", type = "text", value, onChange, onKeyDown, icon, disabled, required }) => {
     return (
         <div className={`${containerClassName} relative`}>
             {
@@ -32,6 +33,7 @@ const Input: React.FC<InputProps> = ({ containerClassName, className, label, pla
                 onChange={onChange}
                 onKeyDown={onKeyDown}
                 disabled={disabled}
+                required={required}
                 className={`${className} w-full ${icon ? 'pl-11 pr-4' : 'px-4'} py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-black ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
         </div>

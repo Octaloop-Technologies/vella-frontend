@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Input from "@/components/shared/Input";
 import SearchIcon from "@/components/icons/SearchIcon";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NotificationIcon = () => (
   <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -10,17 +11,13 @@ const NotificationIcon = () => (
   </svg>
 );
 
-const userInfo = {
-  name: "Anas Ali",
-  email: "abc.xyz.com",
-  avatarUrl: "/dashboard/png/user-avatar.png"
-};
-
 interface DashboardHeaderProps {
   // Removed title and subtitle props since we're not using them anymore
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = () => {
+  const { user } = useAuth();
+
   return (
     <header className="bg-brand-white border-b border-brand-gray-light px-6 py-4">
       <div className="flex items-center justify-between">
@@ -35,15 +32,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = () => {
           {/* User Profile */}
           <div className="flex items-center space-x-3">
             <Image
-              src={userInfo.avatarUrl}
+              src="/dashboard/png/user-avatar.png"
               alt="User Avatar"
               width={40}
               height={40}
               className="rounded-full border border-[#F7F6F9]"
             />
             <div className="flex flex-col gap-0.5">
-              <p className="text-sm font-medium text-brand-black">{userInfo.name}</p>
-              <p className="text-[10px] text-[#ADADAD]">{userInfo.email}</p>
+              <p className="text-sm font-medium text-brand-black">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-[#ADADAD]">{user?.email || ''}</p>
             </div>
           </div>
         </div>

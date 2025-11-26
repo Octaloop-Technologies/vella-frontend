@@ -2,11 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AuthLayout from '@/components/auth/AuthLayout';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
+import { useToast } from '@/contexts/ToastContext';
 
 const SignUpPage = () => {
+  const router = useRouter();
+  const { addToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     workEmail: '',
@@ -15,10 +20,55 @@ const SignUpPage = () => {
     confirmPassword: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Sign up submitted:', formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      addToast({ message: "Passwords do not match", type: "error" });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.workEmail,
+          name: formData.fullName,
+          organization: formData.organization,
+          password: formData.password,
+          role: "user"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Signup failed');
+      }
+
+      addToast({ 
+        message: "Account created successfully! Please check your email to verify your account.", 
+        type: "success" 
+      });
+      
+      // Redirect to resend-verification page (which acts as a "check email" page)
+      setTimeout(() => {
+        router.push(`/resend-verification?email=${encodeURIComponent(formData.workEmail)}&sent=true`);
+      }, 2000);
+
+    } catch (error: any) {
+      addToast({ 
+        message: error.message || "Something went wrong", 
+        type: "error" 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -38,6 +88,7 @@ const SignUpPage = () => {
             placeholder="Type..."
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            required
           />
 
           <Input
@@ -46,6 +97,7 @@ const SignUpPage = () => {
             placeholder="Type..."
             value={formData.workEmail}
             onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
+            required
           />
 
           <Input
@@ -54,6 +106,7 @@ const SignUpPage = () => {
             placeholder="Type..."
             value={formData.organization}
             onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+            required
           />
 
           <Input
@@ -62,6 +115,7 @@ const SignUpPage = () => {
             placeholder="Type..."
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
           />
 
           <Input
@@ -70,11 +124,12 @@ const SignUpPage = () => {
             placeholder="Type..."
             value={formData.confirmPassword}
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            required
           />
 
           {/* Submit button */}
-          <Button type="submit" className="mt-6">
-            Create Account
+          <Button type="submit" className="mt-6" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
 

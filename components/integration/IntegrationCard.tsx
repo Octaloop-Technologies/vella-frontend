@@ -17,6 +17,7 @@ interface IntegrationCardProps {
     isConnected?: boolean;
     onConnect?: () => void;
     onConfigure?: () => void;
+    onDisconnect?: () => void;
 }
 
 const IntegrationCard: React.FC<IntegrationCardProps> = ({
@@ -30,6 +31,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     isConnected,
     onConnect,
     onConfigure,
+    onDisconnect,
 }) => {
     return (
         <Card className="border border-[#EBEBEB] p-4">
@@ -87,19 +89,12 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             )}
             {
                 isConnected ? (
-                    <div className='flex gap-3 mt-6'>
                     <button
-                        onClick={onConfigure}
-                        className="w-full px-4 py-2 border border-[#8266D4] font-medium rounded-md text-black"
+                        onClick={onDisconnect}
+                        className="mt-6 w-full px-4 py-2.5 bg-[#FEECE6] text-[#FF4D4F] rounded-[10px] font-medium hover:bg-[#FDD8D0] transition-all flex items-center justify-center space-x-2 shadow-sm"
                     >
-                        <Image src="/svgs/settings.svg" alt="Configure" width={24} height={24} className='inline-block mr-2'/>
-                        Configure
+                        <span>Disconnect</span>
                     </button>
-                    <button className='bg-[#CF17421A] rounded-[10px] flex items-center justify-center p-4'>
-                        <Image src="/svgs/cross.svg" alt="Disconnected" width={16} height={16} className='inline-block'/>
-                    </button>
-                    </div>
-
                 ) : (
                     <button
                         onClick={onConnect}
