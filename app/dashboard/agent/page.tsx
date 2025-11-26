@@ -57,7 +57,7 @@ export default function Agent() {
     deleteAgent: apiDeleteAgent,
     refreshAgents 
   } = useAgents();
-
+  console.log('Agents Data:', agentsData);
   // Fetch all agents on initial load only
   useEffect(() => {
     // Fetch with maximum allowed limit by API
@@ -99,6 +99,7 @@ export default function Agent() {
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
   const handleViewDetails = (agent: AgentsTable) => {
+    // console.log('Agent Detail Modal - Agent Data:', agent); 
     setSelectedAgent(agent);
     setIsDetailModalOpen(true);
   };

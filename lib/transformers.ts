@@ -71,6 +71,7 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
     phoneNumber: apiAgent.phone_number,
     createdAt: apiAgent.created_at,
     updatedAt: apiAgent.updated_at,
+    knowledgeBaseDocuments: apiAgent.knowledge_base_documents || [],
   };
 }
 

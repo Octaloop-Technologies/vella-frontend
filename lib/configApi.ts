@@ -119,6 +119,8 @@ export interface CreateAgentResponse {
   created_at: string;
   updated_at: string;
   model_id: string;
+  knowledge_base_documents: any[];
+
 }
 
 export interface VoiceDetailsResponse {

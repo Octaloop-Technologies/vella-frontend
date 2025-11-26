@@ -27,6 +27,7 @@ export interface ApiAgent {
   updated_at: string;
   model_id: string;
   phone_number?: string;
+  knowledge_base_documents?: any[];
 }
 
 export interface AgentsResponse {
