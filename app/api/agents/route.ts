@@ -24,12 +24,18 @@ export async function GET(request: NextRequest) {
       queryParams.append('status', status.toLowerCase());
     }
 
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     // Make request to external API
     const response = await fetch(`${BASE_URL}/agents/?${queryParams}`, {
       method: 'GET',
-      headers: {
-        'accept': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -99,12 +105,18 @@ export async function POST(request: NextRequest) {
       }
     });
     
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+    
     const response = await fetch(`${BASE_URL}/agents/`, {
       method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers,
       body: formData.toString(),
     });
 

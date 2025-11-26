@@ -5,6 +5,7 @@ import BaseModal from '@/components/shared/BaseModal';
 import Input from '@/components/shared/Input';
 import Image from 'next/image';
 import Button from '@/components/shared/Button';
+import { apiService } from '@/lib/api';
 
 interface UploadDocumentModalProps {
   isOpen: boolean;
@@ -126,17 +127,8 @@ const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
       // Add tags (empty array for now)
       formData.append('tags', tags || '');
 
-      const response = await fetch('/api/knowledge/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const data = await apiService.uploadDocument(formData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload document');
-      }
-
-      const data = await response.json();
       console.log('Document uploaded successfully:', data);
       
       // Reset form

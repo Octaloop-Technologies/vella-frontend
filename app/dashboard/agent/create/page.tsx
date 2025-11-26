@@ -26,6 +26,7 @@ import {
   useVoiceDetails,
 } from "@/hooks/useConfig";
 import { useToast } from "@/contexts/ToastContext";
+import { apiService } from "@/lib/api";
 
 // Step Components
 function Step1() {
@@ -609,13 +610,7 @@ function Step2() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('/api/knowledge?skip=0&limit=100');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch documents');
-        }
-
-        const data = await response.json();
+        const data = await apiService.getDocuments({ skip: 0, limit: 100 });
         setDocuments(data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load documents';

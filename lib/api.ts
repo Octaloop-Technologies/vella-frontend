@@ -46,12 +46,22 @@ export interface AgentsParams {
 class ApiService {
   private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const tokenType = typeof window !== 'undefined' ? (localStorage.getItem('token_type') || 'Bearer') : 'Bearer';
+      
+      const isFormData = options?.body instanceof FormData;
+      const headers: HeadersInit = {
+        'accept': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...options?.headers,
+      };
+
+      if (token) {
+        (headers as any)['Authorization'] = `${tokenType} ${token}`;
+      }
+
       const response = await fetch(`${BASE_URL}${endpoint}`, {
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
+        headers,
         ...options,
       });
 
@@ -112,6 +122,29 @@ class ApiService {
   async deleteAgent(id: string): Promise<void> {
     return this.makeRequest<void>(`/agents/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Knowledge Base Methods
+  async getDocuments(params: { skip?: number; limit?: number } = {}): Promise<any> {
+    const { skip = 0, limit = 100 } = params;
+    return this.makeRequest(`/knowledge?skip=${skip}&limit=${limit}`);
+  }
+
+  async getDocumentById(id: string): Promise<any> {
+    return this.makeRequest(`/knowledge/${id}`);
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    return this.makeRequest(`/knowledge/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async uploadDocument(formData: FormData): Promise<any> {
+    return this.makeRequest('/knowledge/upload', {
+      method: 'POST',
+      body: formData,
     });
   }
 }

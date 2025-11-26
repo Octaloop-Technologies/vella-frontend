@@ -8,13 +8,19 @@ export async function GET(request: NextRequest) {
     const skip = searchParams.get('skip') || '0';
     const limit = searchParams.get('limit') || '10';
 
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/knowledge-base/documents?skip=${skip}&limit=${limit}`,
       {
         method: 'GET',
-        headers: {
-          'accept': 'application/json',
-        },
+        headers,
         cache: 'no-store', // Disable caching for fresh data
       }
     );

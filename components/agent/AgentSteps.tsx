@@ -28,6 +28,31 @@ export function Step3Channels() {
     { id: 'gohighlevel', name: 'GoHighLevel' },
   ];
 
+  const [ghlStatus, setGhlStatus] = useState<{ is_connected: boolean; connected_at?: string } | null>(null);
+
+  React.useEffect(() => {
+    const fetchGHLStatus = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        const tokenType = localStorage.getItem('token_type') || 'Bearer';
+        
+        const response = await fetch('/api/ghl/status', {
+          headers: {
+            'Authorization': `${tokenType} ${token}`,
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          setGhlStatus(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch GHL status', error);
+      }
+    };
+    fetchGHLStatus();
+  }, []);
+
   // Assume connect buttons update selected, but not implemented; reusing as is
 
   return (
@@ -81,30 +106,51 @@ export function Step3Channels() {
         <div>
           <h3 className="text-lg font-medium mb-4 text-black">CRM Integrations</h3>
           <div className="space-y-1">
-            {crmIntegrations.map((integration) => (
-              <div key={integration.id} className="flex items-center justify-between p-2 border-b last:border-0 border-[#E5E7EB]">
-                <div className="flex items-center space-x-3">
-                  <Image
-                    src={`/svgs/lightning2.svg`}
-                    alt={`${integration.name} Icon`}
-                    width={16}
-                    height={24}
-                  />
-                  <span className="font-medium text-sm text-black">{integration.name}</span>
+            {crmIntegrations.map((integration) => {
+              const isGHL = integration.id === 'gohighlevel';
+              const isGHLConnected = isGHL && ghlStatus?.is_connected;
+
+              return (
+                <div key={integration.id} className="flex items-center justify-between p-2 border-b last:border-0 border-[#E5E7EB]">
+                  <div className="flex items-center space-x-3">
+                    <Image
+                      src={`/svgs/lightning2.svg`}
+                      alt={`${integration.name} Icon`}
+                      width={16}
+                      height={24}
+                    />
+                    <span className="font-medium text-sm text-black">{integration.name}</span>
+                  </div>
+                  
+                  {isGHLConnected ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-black">{agentData.ghl_enabled ? 'Enabled' : 'Disabled'}</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={agentData.ghl_enabled || false}
+                          onChange={(e) => updateAgentData({ ghl_enabled: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8266D4]"></div>
+                      </label>
+                    </div>
+                  ) : (
+                    <button
+                      className="px-6 py-2 rounded-[8px] border border-[#8266D4] text-[#8266D4] font-medium flex items-center space-x-2 shadow-card"
+                    >
+                      <Image
+                        src="/svgs/link.svg"
+                        alt="Link Icon"
+                        width={16}
+                        height={16}
+                      />
+                      <span className="text-black">Connect</span>
+                    </button>
+                  )}
                 </div>
-                <button
-                  className="px-6 py-2 rounded-[8px] border border-[#8266D4] text-[#8266D4] font-medium flex items-center space-x-2 shadow-card"
-                >
-                  <Image
-                    src="/svgs/link.svg"
-                    alt="Link Icon"
-                    width={16}
-                    height={16}
-                  />
-                  <span className="text-black">Connect</span>
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -403,7 +449,8 @@ export function Step5ReviewPublish() {
         },
         model_id: 'eleven_monolingual_v1',
         phone_number: agentData.phoneNumber || null,
-        knowledge_base_document_ids: agentData.selectedDocuments || []
+        knowledge_base_document_ids: agentData.selectedDocuments || [],
+        ghl_enabled: agentData.ghl_enabled || false
       };
 
       console.log('Sending agent data to API:', createAgentData);

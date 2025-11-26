@@ -12,11 +12,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(`${BASE_URL}/agents/${id}`, {
       method: 'GET',
-      headers: {
-        'accept': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -43,12 +49,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = await request.json();
     
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(`${BASE_URL}/agents/${id}`, {
       method: 'PUT',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
@@ -75,11 +87,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(`${BASE_URL}/agents/${id}`, {
       method: 'DELETE',
-      headers: {
-        'accept': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {

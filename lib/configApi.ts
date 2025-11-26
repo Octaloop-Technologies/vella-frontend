@@ -92,6 +92,7 @@ export interface CreateAgentRequest {
   model_id: string;
   phone_number?: string | null;
   knowledge_base_document_ids?: string | (string | null)[];
+  ghl_enabled?: boolean;
 }
 
 export interface CreateAgentResponse {
@@ -148,10 +149,19 @@ export interface VoiceDetailsResponse {
 class ConfigService {
   private async makeRequest<T>(endpoint: string): Promise<T> {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const tokenType = typeof window !== 'undefined' ? (localStorage.getItem('token_type') || 'Bearer') : 'Bearer';
+      
+      const headers: HeadersInit = {
+        accept: "application/json",
+      };
+
+      if (token) {
+        (headers as any)['Authorization'] = `${tokenType} ${token}`;
+      }
+
       const response = await fetch(`/api/config/${endpoint}`, {
-        headers: {
-          accept: "application/json",
-        },
+        headers,
       });
       console.log(`Config API Request to /api/config/${endpoint} responded with status:`, response.status);
       if (!response.ok) {
@@ -225,12 +235,21 @@ class ConfigService {
     agentData: CreateAgentRequest
   ): Promise<CreateAgentResponse> {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const tokenType = typeof window !== 'undefined' ? (localStorage.getItem('token_type') || 'Bearer') : 'Bearer';
+      
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        accept: "application/json",
+      };
+
+      if (token) {
+        (headers as any)['Authorization'] = `${tokenType} ${token}`;
+      }
+
       const response = await fetch("/api/agents", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
+        headers,
         body: JSON.stringify(agentData),
       });
 

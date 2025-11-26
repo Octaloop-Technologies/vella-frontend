@@ -21,12 +21,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     
     console.log('Fetching configuration from:', url);
     
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {

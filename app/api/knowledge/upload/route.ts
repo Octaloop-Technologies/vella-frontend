@@ -27,10 +27,17 @@ export async function POST(request: NextRequest) {
       backendFormData.append('file', file);
     }
 
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {};
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/knowledge-base/documents`,
       {
         method: 'POST',
+        headers,
         body: backendFormData,
       }
     );

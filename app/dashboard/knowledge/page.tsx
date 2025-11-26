@@ -17,6 +17,7 @@ import StatsCard from '@/components/shared/StatsCard';
 import ItemCard from '@/components/shared/ItemCard';
 import Badge from '@/components/shared/Badge';
 import FilterDropdown from '@/components/shared/FilterDropdown';
+import { apiService } from '@/lib/api';
 
 // API Document type
 interface ApiDocument {
@@ -138,13 +139,7 @@ export default function Knowledge() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/knowledge?skip=0&limit=100');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch documents');
-      }
-
-      const apiDocuments: ApiDocument[] = await response.json();
+      const apiDocuments: ApiDocument[] = await apiService.getDocuments({ skip: 0, limit: 100 });
       
       // Transform API data to match Document interface
       const transformedDocuments: Document[] = apiDocuments.map((doc) => {
@@ -211,17 +206,15 @@ export default function Knowledge() {
 
   const handleViewDetails = async (document: Document) => {
     try {
-      // Fetch full document details from API
-      const response = await fetch(`/api/knowledge/${document.id}`);
-      if (response.ok) {
-        const fullDocument = await response.json();
-        setSelectedDocument({
-          ...document,
-          content: fullDocument.content
-        });
-      } else {
-        setSelectedDocument(document);
+      if (!document.id) {
+        throw new Error('Document ID is missing');
       }
+      // Fetch full document details from API
+      const fullDocument = await apiService.getDocumentById(document.id);
+      setSelectedDocument({
+        ...document,
+        content: fullDocument.content
+      });
       setIsDetailsModalOpen(true);
     } catch (error) {
       console.error('Error fetching document details:', error);
@@ -254,13 +247,7 @@ export default function Knowledge() {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(`/api/knowledge/${documentToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete document');
-      }
+      await apiService.deleteDocument(documentToDelete.id);
 
       // Refresh the documents list
       await fetchDocuments();

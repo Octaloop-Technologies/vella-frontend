@@ -20,6 +20,7 @@ interface AgentCreationData {
   // Step 3 (inbound/outbound)
   selectedChannels: string[];
   selectedIntegrations: string[];
+  ghl_enabled?: boolean;
   
   // Step 4 (inbound/outbound)
   phoneNumber: string;

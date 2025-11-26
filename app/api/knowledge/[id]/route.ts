@@ -9,13 +9,19 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/knowledge-base/documents/${id}`,
       {
         method: 'DELETE',
-        headers: {
-          'accept': 'application/json',
-        },
+        headers,
       }
     );
 
@@ -45,13 +51,19 @@ export async function GET(
   try {
     const { id } = await params;
 
+    const authHeader = request.headers.get('authorization');
+    const headers: HeadersInit = {
+      'accept': 'application/json',
+    };
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/knowledge-base/documents/${id}`,
       {
         method: 'GET',
-        headers: {
-          'accept': 'application/json',
-        },
+        headers,
         cache: 'no-store',
       }
     );
