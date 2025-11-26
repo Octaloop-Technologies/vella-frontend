@@ -397,11 +397,8 @@ function WidgetPreviewContent() {
   src="${
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   }/widget/voice/${agentId}?${voiceWidgetParams.toString()}"
-  style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: ${
-    currentSize?.width
-  }; height: ${
-    currentSize?.height
-  }; border: none; border-radius: 12px; z-index: 9999;"
+  style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width:1000px
+  ; height: 600px; border: none; border-radius: 12px; z-index: 9999;"
   title="${agentName} - Vella AI Widget"
   allow="microphone"
 ></iframe>`;
@@ -1053,7 +1050,8 @@ function WidgetPreviewContent() {
 
             {/* Position Selection - Hide for voice widget */}
             {!isVoiceWidget && (
-              <Card className="p-6">
+              <>
+                 <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Position</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {positions.map((position) => (
@@ -1074,9 +1072,7 @@ function WidgetPreviewContent() {
                   ))}
                 </div>
               </Card>
-            )}
-
-            {/* Size Selection */}
+                   {/* Size Selection */}
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Size</h3>
               <div className="space-y-3">
@@ -1103,6 +1099,11 @@ function WidgetPreviewContent() {
                 ))}
               </div>
             </Card>
+              </>
+             
+            )}
+
+     
           </div>
 
           {/* Preview Panel */}
@@ -1174,14 +1175,14 @@ function WidgetPreviewContent() {
                 <div className="relative h-[65vh] min-h-[650px] bg-white rounded-lg overflow-hidden">
                   {/* Voice Widget - Show iframe */}
                   {isVoiceWidget ? (
-                    <div className="h-full flex items-center justify-center p-8">
+                    <div className="h-full w-full   flex items-center justify-center p-8">
                       <iframe
                         key={`${showAvatar}-${showWidgetTitle}-${showCallDuration}-${buttonColor}-${iconColor}-${forceReload}`}
                         src={`${
                           process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
                         }/widget/voice/${agentId}?${voiceWidgetParams.toString()}`}
                         style={{
-                          width: currentSize?.width,
+                          width: 1000,
                           height: currentSize?.height,
                           border: "none",
                           borderRadius: "12px",

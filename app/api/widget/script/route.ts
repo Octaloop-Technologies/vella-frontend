@@ -115,7 +115,7 @@ export async function GET() {
       inlineWidget.id = 'vella-inline-voice-widget';
       inlineWidget.style.cssText = \`
         width: 100%;
-        max-width: 400px;
+        max-width: 1600px;
         margin: 0 auto;
         background: white;
         border-radius: 16px;
@@ -566,7 +566,7 @@ export async function GET() {
               <h3 id="vella-voice-status" style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                 Ready to Talk
               </h3>
-              <p id="vella-voice-subtitle" style="font-size: 14px; color: #6B7280; margin-bottom: 24px; max-width: 280px;">
+              <p id="vella-voice-subtitle" style="font-size: 14px; color: #6B7280; margin-bottom: 24px; max-width: 1000px;">
                 Click here to Call with \${config.title}
               </p>
             </div>
@@ -739,7 +739,7 @@ export async function GET() {
             border-radius: 16px;
             padding: 40px 24px 24px 24px;
             text-align: center;
-            max-width: 400px;
+            max-width: 1000px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -934,11 +934,39 @@ export async function GET() {
             
             <!-- Name -->
             \${config.showTitle ? \`
-            <div class="vella-name" id="vella-voice-name">Click here to call with \${config.title}</div>
-            <div style="display: flex; justify-content: center; margin: 8px 0 16px 0; animation: bounce 2s infinite;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 5v14m-7-7l7 7 7-7"/>
-              </svg>
+            <div style="
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-size: 24px;
+              font-weight: 700;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #8B5CF6 100%);
+              background-clip: text;
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              text-align: center;
+              letter-spacing: -0.5px;
+              margin-bottom: 12px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+             
+            ">
+              <span style="
+                background: black;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                flex-shrink: 0;
+              ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14m-7-7l7 7 7-7"/>
+                </svg>
+              </span>
+              <span style="white-space: nowrap; max-width: 1000px;">Click Here to Call with \${config.title}</span>
             </div>
             \` : ''}
             
