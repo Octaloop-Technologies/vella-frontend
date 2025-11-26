@@ -1436,6 +1436,12 @@ export async function GET() {
           isAudioStreamComplete = true;
           audioChunks = [];
           console.log('✅ Server finished sending audio, queue will process remaining chunks');
+          
+          // Check if playback already finished before this message arrived
+          if (audioQueue.length === 0 && audioContext && (nextStartTime - audioContext.currentTime < 0.5)) {
+              console.log('✅ Vella Widget: Playback finished before audio_complete arrived');
+              this.handleStreamCompletion();
+          }
           break;
           
         case 'message_received':
@@ -2882,25 +2888,18 @@ export async function GET() {
           isPlaying = true;
           this.updateAudioUI(true);
           
-          // Check if this is the last chunk
-          if (audioQueue.length === 0 && isAudioStreamComplete) {
-              source.onended = () => {
-                  console.log('✅ Vella Widget: All audio chunks played (AudioContext)');
-                  isPlaying = false;
-                  this.updateAudioUI(false);
-                  
-                  // Restart listening if needed
-                  if ((config.widgetType === 'voice' || isVoiceMode) && isVoiceMode) {
-                       setTimeout(() => {
-                          if (isVoiceMode) {
-                              voiceState = 'listening';
-                              this.updateVoiceState('listening');
-                              this.startVoiceRecording();
-                          }
-                       }, 100);
-                  }
-              };
-          }
+          // Attach onended to ALL sources to check for stream completion
+          source.onended = () => {
+              // Check if this was the last chunk of the stream
+              // We use a small buffer (0.5s) for timing comparison
+              const isEndOfStream = audioQueue.length === 0 && 
+                                  isAudioStreamComplete && 
+                                  (nextStartTime - audioContext.currentTime < 0.5);
+                                  
+              if (isEndOfStream) {
+                  this.handleStreamCompletion();
+              }
+          };
           
           // Process next chunk immediately
           this.processAudioQueue();
@@ -2913,6 +2912,31 @@ export async function GET() {
         console.error('Error processing audio chunk', e);
         this.processAudioQueue();
       }
+    },
+
+    handleStreamCompletion: function() {
+        console.log('✅ Vella Widget: Stream completion detected');
+        // Only proceed if we are currently marked as playing
+        if (!isPlaying) return;
+        
+        isPlaying = false;
+        this.updateAudioUI(false);
+        
+        // Restart listening if needed
+        if (config.widgetType === 'voice' || (isVoiceMode && isVoiceActive)) {
+             setTimeout(() => {
+                // Force voice active for voice widget
+                if (config.widgetType === 'voice') {
+                    isVoiceActive = true;
+                }
+
+                if (config.widgetType === 'voice' || isVoiceMode) {
+                    voiceState = 'listening';
+                    this.updateVoiceState('listening');
+                    this.startVoiceRecording();
+                }
+             }, 100);
+        }
     },
 
     playBase64AudioAsync: function(base64Audio) {
