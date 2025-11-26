@@ -45,6 +45,10 @@ export async function GET() {
   let audioQueue = [];
   let isPlayingQueue = false;
   let isAudioStreamComplete = false; // Track if server finished sending audio chunks
+  
+  // Audio Context for smooth playback
+  let audioContext = null;
+  let nextStartTime = 0;
 
   // Main widget initialization
   window.VellaWidget = {
@@ -2830,110 +2834,85 @@ export async function GET() {
       if (audioQueue.length === 0) {
         console.log('✅ Vella Widget: Audio queue empty');
         isPlayingQueue = false;
-        
-        // Only restart listening if BOTH queue is empty AND server finished sending chunks
-        if (!isAudioStreamComplete) {
-          console.log('⏳ Vella Widget: Waiting for more audio chunks from server...');
-          return; // Don't restart yet, more chunks coming
-        }
-        
-        console.log('✅ Vella Widget: All audio chunks played, stream complete');
-        
-        // Only restart listening if call is still active
-        if ((config.widgetType === 'voice' || isVoiceMode) && isVoiceMode) {
-          console.log('📞 Vella Widget: Auto-restarting listening (call mode)');
-          
-          // Brief pause before listening again
-          setTimeout(() => {
-            // Double-check call is still active before starting
-            if (isVoiceMode) {
-              voiceState = 'listening';
-              this.updateVoiceState('listening');
-              this.startVoiceRecording();
-            } else {
-              console.log('⚠️ Vella Widget: Call ended during audio playback, not restarting');
-            }
-          }, 100);
-        }
         return;
       }
 
       isPlayingQueue = true;
-      const nextChunk = audioQueue.shift();
+      const base64Audio = audioQueue.shift();
       
-      console.log('▶️ Vella Widget: Playing next audio chunk, remaining:', audioQueue.length);
-      
-      this.playBase64AudioChunk(nextChunk)
-        .then(() => {
-          console.log('✅ Vella Widget: Chunk finished, playing next immediately...');
-          // Play next chunk immediately without delay
-          this.processAudioQueue();
-        })
-        .catch(error => {
-          console.error('❌ Vella Widget: Error playing chunk, skipping:', error);
-          // Continue with next chunk even if this one failed
-          this.processAudioQueue();
-        });
-    },
-
-    playBase64AudioChunk: function(base64Audio) {
-      console.log('🎵 Vella Widget: playBase64AudioChunk() called');
-      
-      return new Promise((resolve, reject) => {
-        if (!base64Audio) {
-          console.log('❌ Vella Widget: No base64 audio chunk provided');
-          resolve();
+      // Initialize AudioContext if needed
+      if (!audioContext) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          nextStartTime = audioContext.currentTime;
+        } catch (e) {
+          console.error('Web Audio API not supported', e);
           return;
         }
+      }
+      
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
 
-        try {
-          // Convert base64 to blob
-          const binaryString = atob(base64Audio);
-          const bytes = new Uint8Array(binaryString.length);
+      // Decode and schedule
+      try {
+        const binaryString = atob(base64Audio);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        audioContext.decodeAudioData(bytes.buffer, (buffer) => {
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioContext.destination);
           
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+          // Schedule
+          const currentTime = audioContext.currentTime;
+          if (nextStartTime < currentTime) {
+            nextStartTime = currentTime;
           }
           
-          const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-          const audioUrl = URL.createObjectURL(audioBlob);
+          source.start(nextStartTime);
+          nextStartTime += buffer.duration;
           
-          const audio = new Audio(audioUrl);
-          currentAudio = audio;
+          // Set playing state
+          isPlaying = true;
+          this.updateAudioUI(true);
           
-          // Preload the audio to reduce gap
-          audio.preload = 'auto';
-          audio.load();
-
-          audio.onended = () => {
-            console.log('🎵 Vella Widget: Audio chunk playback ended');
-            URL.revokeObjectURL(audioUrl);
-            resolve();
-          };
-
-          audio.onerror = (error) => {
-            console.error('🎵 Vella Widget: Audio chunk playback error:', error);
-            URL.revokeObjectURL(audioUrl);
-            reject(error);
-          };
+          // Check if this is the last chunk
+          if (audioQueue.length === 0 && isAudioStreamComplete) {
+              source.onended = () => {
+                  console.log('✅ Vella Widget: All audio chunks played (AudioContext)');
+                  isPlaying = false;
+                  this.updateAudioUI(false);
+                  
+                  // Restart listening if needed
+                  if ((config.widgetType === 'voice' || isVoiceMode) && isVoiceMode) {
+                       setTimeout(() => {
+                          if (isVoiceMode) {
+                              voiceState = 'listening';
+                              this.updateVoiceState('listening');
+                              this.startVoiceRecording();
+                          }
+                       }, 100);
+                  }
+              };
+          }
           
-          // Set up canplaythrough event for smoother playback
-          audio.oncanplaythrough = () => {
-            console.log('🎵 Vella Widget: Audio chunk ready to play');
-          };
-
-          // Start playback immediately
-          console.log('🎵 Vella Widget: Starting audio chunk playback');
-          audio.play().catch(error => {
-            console.error('🎵 Vella Widget: Failed to play audio chunk:', error);
-            URL.revokeObjectURL(audioUrl);
-            reject(error);
-          });
-        } catch (error) {
-          console.error('❌ Vella Widget: Failed to process audio chunk:', error);
-          reject(error);
-        }
-      });
+          // Process next chunk immediately
+          this.processAudioQueue();
+          
+        }, (error) => {
+          console.error('Error decoding audio', error);
+          this.processAudioQueue();
+        });
+      } catch (e) {
+        console.error('Error processing audio chunk', e);
+        this.processAudioQueue();
+      }
     },
 
     playBase64AudioAsync: function(base64Audio) {
@@ -3064,6 +3043,14 @@ export async function GET() {
         } catch (error) {
           console.error('🎵 Vella Widget: Error stopping audio:', error);
         }
+      }
+      
+      if (audioContext) {
+        try {
+            audioContext.close();
+        } catch(e) {}
+        audioContext = null;
+        nextStartTime = 0;
       }
       
       isPlaying = false;

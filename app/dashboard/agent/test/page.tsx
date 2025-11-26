@@ -22,6 +22,12 @@ function TestAgentContent() {
     const [isMuted, setIsMuted] = useState(false);
     const [resolvedAgentName, setResolvedAgentName] = useState(agentName);
     const [conversationId, setConversationId] = useState('');
+    const conversationIdRef = useRef('');
+
+    useEffect(() => {
+        conversationIdRef.current = conversationId;
+    }, [conversationId]);
+
     const [isStartingConversation, setIsStartingConversation] = useState(false);
     const [error, setError] = useState('');
     const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
@@ -39,13 +45,15 @@ function TestAgentContent() {
     const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastTranscriptRef = useRef<string>('');
     const currentTranscriptRef = useRef<string>(''); // Store current transcript for immediate access
-
-    const generateMessageId = () => {
-        if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-            return crypto.randomUUID();
-        }
-        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    };
+    
+    // WebSocket and Audio Context refs
+    const wsRef = useRef<WebSocket | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const gainNodeRef = useRef<GainNode | null>(null);
+    const audioQueueRef = useRef<string[]>([]);
+    const isPlayingQueueRef = useRef(false);
+    const nextStartTimeRef = useRef(0);
+    const isAudioStreamCompleteRef = useRef(false);
 
     const agentDetails = {
         name: resolvedAgentName,
@@ -54,6 +62,306 @@ function TestAgentContent() {
         description: agentDescription,
         lastUpdated: '2 minutes ago'
     };
+
+    const generateMessageId = () => {
+        if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+            return crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    // Audio playback queue processing
+    const processAudioQueue = useCallback(() => {
+        if (audioQueueRef.current.length === 0) {
+            
+            // If stream is complete and queue is empty, we're done speaking
+            if (isAudioStreamCompleteRef.current) {
+                // Calculate remaining time to play
+                let waitTime = 0;
+                if (audioContextRef.current) {
+                    waitTime = (nextStartTimeRef.current - audioContextRef.current.currentTime) * 1000;
+                }
+                
+                // Ensure we don't wait if it's already done or invalid
+                if (waitTime < 0) waitTime = 0;
+                
+                console.log(`Queue empty, stream complete. Waiting ${waitTime}ms for audio to finish.`);
+                
+                setTimeout(() => {
+                    isPlayingQueueRef.current = false; // Now we are truly done
+                    setIsProcessingAudio(false);
+                    if (isCallActiveRef.current) {
+                        startRecording();
+                    }
+                }, waitTime + 500); // 500ms buffer
+            } else {
+                // Queue empty but stream not complete (buffering?)
+                isPlayingQueueRef.current = false; 
+            }
+            return;
+        }
+
+        // Ensure we are not recording when we start playing
+        // We check recognitionRef directly as isRecording state might be stale in this callback
+        if (recognitionRef.current) {
+            console.log('Stopping recording because audio playback is starting');
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
+            try {
+                recognitionRef.current.stop();
+            } catch (e) {
+                // Ignore errors
+            }
+            recognitionRef.current = null;
+            setIsRecording(false);
+            setLiveTranscript('');
+            currentTranscriptRef.current = '';
+        }
+
+        isPlayingQueueRef.current = true;
+        const base64Audio = audioQueueRef.current.shift();
+
+        if (!base64Audio) {
+            processAudioQueue();
+            return;
+        }
+
+        // Initialize AudioContext if needed
+        if (!audioContextRef.current) {
+            try {
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+                nextStartTimeRef.current = audioContextRef.current.currentTime;
+                
+                // Create GainNode for volume control
+                gainNodeRef.current = audioContextRef.current.createGain();
+                gainNodeRef.current.connect(audioContextRef.current.destination);
+                // Set initial mute state - we can't access isMuted state directly here reliably if it changes, 
+                // but we can check the ref if we had one, or just default to 1 and let toggleMute handle it.
+                // However, since we are inside the component, we can access isMuted.
+                // But processAudioQueue is memoized with [isCallActive].
+                // If isMuted changes, this callback isn't recreated, so it sees old isMuted?
+                // No, isMuted is state.
+                // To be safe, let's just set it to 1. The toggleMute will update it.
+                // Or better, add isMuted to dependency array? No, that would recreate the function too often.
+                gainNodeRef.current.gain.value = 1; 
+                
+            } catch (e) {
+                console.error('Web Audio API not supported', e);
+                return;
+            }
+        }
+
+        if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume();
+        }
+
+        try {
+            const binaryString = atob(base64Audio);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            audioContextRef.current.decodeAudioData(bytes.buffer, (buffer) => {
+                if (!audioContextRef.current) return;
+
+                const source = audioContextRef.current.createBufferSource();
+                source.buffer = buffer;
+                
+                // Connect to GainNode if available, otherwise destination
+                if (gainNodeRef.current) {
+                    source.connect(gainNodeRef.current);
+                } else {
+                    source.connect(audioContextRef.current.destination);
+                }
+
+                const currentTime = audioContextRef.current.currentTime;
+                if (nextStartTimeRef.current < currentTime) {
+                    nextStartTimeRef.current = currentTime;
+                }
+
+                source.start(nextStartTimeRef.current);
+                nextStartTimeRef.current += buffer.duration;
+
+                // Process next chunk immediately
+                processAudioQueue();
+
+            }, (error) => {
+                console.error('Error decoding audio', error);
+                processAudioQueue();
+            });
+        } catch (e) {
+            console.error('Error processing audio chunk', e);
+            processAudioQueue();
+        }
+    }, [isCallActive]); // Added dependency, though startRecording is used inside
+
+    // WebSocket connection logic
+    const connectWebSocket = useCallback((targetAgentId: string) => {
+        if (wsRef.current) {
+            wsRef.current.close();
+        }
+
+        const wsUrl = `wss://ai-voice-agent-backend.octaloop.dev/ws/conversation/${targetAgentId}`;
+        console.log('Connecting to WebSocket:', wsUrl);
+        
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            ws.send(JSON.stringify({
+                type: 'start_conversation',
+                agent_id: targetAgentId,
+                channel: 'phone'
+            }));
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('WebSocket message:', data.type);
+
+                // Capture conversation_id from any message if present
+                if (data.conversation_id) {
+                    if (conversationIdRef.current !== data.conversation_id) {
+                        console.log('Received conversation_id:', data.conversation_id);
+                        setConversationId(data.conversation_id);
+                        conversationIdRef.current = data.conversation_id;
+                    }
+                }
+
+                switch (data.type) {
+                    case 'conversation_started':
+                        // conversation_id is handled above
+                        if (data.greeting) {
+                            const greeting: Message = {
+                                id: generateMessageId(),
+                                sender: 'agent',
+                                content: data.greeting,
+                                timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                            };
+                            setCallMessages(prev => [...prev, greeting]);
+                        }
+                        break;
+
+                    case 'greeting':
+                        // Handle greeting message - ensure we capture the text from various possible fields
+                        const greetingText = data.text || data.content || data.message || data.greeting;
+                        if (greetingText) {
+                            const greeting: Message = {
+                                id: generateMessageId(),
+                                sender: 'agent',
+                                content: greetingText,
+                                timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                            };
+                            setCallMessages(prev => [...prev, greeting]);
+                        }
+                        // Set processing true so we don't auto-start recording while greeting plays
+                        setIsProcessingAudio(true);
+                        break;
+
+                    case 'audio_start':
+                        setIsProcessingAudio(true);
+                        break;
+
+                    case 'response_start':
+                        setIsProcessingAudio(true);
+                        audioQueueRef.current = [];
+                        isAudioStreamCompleteRef.current = false;
+                        nextStartTimeRef.current = 0;
+                        
+                        // Stop any existing audio playback
+                        if (audioContextRef.current) {
+                            try {
+                                audioContextRef.current.close();
+                                audioContextRef.current = null;
+                            } catch (e) {
+                                console.error('Error closing audio context:', e);
+                            }
+                        }
+                        
+                        // Add placeholder message for streaming response
+                        const placeholderMsg: Message = {
+                            id: 'streaming-response',
+                            sender: 'agent',
+                            content: '...',
+                            timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setCallMessages(prev => [...prev, placeholderMsg]);
+                        break;
+
+                    case 'response_chunk':
+                        setCallMessages(prev => {
+                            const newMessages = [...prev];
+                            const lastMsgIndex = newMessages.length - 1;
+                            if (lastMsgIndex >= 0 && newMessages[lastMsgIndex].id === 'streaming-response') {
+                                const updatedMsg = { ...newMessages[lastMsgIndex] };
+                                updatedMsg.content = (updatedMsg.content === '...' ? '' : updatedMsg.content) + data.content;
+                                newMessages[lastMsgIndex] = updatedMsg;
+                            }
+                            return newMessages;
+                        });
+                        break;
+
+                    case 'response_complete':
+                        setCallMessages(prev => {
+                            const newMessages = [...prev];
+                            const lastMsg = newMessages[newMessages.length - 1];
+                            if (lastMsg && lastMsg.id === 'streaming-response') {
+                                lastMsg.id = generateMessageId(); // Finalize ID
+                                lastMsg.content = data.full_response;
+                            }
+                            return newMessages;
+                        });
+                        break;
+
+                    case 'audio_chunk':
+                        if (data.audio) {
+                            audioQueueRef.current.push(data.audio);
+                            if (!isPlayingQueueRef.current) {
+                                processAudioQueue();
+                            }
+                        }
+                        break;
+
+                    case 'audio_complete':
+                        isAudioStreamCompleteRef.current = true;
+                        // If queue was empty, trigger completion logic immediately
+                        if (audioQueueRef.current.length === 0 && !isPlayingQueueRef.current) {
+                             setIsProcessingAudio(false);
+                             setTimeout(() => {
+                                if (isCallActiveRef.current) {
+                                    startRecording();
+                                }
+                            }, 500);
+                        }
+                        break;
+                        
+                    case 'error':
+                        console.error('WebSocket error message:', data.message);
+                        setError(data.message || 'An error occurred');
+                        setIsProcessingAudio(false);
+                        break;
+                }
+            } catch (err) {
+                console.error('Error parsing WebSocket message:', err);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setError('Connection error');
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket closed');
+        };
+
+    }, [isCallActive]); // Added dependency
 
     const startConversation = useCallback(async (targetAgentId: string) => {
         if (!targetAgentId) {
@@ -65,109 +373,35 @@ function TestAgentContent() {
         setError('');
         setConversationId('');
         setGreetingMessage(null);
-
-        try {
-            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/start/${targetAgentId}?channel=phone`, {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to start conversation');
-            }
-
-            const data = await response.json();
-            const conversation = data?.conversation;
-
-            if (!conversation?.conversation_id) {
-                throw new Error('Conversation response missing ID');
-            }
-
-            setConversationId(conversation.conversation_id);
-            if (conversation.agent_name) {
-                setResolvedAgentName(conversation.agent_name);
-            }
-
-            if (conversation.greeting) {
-                const greeting: Message = {
-                    id: generateMessageId(),
-                    sender: 'agent',
-                    content: conversation.greeting,
-                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                    audioBase64: conversation.greeting_audio || undefined
-                };
-                setGreetingMessage(greeting);
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unable to start conversation');
-        } finally {
-            setIsStartingConversation(false);
-        }
+        
+        // We don't start WebSocket here anymore, we start it when call starts
+        // But we can fetch initial details if needed via REST, or just rely on WS
+        // For consistency with previous logic, let's just set ready state
+        setIsStartingConversation(false);
+        
     }, []);
 
-    // Convert base64 audio to blob and play it
-    const playBase64Audio = (base64Audio: string, onAudioEnd?: () => void) => {
-        return new Promise<void>((resolve, reject) => {
-            try {
-                // Don't play if muted
-                if (isMuted) {
-                    console.log('Audio muted, skipping playback');
-                    resolve();
-                    return;
-                }
-                
-                // Stop any currently playing audio
-                if (currentAudioRef.current) {
-                    currentAudioRef.current.pause();
-                    currentAudioRef.current = null;
-                }
 
-                // Decode base64 to binary
-                const binaryString = atob(base64Audio);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                
-                const blob = new Blob([bytes], { type: 'audio/mpeg' });
-                const audioUrl = URL.createObjectURL(blob);
-                
-                const audio = new Audio(audioUrl);
-                currentAudioRef.current = audio;
-                
-                audio.onended = () => {
-                    URL.revokeObjectURL(audioUrl);
-                    currentAudioRef.current = null;
-                    if (onAudioEnd) {
-                        onAudioEnd();
-                    }
-                    resolve();
-                };
-                
-                audio.onerror = (err) => {
-                    console.error('Audio playback error:', err);
-                    URL.revokeObjectURL(audioUrl);
-                    currentAudioRef.current = null;
-                    reject(err);
-                };
-                
-                console.log('Playing audio...');
-                audio.play().catch(err => {
-                    console.error('Audio playback failed:', err);
-                    reject(err);
-                });
-            } catch (err) {
-                console.error('Failed to play base64 audio:', err);
-                reject(err);
-            }
-        });
-    };
 
     // Start recording audio with live transcription
     const startRecording = async () => {
+        // Don't start recording if we are playing audio or processing
+        if (isPlayingQueueRef.current || isProcessingAudio) {
+            console.log('Cannot start recording: Audio is playing or processing');
+            return;
+        }
+
         try {
+            // Stop any existing recognition first
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.stop();
+                } catch (e) {
+                    // Ignore error on stop
+                }
+                recognitionRef.current = null;
+            }
+
             setLiveTranscript('Listening...');
             lastTranscriptRef.current = '';
             currentTranscriptRef.current = '';
@@ -219,6 +453,12 @@ function TestAgentContent() {
                 };
 
                 recognition.onerror = (event: any) => {
+                    // Ignore 'aborted' error as it happens when we stop manually or switch state
+                    if (event.error === 'aborted') {
+                        console.log('Speech recognition aborted (intentional)');
+                        return;
+                    }
+                    
                     console.error('Speech recognition error:', event.error);
                     if (event.error !== 'no-speech') {
                         setError('Speech recognition error: ' + event.error);
@@ -227,6 +467,10 @@ function TestAgentContent() {
 
                 recognition.onend = () => {
                     console.log('Speech recognition ended');
+                    // If we are still recording (state says so) but recognition ended, 
+                    // it might be due to silence or error. 
+                    // If it was intentional stop, isRecording would be false.
+                    // We don't auto-restart here to avoid loops, unless we implement robust logic.
                 };
 
                 recognition.start();
@@ -267,7 +511,7 @@ function TestAgentContent() {
             console.log('No speech detected in transcript');
             // Don't show error, just restart recording after a short delay
             setTimeout(() => {
-                if (isCallActive) {
+                if (isCallActiveRef.current) {
                     console.log('Restarting recording after no speech...');
                     startRecording();
                 }
@@ -283,8 +527,8 @@ function TestAgentContent() {
 
     // Send voice message to backend (for audio call tab)
     const sendVoiceMessage = async (text: string) => {
-        if (!conversationId) {
-            setError('No active conversation');
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            setError('Connection lost. Reconnecting...');
             return;
         }
 
@@ -301,68 +545,14 @@ function TestAgentContent() {
             };
             setCallMessages((prev) => [...prev, userMessage]);
 
-            console.log('Sending message to API:', text);
+            console.log('Sending message via WebSocket:', text);
 
-            // Send to backend
-            const response = await fetch(`https://ai-voice-agent-backend.octaloop.dev/conversations/${conversationId}/message?message=${encodeURIComponent(text)}`, {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to send message');
-            }
-
-            const data = await response.json();
-            console.log('API Response:', data);
+            wsRef.current.send(JSON.stringify({
+                type: 'message',
+                message: text,
+                conversation_id: conversationIdRef.current
+            }));
             
-            const agentResponse = data?.response?.agent_response;
-            const responseAudio = data?.response?.response_audio;
-
-            if (agentResponse) {
-                const agentMessage: Message = {
-                    id: generateMessageId(),
-                    sender: 'agent',
-                    content: agentResponse,
-                    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                    audioBase64: responseAudio || undefined
-                };
-                setCallMessages((prev) => [...prev, agentMessage]);
-                
-                // Auto-play response audio and restart recording when done
-                if (responseAudio) {
-                    console.log('Playing response audio...');
-                    setIsProcessingAudio(false); // Stop showing processing state
-                    
-                    try {
-                        await playBase64Audio(responseAudio, () => {
-                            console.log('Audio finished playing, starting new recording...');
-                            // Automatically start recording again for next question
-                            setTimeout(() => {
-                                startRecording();
-                            }, 500); // Small delay before starting new recording
-                        });
-                    } catch (err) {
-                        console.error('Audio playback failed:', err);
-                        setError('Audio playback failed');
-                        // Still start recording even if audio fails
-                        setTimeout(() => {
-                            startRecording();
-                        }, 500);
-                    }
-                } else {
-                    console.log('No audio in response');
-                    setIsProcessingAudio(false);
-                    // If no audio, still start recording again
-                    setTimeout(() => {
-                        startRecording();
-                    }, 500);
-                }
-            } else {
-                setIsProcessingAudio(false);
-            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unable to send message');
             setIsProcessingAudio(false);
@@ -379,30 +569,18 @@ function TestAgentContent() {
         setCallMessages([]);
         setLiveTranscript('');
         
-        // Play greeting audio from greeting message if available
-        if (greetingMessage && greetingMessage.audioBase64) {
-            // Add greeting to call messages
-            setCallMessages([greetingMessage]);
-            
-            // Play greeting audio and start recording when done
-            playBase64Audio(greetingMessage.audioBase64, () => {
-                console.log('Greeting finished, starting recording...');
-                setTimeout(() => {
-                    startRecording();
-                }, 500);
-            }).catch(err => {
-                console.error('Failed to play greeting:', err);
-                // Still start recording even if greeting fails
-                setTimeout(() => {
-                    startRecording();
-                }, 500);
-            });
-        } else {
-            // No greeting, start recording immediately
-            setTimeout(() => {
+        connectWebSocket(agentId);
+        
+        // Fallback: if no audio received within 5 seconds, start recording
+        // This handles cases where there's no greeting audio
+        setTimeout(() => {
+            // Check if we are playing audio or have audio in queue
+            // Also check if we are already recording or processing
+            if (!isPlayingQueueRef.current && audioQueueRef.current.length === 0 && !isRecording && !isProcessingAudio) {
+                console.log('No greeting audio detected, starting recording...');
                 startRecording();
-            }, 500);
-        }
+            }
+        }, 5000);
     };
 
     const handleEndCall = () => {
@@ -410,6 +588,12 @@ function TestAgentContent() {
         setCallDuration(0);
         setIsMuted(false);
         setLiveTranscript('');
+        
+        // Close WebSocket
+        if (wsRef.current) {
+            wsRef.current.close();
+            wsRef.current = null;
+        }
         
         // Clear silence timer
         if (silenceTimerRef.current) {
@@ -424,19 +608,25 @@ function TestAgentContent() {
         }
         
         // Stop any playing audio
-        if (currentAudioRef.current) {
-            currentAudioRef.current.pause();
-            currentAudioRef.current = null;
+        if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
         }
         
         setIsRecording(false);
+        setIsProcessingAudio(false);
     };
 
     const toggleMute = () => {
         const newMuteState = !isMuted;
         setIsMuted(newMuteState);
         
-        // Mute/unmute current audio
+        // Mute/unmute Web Audio API
+        if (gainNodeRef.current) {
+            gainNodeRef.current.gain.value = newMuteState ? 0 : 1;
+        }
+        
+        // Mute/unmute legacy audio (if any)
         if (currentAudioRef.current) {
             currentAudioRef.current.muted = newMuteState;
         }
@@ -521,6 +711,29 @@ function TestAgentContent() {
         }
     }, [callMessages, isProcessingAudio, isRecording, liveTranscript, isCallActive]);
 
+    const isCallActiveRef = useRef(false);
+
+    useEffect(() => {
+        isCallActiveRef.current = isCallActive;
+    }, [isCallActive]);
+
+    const renderMessageContent = (content: string) => {
+        if (!content) return null;
+        return content.split('\n').map((line, i) => {
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            return (
+                <div key={i} className={`${line.trim().startsWith('-') ? 'pl-4' : ''} min-h-[1.5em]`}>
+                    {parts.map((part, j) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={j}>{part.slice(2, -2)}</strong>;
+                        }
+                        return <span key={j}>{part}</span>;
+                    })}
+                </div>
+            );
+        });
+    };
+
     return (
         <div className="h-screen bg-[#F9FAFB] flex flex-col">
             {/* Header */}
@@ -563,10 +776,9 @@ function TestAgentContent() {
                                                     height={19}
                                                 />
                                             </div>
-                                            <h2 className="text-lg mb-7 text-[#0A0A0A] text-black">Testing: {agentDetails.name}</h2>
+                                            <h2 className="text-lg mb-7 text-black">Testing: {agentDetails.name}</h2>
                                             <button
                                                 onClick={handleStartCall}
-                                                disabled={!conversationId}
                                                 className="w-3xs px-6 py-3 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Image src="/svgs/phone3.svg" alt="Phone" width={24} height={24} className='inline-block mr-3' />
@@ -601,14 +813,16 @@ function TestAgentContent() {
                                                             </div>
                                                         )}
 
-                                                        <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[40%]`}>
+                                                        <div className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} max-w-[75%]`}>
                                                             <div
                                                                 className={`px-5 py-3 rounded-[10px] font-medium text-sm opacity-70 ${message.sender === 'user'
                                                                     ? 'bg-[#007BFF1A] border border-[#8266D4]'
                                                                     : 'bg-[#FAF8F8] text-black'
                                                                     }`}
                                                             >
-                                                                <p className="mb-2 leading-tight text-black">{message.content}</p>
+                                                                <div className="mb-2 leading-relaxed text-black text-left">
+                                                                    {renderMessageContent(message.content)}
+                                                                </div>
                                                                 <span className="text-xs opacity-70 block text-black">{message.timestamp}</span>
                                                             </div>
                                                         </div>
@@ -630,7 +844,7 @@ function TestAgentContent() {
                                                 {/* Live Transcript */}
                                                 {isRecording && liveTranscript && (
                                                     <div className="flex gap-3 mb-6 justify-end">
-                                                        <div className="flex flex-col items-end max-w-[40%]">
+                                                        <div className="flex flex-col items-end max-w-[75%]">
                                                             <div className="px-5 py-3 rounded-[10px] font-medium text-sm bg-[#007BFF1A] border border-[#8266D4] opacity-50">
                                                                 <p className="mb-2 leading-tight italic text-black">{liveTranscript}</p>
                                                                 <span className="text-xs opacity-70 block text-black">Speaking...</span>
@@ -649,7 +863,7 @@ function TestAgentContent() {
                                                 )}
                                                 
                                                 {isProcessingAudio && (
-                                                    <div className="text-center text-sm text-[#717182] mb-4 text-black">
+                                                    <div className="text-center text-sm mb-4 text-black">
                                                         Processing your message...
                                                     </div>
                                                 )}
@@ -668,8 +882,8 @@ function TestAgentContent() {
                                                         />
                                                     </div>
                                                     <div className="text-center">
-                                                        <h2 className="text-base font-medium text-[#0A0A0A] mb-1 text-black">{agentDetails.name}</h2>
-                                                        <p className="text-sm text-[#717182] text-black">{formatDuration(callDuration)}</p>
+                                                        <h2 className="text-base font-medium mb-1 text-black">{agentDetails.name}</h2>
+                                                        <p className="text-sm text-black">{formatDuration(callDuration)}</p>
                                                     </div>
                                                     
                                                     <div className="flex items-center gap-4">
@@ -708,7 +922,7 @@ function TestAgentContent() {
                                                         </button>
                                                     </div>
                                                     
-                                                    <p className="text-xs text-[#717182] text-black">
+                                                    <p className="text-xs text-black">
                                                         {isRecording ? '🔴 Listening... (auto-send after silence)' : isProcessingAudio ? '⏳ Processing...' : '🎤 Speak to continue conversation'}
                                                     </p>
                                                 </div>
@@ -776,7 +990,7 @@ export default function TestAgent() {
             <div className="h-screen bg-[#F9FAFB] flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-[#8266D4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-[#717182] text-black">Loading agent...</p>
+                    <p className="text-black">Loading agent...</p>
                 </div>
             </div>
         }>

@@ -1170,7 +1170,7 @@ function WidgetPreviewContent() {
                   </pre>
                 </div>
               ) : (
-                <div className="relative h-[65vh] bg-white rounded-lg overflow-hidden">
+                <div className="relative h-[65vh] min-h-[650px] bg-white rounded-lg overflow-hidden">
                   {/* Voice Widget - Show iframe */}
                   {isVoiceWidget ? (
                     <div className="h-full flex items-center justify-center p-8">
