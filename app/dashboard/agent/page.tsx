@@ -25,6 +25,7 @@ import PauseIcon from '@/components/icons/PauseIcon';
 import PlayIcon from '@/components/icons/PlayIcon';
 import TrashIcon from '@/components/icons/TrashIcon';
 import { useAgents } from '@/hooks/useAgents';
+import Button from '@/components/shared/Button';
 
 export default function Agent() {
   const router = useRouter();
@@ -346,19 +347,21 @@ export default function Agent() {
           {/* No Data State */}
           {!loading && !error && filteredData.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">🤖</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2 text-black">No agents found</h3>
-              <p className="text-gray-600 text-sm mb-6 text-black">
+              <div className="text-primary text-6xl mb-4">🤖</div>
+              <h3 className="text-lg font-medium  mb-2 text-black">No agents found</h3>
+              <p className=" text-sm mb-6 text-black">
                 {searchTerm || filterStatus !== 'All Agents' 
                   ? 'Try adjusting your search or filter criteria' 
                   : 'Get started by creating your first agent'}
               </p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:opacity-90 transition-opacity"
-              >
-                Create Your First Agent
-              </button>
+               <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-3 w-60 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-[10px] font-medium hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
+            >
+            
+              <span>Create Your First Agent</span>
+            </button>
+        
             </div>
           )}
 
