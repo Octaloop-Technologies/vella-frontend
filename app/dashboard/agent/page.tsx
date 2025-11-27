@@ -347,7 +347,7 @@ export default function Agent() {
           {/* No Data State */}
           {!loading && !error && filteredData.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="text-primary text-6xl mb-4">🤖</div>
+           
               <h3 className="text-lg font-medium  mb-2 text-black">No agents found</h3>
               <p className=" text-sm mb-6 text-black">
                 {searchTerm || filterStatus !== 'All Agents' 
