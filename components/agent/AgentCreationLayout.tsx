@@ -2,6 +2,7 @@
 
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Step {
   number: number;
@@ -22,6 +23,11 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
   currentStep,
   agentType,
 }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const agentId = searchParams.get('id');
+  const isEditMode = !!agentId;
+
   let steps: Step[] = [];
 
   if (agentType === 'widget') {
@@ -140,59 +146,70 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
           </div>
 
           <div className="space-y-3">
-            {steps.map((step) => (
-              <div
-                key={step.number}
-                className={`flex items-start space-x-3 p-4 rounded-[10px] transition-all ${
-                  step.isActive
-                    ? 'bg-white border border-[#8266D4]'
-                    : step.isCompleted
-                    ? 'bg-white border border-[#8266D4]'
-                    : 'bg-white border border-[#0000001A] opacity-60'
-                }`}
-              >
+            {steps.map((step) => {
+              const isAccessible = step.isActive || step.isCompleted || isEditMode;
+              
+              return (
                 <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base ${
-                    step.isCompleted
-                      ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
-                      : step.isActive
-                      ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
-                      : 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                  key={step.number}
+                  onClick={() => {
+                    if (isAccessible) {
+                      router.push(`/dashboard/agent/create?type=${agentType}&step=${step.number}${agentId ? `&id=${agentId}` : ''}`);
+                    }
+                  }}
+                  className={`flex items-start space-x-3 p-4 rounded-[10px] transition-all ${
+                    isAccessible ? 'cursor-pointer' : ''
+                  } ${
+                    step.isActive
+                      ? 'bg-white border border-[#8266D4]'
+                      : isAccessible
+                      ? 'bg-white border border-[#8266D4]'
+                      : 'bg-white border border-[#0000001A] opacity-60'
                   }`}
                 >
-                  {step.isCompleted ? (
-                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-                      <path
-                        d="M13.3332 4L5.99984 11.3333L2.6665 8"
-                        stroke="#25A83D"
-                        strokeWidth="1"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    step.number
-                  )}
-                </div>
+                  <div
+                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base ${
+                      step.isCompleted
+                        ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                        : step.isActive
+                        ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                        : 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                    }`}
+                  >
+                    {step.isCompleted ? (
+                      <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                        <path
+                          d="M13.3332 4L5.99984 11.3333L2.6665 8"
+                          stroke="#FFFFFF"
+                          strokeWidth="1"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      step.number
+                    )}
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className={`text-base ${
-                      step.isActive || step.isCompleted ? 'text-[#0A0A0A]' : 'text-black'
-                    }`}
-                  >
-                    {step.title}
-                  </h3>
-                  <p
-                    className={`text-xs ${
-                      step.isActive || step.isCompleted ? 'text-[#717182]' : 'text-black'
-                    }`}
-                  >
-                    {step.subtitle}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <h3
+                      className={`text-base ${
+                        step.isActive || isAccessible ? 'text-[#0A0A0A]' : 'text-black'
+                      }`}
+                    >
+                      {step.title}
+                    </h3>
+                    <p
+                      className={`text-xs ${
+                        step.isActive || isAccessible ? 'text-[#717182]' : 'text-black'
+                      }`}
+                    >
+                      {step.subtitle}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

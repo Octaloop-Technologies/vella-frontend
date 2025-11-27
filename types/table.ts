@@ -66,6 +66,11 @@ export interface AgentsTable extends Record<string, unknown> {
   phoneNumber?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  tune?: string;
+  voice_id?: string;
+  voice_settings?: string;
+  model_id?: string;
+  knowledgeBaseDocuments?: any[];
 }
 
 export interface WorkflowsTable extends Record<string, unknown> {

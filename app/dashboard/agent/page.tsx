@@ -105,6 +105,14 @@ export default function Agent() {
     setIsDetailModalOpen(true);
   };
 
+  const handleEditAgent = (agent: AgentsTable) => {
+    const params = new URLSearchParams({
+      type: agent.type.toLowerCase(),
+      id: agent.id || ''
+    });
+    router.push(`/dashboard/agent/create?${params.toString()}`);
+  };
+
   const handleDeleteAgent = (agent: AgentsTable) => {
     setAgentToDelete(agent);
     setIsDeleteModalOpen(true);
@@ -237,6 +245,7 @@ export default function Agent() {
   const tableData = paginatedData.map(agent => ({
     ...agent,
     onViewDetails: () => handleViewDetails(agent),
+    onEdit: () => handleEditAgent(agent),
     onDelete: () => handleDeleteAgent(agent),
     onTestAgent: () => handleTestAgent(agent),
     onPreviewWidget: () => handlePreviewWidget(agent),
@@ -397,7 +406,7 @@ export default function Agent() {
                         { label: 'Last Active', value: agent.lastActive }
                       ]}
                       menuItems={[
-                        // { icon: <FileEditIcon />, label: 'Edit Agent' },
+                        { icon: <FileEditIcon />, label: 'Edit Agent', onClick: () => handleEditAgent(agent) },
                         // { icon: <CopyIcon />, label: 'Duplicate Agent' },
                         { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
                         ...((agent.type === 'Inbound' || agent.type === 'inbound') && (agent.status === 'Draft' || agent.status === 'Inactive') ? [{

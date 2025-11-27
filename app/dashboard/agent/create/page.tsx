@@ -27,12 +27,14 @@ import {
 } from "@/hooks/useConfig";
 import { useToast } from "@/contexts/ToastContext";
 import { apiService } from "@/lib/api";
+import UploadDocumentModal from '@/components/knowledge/UploadDocumentModal';
 
 // Step Components
 function Step1() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get("type") || "inbound";
+  const agentId = searchParams.get("id");
   const { agentData, updateAgentData } = useAgentCreation();
   const { addToast } = useToast();
 
@@ -82,6 +84,23 @@ function Step1() {
     }
   }, [voiceDetails, agentData.tune, updateAgentData]);
 
+  // Auto-set accent from voice details if not set
+  React.useEffect(() => {
+    if (
+      voiceDetails?.success &&
+      voiceDetails.voice.labels.accent &&
+      !agentData.accent &&
+      accents.length > 0
+    ) {
+      const matchingAccent = accents.find(
+        (a) => a.name.toLowerCase() === voiceDetails.voice.labels.accent.toLowerCase()
+      );
+      if (matchingAccent) {
+        updateAgentData({ accent: matchingAccent.code });
+      }
+    }
+  }, [voiceDetails, agentData.accent, updateAgentData, accents]);
+
   const handleNext = () => {
     // Validate required fields
     const requiredFields = [
@@ -108,7 +127,15 @@ function Step1() {
       return;
     }
 
-    router.push(`/dashboard/agent/create?type=${agentType}&step=2`);
+    if (agentData.description && agentData.description.length < 30) {
+      addToast({
+        message: "Description must be at least 30 characters long",
+        type: "error",
+      });
+      return;
+    }
+
+    router.push(`/dashboard/agent/create?type=${agentType}&step=2${agentId ? `&id=${agentId}` : ''}`);
   };
 
   const handlePrevious = () => {
@@ -532,31 +559,31 @@ function Step1() {
         <Card className="p-6 mt-6">
           <h3 className="text-lg font-medium mb-4 text-black">Selected Voice & Tune</h3>
           {voiceLoading ? (
-            <p className="text-sm text-gray-500 text-black">Loading voice details...</p>
+            <p className="text-sm text-gray-500">Loading voice details...</p>
           ) : voiceDetails?.success ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Voice Name:</span>
-                  <p className="text-[#717182] mt-1 text-black">{voiceDetails.voice.name}</p>
+                  <p className="text-[#717182] mt-1">{voiceDetails.voice.name}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Tune (Tone):</span>
-                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.descriptive}</p>
+                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.descriptive}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Accent:</span>
-                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.accent}</p>
+                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.accent}</p>
                 </div>
                 <div>
                   <span className="font-medium text-[#1E1E1E]">Age:</span>
-                  <p className="text-[#717182] mt-1 capitalize text-black">{voiceDetails.voice.labels.age}</p>
+                  <p className="text-[#717182] mt-1 capitalize">{voiceDetails.voice.labels.age}</p>
                 </div>
               </div>
 
               <div>
                 <span className="font-medium text-[#1E1E1E] text-sm">Description:</span>
-                <p className="text-[#717182] text-sm mt-1 text-black">{voiceDetails.voice.description}</p>
+                <p className="text-[#717182] text-sm mt-1">{voiceDetails.voice.description}</p>
               </div>
 
               {voiceDetails.voice.preview_url && (
@@ -577,7 +604,7 @@ function Step1() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-red-500 text-black">Failed to load voice details</p>
+            <p className="text-sm text-red-500">Failed to load voice details</p>
           )}
         </Card>
       )}
@@ -597,35 +624,41 @@ function Step2() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get("type") || "inbound";
+  const agentId = searchParams.get("id");
   const { agentData, updateAgentData } = useAgentCreation();
   const { addToast } = useToast();
 
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch documents from knowledge base API
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await apiService.getDocuments({ skip: 0, limit: 100 });
-        setDocuments(data);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load documents';
-        setError(errorMessage);
-        addToast({
-          message: errorMessage,
-          type: 'error',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiService.getDocuments({ skip: 0, limit: 100 });
+      setDocuments(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load documents';
+      setError(errorMessage);
+      addToast({
+        message: errorMessage,
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDocuments();
-  }, [addToast]);
+  }, []);
+
+  const handleUploadSuccess = () => {
+    fetchDocuments();
+  };
 
   const toggleDocument = (docId: string) => {
     const current = agentData.selectedDocuments || [];
@@ -692,10 +725,10 @@ function Step2() {
         <div className="text-center py-12">
           <p className="text-[#717182] mb-4">No documents found in your knowledge base.</p>
           <button
-            onClick={() => router.push('/dashboard/knowledge')}
+            onClick={() => setIsUploadModalOpen(true)}
             className="px-4 py-2 bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white rounded-lg"
           >
-            Add Documents
+            Upload Document
           </button>
         </div>
       ) : (
@@ -734,13 +767,19 @@ function Step2() {
 
       <StepNavigation
         onPrevious={() =>
-          router.push(`/dashboard/agent/create?type=${agentType}&step=1`)
+          router.push(`/dashboard/agent/create?type=${agentType}&step=1${agentId ? `&id=${agentId}` : ''}`)
         }
         onNext={() =>
           router.push(
-            `/dashboard/agent/create?type=${agentType}&step=${nextStep}`
+            `/dashboard/agent/create?type=${agentType}&step=${nextStep}${agentId ? `&id=${agentId}` : ''}`
           )
         }
+      />
+
+      <UploadDocumentModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={handleUploadSuccess}
       />
     </div>
   );
@@ -750,6 +789,40 @@ function CreateAgentContent() {
   const searchParams = useSearchParams();
   const agentType = searchParams.get("type") || "inbound";
   const step = parseInt(searchParams.get("step") || "1");
+  const agentId = searchParams.get("id");
+  const { updateAgentData } = useAgentCreation();
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    if (agentId) {
+      const fetchAgent = async () => {
+        try {
+          const agent = await apiService.getAgentById(agentId);
+          updateAgentData({
+            agentName: agent.name,
+            agentTypeDropdown: agent.agent_type,
+            channelType: agent.channel_type,
+            description: agent.description,
+            language: agent.language,
+            gender: agent.gender,
+            persona: agent.persona,
+            tune: agent.tune,
+            voiceId: agent.voice_id,
+            phoneNumber: agent.phone_number || '',
+            selectedDocuments: agent.knowledge_base_documents?.map((d: any) => d.id) || [],
+            // Map other fields if necessary
+          });
+        } catch (error) {
+          console.error("Failed to fetch agent:", error);
+          addToast({
+            message: "Failed to load agent details",
+            type: "error",
+          });
+        }
+      };
+      fetchAgent();
+    }
+  }, [agentId, updateAgentData, addToast]);
 
   console.log("CreateAgentContent - agentType:", agentType, "step:", step); // Debug log
 

@@ -9,11 +9,13 @@ import Image from 'next/image';
 import Input from '@/components/shared/Input';
 import { useToast } from '@/contexts/ToastContext';
 import { configService, CreateAgentRequest } from '@/lib/configApi';
+import { apiService } from '@/lib/api';
 
 export function Step3Channels() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'inbound';
+  const agentId = searchParams.get('id');
   const { agentData, updateAgentData } = useAgentCreation();
 
   const socialChannels = [
@@ -156,8 +158,8 @@ export function Step3Channels() {
       </Card>
 
       <StepNavigation
-        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=2`)}
-        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4`)}
+        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=2${agentId ? `&id=${agentId}` : ''}`)}
+        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4${agentId ? `&id=${agentId}` : ''}`)}
       />
     </div>
   );
@@ -167,6 +169,7 @@ export function Step4PhoneNumber() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'inbound';
+  const agentId = searchParams.get('id');
   const { agentData, updateAgentData } = useAgentCreation();
   const [phoneNumbers, setPhoneNumbers] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -269,8 +272,8 @@ export function Step4PhoneNumber() {
       )}
 
       <StepNavigation
-        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=3`)}
-        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=5`)}
+        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=3${agentId ? `&id=${agentId}` : ''}`)}
+        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=5${agentId ? `&id=${agentId}` : ''}`)}
       />
     </div>
   );
@@ -280,6 +283,7 @@ export function Step3WidgetSettings() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'widget';
+  const agentId = searchParams.get('id');
   const { agentData, updateAgentData } = useAgentCreation();
   const [selectedWidgetType, setSelectedWidgetType] = useState<'chat' | 'voice'>('chat');
 
@@ -410,8 +414,8 @@ export function Step3WidgetSettings() {
       </div>
 
       <StepNavigation
-        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=2`)}
-        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4`)}
+        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=2${agentId ? `&id=${agentId}` : ''}`)}
+        onNext={() => router.push(`/dashboard/agent/create?type=${agentType}&step=4${agentId ? `&id=${agentId}` : ''}`)}
       />
     </div>
   );
@@ -421,6 +425,7 @@ export function Step5ReviewPublish() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentType = searchParams.get('type') || 'inbound';
+  const agentId = searchParams.get('id');
   const { agentData } = useAgentCreation();
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -455,20 +460,26 @@ export function Step5ReviewPublish() {
 
       console.log('Sending agent data to API:', createAgentData);
       
-      const result = await configService.createAgent(createAgentData);
-      console.log('Agent created successfully:', result);
-      
-      addToast({
-        message: `Agent "${agentData.agentName}" created successfully!`,
-        type: 'success'
-      });
+      if (agentId) {
+        await apiService.updateAgent(agentId, createAgentData as any);
+        addToast({
+          message: `Agent "${agentData.agentName}" updated successfully!`,
+          type: 'success'
+        });
+      } else {
+        await configService.createAgent(createAgentData);
+        addToast({
+          message: `Agent "${agentData.agentName}" created successfully!`,
+          type: 'success'
+        });
+      }
       
       // Navigate back to agents list
       router.push('/dashboard/agent');
     } catch (error) {
-      console.error('Failed to create agent:', error);
+      console.error('Failed to save agent:', error);
       addToast({
-        message: `Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to save agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
         type: 'error'
       });
     } finally {
@@ -476,7 +487,13 @@ export function Step5ReviewPublish() {
     }
   };
 
-  const previousStep = agentType === 'widget' ? 3 : 4;
+  const getPreviousStep = () => {
+    if (agentType === 'widget') return 2;
+    if (agentType === 'outbound') return 3;
+    return 4; // inbound
+  };
+
+  const previousStep = getPreviousStep();
 
   return (
     <div className='p-6 overflow-auto h-[80vh]'>
@@ -535,9 +552,9 @@ export function Step5ReviewPublish() {
         </p>
       </div>
       <StepNavigation
-        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${previousStep}`)}
+        onPrevious={() => router.push(`/dashboard/agent/create?type=${agentType}&step=${previousStep}${agentId ? `&id=${agentId}` : ''}`)}
         onNext={handlePublish}
-        nextLabel={isLoading ? "Creating Agent..." : "Publish Agent"}
+        nextLabel={isLoading ? (agentId ? "Updating Agent..." : "Creating Agent...") : (agentId ? "Update Agent" : "Publish Agent")}
         disabled={isLoading}
       />
     </div>

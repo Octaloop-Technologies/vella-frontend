@@ -320,13 +320,13 @@ export default function Knowledge() {
             </button>
           </div>
 
-          <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8 py-6'>
+          {/* <Card className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8 py-6'>
             {
               statsCards.map((card) => (
                 <StatsCard key={card.title} {...card} />
               ))
             }
-          </Card>
+          </Card> */}
 
           {/* Search and Filter Bar */}
           <Card className="flex items-center gap-4 px-8 py-6">

@@ -267,8 +267,12 @@ const getColumnConfig = <T extends Record<string, unknown>>(
             
             return (
               <Dropdown trigger={<DotsIcon />}>
-                {/* <DropdownItem icon={<FileEditIcon />} label="Edit Agent" />
-                <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
+                <DropdownItem 
+                  icon={<FileEditIcon />} 
+                  label="Edit Agent" 
+                  onClick={row.onEdit as () => void}
+                />
+                {/* <DropdownItem icon={<CopyIcon />} label="Duplicate Agent" /> */}
                 <DropdownItem
                   icon={<EyeIcon />}
                   label="View Details"

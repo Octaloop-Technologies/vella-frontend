@@ -78,23 +78,31 @@ const Sidebar: React.FC = () => {
       <BaseModal
         isOpen={isSignoutOpen}
         onClose={() => setIsSignoutOpen(false)}
-        title="Sign out"
-        subtitle="Are you sure you want to sign out?"
+        maxWidth="max-w-xl"
         showCloseButton={false}
-        maxWidth="max-w-sm"
       >
-        <div className="p-6">
-          <p className="text-sm text-gray-700 mb-6">You will be signed out of your account and returned to the login screen.</p>
-          <div className="flex justify-end gap-3">
+        <div className="p-10 pt-14 text-center">
+          {/* Icon */}
+          <div className="flex justify-center mb-6">
+            <div className="w-14 h-14 bg-[#CF17421A] rounded-full flex items-center justify-center">
+              <Image src="/svgs/trash.svg" alt="Sign out" width={24} height={24} />
+            </div>
+          </div>
+
+          <h2 className="text-lg font-medium mb-3 text-black">Sign out</h2>
+          <p className="text-xs opacity-70 mb-8 text-black">
+            Are you sure you want to sign out? You will be returned to the login screen.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex gap-4">
             <button
-              type="button"
               onClick={() => setIsSignoutOpen(false)}
-              className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+              className="flex-1 px-6 py-3 border border-[#8266D4] text-[#8266D4] rounded-lg font-medium"
             >
               Cancel
             </button>
             <button
-              type="button"
               onClick={async () => {
                 setIsSignoutOpen(false);
                 try {
@@ -103,7 +111,7 @@ const Sidebar: React.FC = () => {
                   router.push('/login');
                 }
               }}
-              className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+              className="flex-1 px-6 py-3 border border-[#CF1742] bg-[#CF17421A] text-[#CF1742] rounded-lg font-medium"
             >
               Sign Out
             </button>

@@ -72,6 +72,10 @@ export function transformApiAgentToTable(apiAgent: ApiAgent): AgentsTable {
     createdAt: apiAgent.created_at,
     updatedAt: apiAgent.updated_at,
     knowledgeBaseDocuments: apiAgent.knowledge_base_documents || [],
+    tune: apiAgent.tune,
+    voice_id: apiAgent.voice_id,
+    voice_settings: JSON.stringify(apiAgent.voice_settings),
+    model_id: apiAgent.model_id,
   };
 }
 

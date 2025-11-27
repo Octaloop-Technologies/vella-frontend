@@ -17,6 +17,7 @@ interface InputProps {
   icon?: React.ReactNode;
   disabled?: boolean;
   required?: boolean;
+  name?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -33,6 +34,7 @@ const Input: React.FC<InputProps> = ({
   icon,
   disabled,
   required,
+  name,
 }) => {
   return (
     <div className={`${containerClassName} relative`}>
@@ -48,6 +50,7 @@ const Input: React.FC<InputProps> = ({
       )}
       <input
         type={type}
+        name={name}
         placeholder={placeholder}
         value={value}
         onChange={onChange}

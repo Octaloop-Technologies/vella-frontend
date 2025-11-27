@@ -52,16 +52,33 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authHeader = request.headers.get('authorization');
     const headers: HeadersInit = {
       'accept': 'application/json',
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }
 
+    const formData = new URLSearchParams();
+    Object.entries(body).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+            if (value.length === 0) {
+                formData.append(key, ""); 
+            } else {
+                value.forEach((item) => formData.append(key, String(item)));
+            }
+        } else if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+        } else {
+            formData.append(key, String(value));
+        }
+      }
+    });
+
     const response = await fetch(`${BASE_URL}/agents/${id}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(body),
+      body: formData.toString(),
     });
 
     if (!response.ok) {
