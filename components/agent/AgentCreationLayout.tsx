@@ -182,19 +182,17 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
                     isAccessible ? 'cursor-pointer' : ''
                   } ${
                     step.isActive
-                      ? 'bg-white border border-[#8266D4]'
+                      ? 'bg-[#F4F1FD] border border-[#8266D4]'
                       : isAccessible
-                      ? 'bg-white border border-[#8266D4]'
-                      : 'bg-white border border-[#0000001A] opacity-60'
+                      ? 'bg-white border border-[#EBEBEB]'
+                      : 'bg-white border border-[#EBEBEB] opacity-60'
                   }`}
                 >
                   <div
                     className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base ${
-                      step.isCompleted
+                      step.isCompleted || step.isActive
                         ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
-                        : step.isActive
-                        ? 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
-                        : 'bg-gradient-to-b from-[#8266D4] to-[#41288A] text-white'
+                        : 'bg-[#F3F4F6] text-[#6B7280]'
                     }`}
                   >
                     {step.isCompleted ? (

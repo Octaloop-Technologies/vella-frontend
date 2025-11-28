@@ -173,7 +173,7 @@ export default function History() {
 
   return (
     <DashboardLayout>
-      <div className="p-8">
+      <div className="p-8 text-black">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-6">

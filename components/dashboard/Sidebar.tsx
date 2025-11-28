@@ -28,7 +28,9 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 p-3">
         <ul className="space-y-2">
           {SIDEBAR_ITEMS_CONFIG.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === '/dashboard' 
+              ? pathname === item.href 
+              : (pathname === item.href || pathname.startsWith(`${item.href}/`));
             const IconComponent = getIconComponent(item.iconName);
              const isLogout = /sign\s*out|log\s*out|logout/i.test(item.label) || item.href === '/logout' || (item as any).action === 'logout';
             
