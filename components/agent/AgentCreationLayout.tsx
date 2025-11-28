@@ -3,6 +3,7 @@
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAgentCreation } from '@/contexts/AgentCreationContext';
 
 interface Step {
   number: number;
@@ -27,6 +28,26 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
   const searchParams = useSearchParams();
   const agentId = searchParams.get('id');
   const isEditMode = !!agentId;
+  const { agentData } = useAgentCreation();
+
+  // Validation logic for Step 1
+  const isStep1Valid = React.useMemo(() => {
+    const requiredFields = [
+      agentData.agentName,
+      agentData.agentTypeDropdown || agentType,
+      agentData.channelType,
+      agentData.description,
+      agentData.language,
+      agentData.gender,
+      agentData.accent,
+      agentData.persona,
+    ];
+
+    const areFieldsFilled = requiredFields.every(field => field && field.trim() !== '');
+    const isDescriptionValid = (agentData.description?.length || 0) >= 30;
+
+    return areFieldsFilled && isDescriptionValid;
+  }, [agentData, agentType]);
 
   let steps: Step[] = [];
 
@@ -147,7 +168,7 @@ const AgentCreationLayout: React.FC<AgentCreationLayoutProps> = ({
 
           <div className="space-y-3">
             {steps.map((step) => {
-              const isAccessible = step.isActive || step.isCompleted || isEditMode;
+              const isAccessible = step.number === 1 || isStep1Valid || isEditMode;
               
               return (
                 <div

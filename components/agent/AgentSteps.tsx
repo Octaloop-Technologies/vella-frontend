@@ -25,8 +25,8 @@ export function Step3Channels() {
   ];
 
   const crmIntegrations = [
-    { id: 'hubspot', name: 'HubSpot' },
-    { id: 'keap', name: 'Keap' },
+    // { id: 'hubspot', name: 'HubSpot' },
+    // { id: 'keap', name: 'Keap' },
     { id: 'gohighlevel', name: 'GoHighLevel' },
   ];
 
@@ -61,14 +61,14 @@ export function Step3Channels() {
     <div className='p-6 overflow-auto h-[80vh]'>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Channels</h1>
+        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-2">Integrations</h1>
         <p className="text-[#717182] text-base">
-          Connect your agent to communication channels
+          Connect your agent to CRM integrations
         </p>
       </div>
 
       <div className="py-5 px-3.5 text-sm text-[#2B231E] font-medium opacity-50 mb-6 bg-[#EBEBEB] border border-[#EBEBEB] rounded-lg">
-        Choose which documents from your knowledge base this agent should have access to.
+        Choose which CRM integrations this agent should have access to.
       </div>
 
       {/* <Card className="p-5 space-y-8 mb-8">

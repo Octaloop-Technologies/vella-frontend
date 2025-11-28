@@ -26,9 +26,12 @@ import PlayIcon from '@/components/icons/PlayIcon';
 import TrashIcon from '@/components/icons/TrashIcon';
 import { useAgents } from '@/hooks/useAgents';
 import Button from '@/components/shared/Button';
+import { useToast } from '@/contexts/ToastContext';
+
 
 export default function Agent() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All Agents');
   const [view, setView] = useState<'list' | 'grid'>('list');
@@ -182,7 +185,11 @@ export default function Agent() {
       await refreshAgents();
     } catch (error) {
       console.error('Failed to activate agent:', error);
-      // You can add toast notification here
+      
+      addToast({
+        message: 'Failed to activate agent. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsActivating(false);
     }

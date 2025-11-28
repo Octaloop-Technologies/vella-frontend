@@ -245,15 +245,15 @@ function Step1() {
             placeholder="Type..."
             value={agentData.description}
             onChange={(e) => {
-              if (e.target.value.length <= 5000) {
+              if (e.target.value.length <= 10000) {
                 updateAgentData({ description: e.target.value });
               }
             }}
             rows={4}
             className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:bg-[#E0E0E0] transition-colors resize-none"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            {agentData.description?.length || 0}/5000 characters
+          <p className={`text-xs mt-1 ${(agentData.description?.length || 0) < 30 ? 'text-red-500' : 'text-gray-500'}`}>
+            {agentData.description?.length || 0}/10000 characters
           </p>
 
           {showGenPanel && (
