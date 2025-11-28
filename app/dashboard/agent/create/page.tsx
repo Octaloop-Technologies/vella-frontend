@@ -189,7 +189,7 @@ function Step1() {
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 required
               >
-                <option value="">Select Channel Type</option>
+                <option value="" disabled>Select Channel Type</option>
                 {(agentType === "outbound" || agentType === "inbound") ? (
                   <option value="phone_only">Phone</option>
                 ) : (
@@ -366,7 +366,7 @@ function Step1() {
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={languagesLoading}
               >
-                <option value="">
+                <option value="" disabled>
                   {languagesLoading
                     ? "Loading languages..."
                     : "Select Language"}
@@ -415,7 +415,7 @@ function Step1() {
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={gendersLoading}
               >
-                <option value="">
+                <option value="" disabled>
                   {gendersLoading ? "Loading genders..." : "Select Gender"}
                 </option>
                 {genders.map((gender) => (
@@ -465,7 +465,7 @@ function Step1() {
                 className="w-full px-4 py-3 bg-[#EBEBEB] rounded-[10px] outline-none text-sm text-[#1E1E1E] appearance-none cursor-pointer focus:bg-[#E0E0E0] transition-colors"
                 disabled={accentsLoading}
               >
-                <option value="">
+                <option value="" disabled>
                   {!agentData.gender
                     ? "No options available"
                     : accentsLoading
@@ -520,7 +520,7 @@ function Step1() {
                   personasLoading || !agentData.accent
                 }
               >
-                <option value="">
+                <option value="" disabled>
                   {!agentData.gender
                     ? "No options available"
                     : !agentData.accent

@@ -17,6 +17,7 @@ export function Step3Channels() {
   const agentType = searchParams.get('type') || 'inbound';
   const agentId = searchParams.get('id');
   const { agentData, updateAgentData } = useAgentCreation();
+  const { addToast } = useToast();
 
   const socialChannels = [
     { id: 'facebook', name: 'Facebook Messenger' },
@@ -54,6 +55,34 @@ export function Step3Channels() {
     };
     fetchGHLStatus();
   }, []);
+
+  const handleGHLConnect = async () => {
+    try {
+      // Save current URL to return to after auth
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ghl_return_url', window.location.href);
+      }
+      
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+      const response = await fetch('/api/ghl/auth-url', {
+        headers: {
+          'Authorization': `${tokenType} ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        addToast({ message: 'Failed to get authorization URL', type: 'error' });
+      }
+    } catch (error) {
+      addToast({ message: 'Something went wrong', type: 'error' });
+    }
+  };
 
   // Assume connect buttons update selected, but not implemented; reusing as is
 
@@ -139,6 +168,7 @@ export function Step3Channels() {
                     </div>
                   ) : (
                     <button
+                      onClick={handleGHLConnect}
                       className="px-6 py-2 rounded-[8px] border border-[#8266D4] text-[#8266D4] font-medium flex items-center space-x-2 shadow-card"
                     >
                       <Image

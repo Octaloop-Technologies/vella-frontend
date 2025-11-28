@@ -45,9 +45,15 @@ const CallbackContent = () => {
         setStatus('success');
         addToast({ message: "GoHighLevel connected successfully!", type: "success" });
         
-        // Redirect back to integrations page after a short delay
+        // Redirect back to integrations page or return url after a short delay
         setTimeout(() => {
-          router.push('/dashboard/integration');
+          const returnUrl = localStorage.getItem('ghl_return_url');
+          if (returnUrl) {
+            localStorage.removeItem('ghl_return_url');
+            window.location.href = returnUrl;
+          } else {
+            router.push('/dashboard/integration');
+          }
         }, 2000);
 
       } catch (error: any) {
@@ -93,10 +99,18 @@ const CallbackContent = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Connection Failed</h2>
             <p className="text-gray-600 mb-6">Something went wrong while connecting to GoHighLevel.</p>
             <button 
-              onClick={() => router.push('/dashboard/integration')}
+              onClick={() => {
+                const returnUrl = localStorage.getItem('ghl_return_url');
+                if (returnUrl) {
+                  localStorage.removeItem('ghl_return_url');
+                  window.location.href = returnUrl;
+                } else {
+                  router.push('/dashboard/integration');
+                }
+              }}
               className="bg-[#8266D4] text-white px-6 py-2 rounded-lg hover:bg-[#6B4FBE] transition-colors"
             >
-              Back to Integrations
+              Back
             </button>
           </>
         )}
