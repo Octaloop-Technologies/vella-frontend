@@ -569,7 +569,7 @@ export function Step5ReviewPublish() {
           <div>
             <label className="text-sm font-medium text-black">Integrations</label>
             <p className="text-xs mt-1 text-black">
-              {(agentData.selectedIntegrations || []).length} CRM integration selected
+              {agentData.ghl_enabled ? '1' : '0'} CRM integration selected
             </p>
           </div>
         </div>
