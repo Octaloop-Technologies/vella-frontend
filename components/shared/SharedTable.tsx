@@ -242,15 +242,15 @@ const getColumnConfig = <T extends Record<string, unknown>>(
             </span>
           ),
         },
-        {
-          key: "successRate",
-          header: "Success Rate",
-          render: (row: Record<string, unknown>) => (
-            <span className="text-xs text-black">
-              {String(row.successRate)}
-            </span>
-          ),
-        },
+        // {
+        //   key: "successRate",
+        //   header: "Success Rate",
+        //   render: (row: Record<string, unknown>) => (
+        //     <span className="text-xs text-black">
+        //       {String(row.successRate)}
+        //     </span>
+        //   ),
+        // },
         {
           key: "lastActive",
           header: "Last Active",

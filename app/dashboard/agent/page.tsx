@@ -426,7 +426,7 @@ export default function Agent() {
                       ]}
                       stats={[
                         { label: 'Conversations', value: agent.conversations },
-                        { label: 'Success Rate', value: agent.successRate },
+                        // { label: 'Success Rate', value: agent.successRate },
                         { label: 'Last Active', value: agent.lastActive }
                       ]}
                       menuItems={[
