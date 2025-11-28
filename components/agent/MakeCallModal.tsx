@@ -50,11 +50,15 @@ export default function MakeCallModal({ isOpen, onClose, agentId, agentName }: M
       formData.append('to_number', phoneNumber);
       formData.append('from_number', '');
 
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
       const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/outbound/make-call', {
         method: 'POST',
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `${tokenType} ${token}`
         },
         body: formData.toString(),
       });

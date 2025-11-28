@@ -161,11 +161,19 @@ export default function Agent() {
       const body = new URLSearchParams();
       body.append('agent_id', agent.id);
 
-      const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/activate-agent', {
+      const endpoint = agent.type.toLowerCase() === 'outbound' 
+        ? 'https://ai-voice-agent-backend.octaloop.dev/twilio/outbound/activate-agent'
+        : 'https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/activate-agent';
+
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `${tokenType} ${token}`
         },
         body: body.toString()
       });
@@ -204,11 +212,19 @@ export default function Agent() {
       body.append('agent_id', agent.id);
       body.append('set_status_to_inactive', 'true');
 
-      const response = await fetch('https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/deactivate-agent', {
+      const endpoint = agent.type.toLowerCase() === 'outbound'
+        ? 'https://ai-voice-agent-backend.octaloop.dev/twilio/outbound/deactivate-agent'
+        : 'https://ai-voice-agent-backend.octaloop.dev/twilio/inbound/deactivate-agent';
+
+      const token = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `${tokenType} ${token}`
         },
         body: body.toString()
       });
@@ -251,6 +267,7 @@ export default function Agent() {
   // Updated SharedTable data with action handlers
   const tableData = paginatedData.map(agent => ({
     ...agent,
+    phoneNumber: agent.type.toLowerCase() === 'outbound' ? '+447401092965' : agent.phoneNumber,
     onViewDetails: () => handleViewDetails(agent),
     onEdit: () => handleEditAgent(agent),
     onDelete: () => handleDeleteAgent(agent),
@@ -402,7 +419,7 @@ export default function Agent() {
                       title={agent.name}
                       onTitleClick={() => handleViewDetails(agent)}
                       description={agent.description?.slice(0, 100) || "AI agent for customer interactions"}
-                      phoneNumber={agent.phoneNumber}
+                      phoneNumber={agent.type.toLowerCase() === 'outbound' ? '+447401092965' : agent.phoneNumber}
                       badges={[
                         { label: agent.type, variant: agent.typeVariant },
                         { label: agent.status, variant: agent.statusVariant }
@@ -416,12 +433,12 @@ export default function Agent() {
                         { icon: <FileEditIcon />, label: 'Edit Agent', onClick: () => handleEditAgent(agent) },
                         // { icon: <CopyIcon />, label: 'Duplicate Agent' },
                         { icon: <EyeIcon />, label: 'View Details', onClick: () => handleViewDetails(agent) },
-                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && (agent.status === 'Draft' || agent.status === 'Inactive') ? [{
+                        ...((agent.type.toLowerCase() === 'inbound' || agent.type.toLowerCase() === 'outbound') && (agent.status === 'Draft' || agent.status === 'Inactive') ? [{
                           icon: <PlayIcon />,
                           label: 'Activate Agent',
                           onClick: () => handleActivateAgent(agent)
                         }] : []),
-                        ...((agent.type === 'Inbound' || agent.type === 'inbound') && agent.status === 'Active' ? [{
+                        ...((agent.type.toLowerCase() === 'inbound' || agent.type.toLowerCase() === 'outbound') && agent.status === 'Active' ? [{
                           icon: <PauseIcon />,
                           label: 'Deactivate Agent',
                           onClick: () => handleDeactivateAgent(agent)

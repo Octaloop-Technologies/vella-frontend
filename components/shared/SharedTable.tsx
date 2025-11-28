@@ -279,8 +279,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
                   onClick={row.onViewDetails as () => void}
                 />
                 
-                {/* Activate Agent - Only for Inbound agents with Draft or Inactive status */}
-                {(agentType === 'Inbound' || agentType === 'inbound') && 
+                {/* Activate Agent - Only for Inbound/Outbound agents with Draft or Inactive status */}
+                {((agentType === 'Inbound' || agentType === 'inbound') || (agentType === 'Outbound' || agentType === 'outbound')) && 
                  (agentStatus === 'Draft' || agentStatus === 'Inactive') && (
                   <DropdownItem
                     icon={<PlayIcon />}
@@ -289,8 +289,8 @@ const getColumnConfig = <T extends Record<string, unknown>>(
                   />
                 )}
                 
-                {/* Deactivate Agent - Only for Inbound agents with Active status */}
-                {(agentType === 'Inbound' || agentType === 'inbound') && 
+                {/* Deactivate Agent - Only for Inbound/Outbound agents with Active status */}
+                {((agentType === 'Inbound' || agentType === 'inbound') || (agentType === 'Outbound' || agentType === 'outbound')) && 
                  agentStatus === 'Active' && (
                   <DropdownItem
                     icon={<PauseIcon />}
